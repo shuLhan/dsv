@@ -1,8 +1,3 @@
-/*
-Copyright 2015 Mhd Sulhan <ms@kilabit.info>
-All rights reserved.  Use of this source code is governed by a BSD-style
-license that can be found in the LICENSE file.
-*/
 package dsv
 
 import (
@@ -11,7 +6,8 @@ import (
 )
 
 const (
-	DefaultSeparator = "," // Default separator for field.
+	// DefaultSeparator for field.
+	DefaultSeparator = ","
 )
 
 /*
@@ -33,9 +29,9 @@ type Metadata struct {
 /*
 SetDefault value in instance.
 */
-func (this *Metadata) SetDefault () {
-	if "" == this.Separator {
-		this.Separator = DefaultSeparator
+func (md *Metadata) SetDefault () {
+	if "" == md.Separator {
+		md.Separator = DefaultSeparator
 	}
 }
 
@@ -43,20 +39,20 @@ func (this *Metadata) SetDefault () {
 IsEqual return true if this metadata equal with other instance, return false
 otherwise.
 */
-func (this *Metadata) IsEqual (o *Metadata) bool {
-	if this == o {
+func (md *Metadata) IsEqual (o *Metadata) bool {
+	if md == o {
 		return true
 	}
-	if this.Name != o.Name {
+	if md.Name != o.Name {
 		return false
 	}
-	if this.Separator != o.Separator {
+	if md.Separator != o.Separator {
 		return false
 	}
-	if this.LeftQuote != o.LeftQuote {
+	if md.LeftQuote != o.LeftQuote {
 		return false
 	}
-	if this.RightQuote != o.RightQuote {
+	if md.RightQuote != o.RightQuote {
 		return false
 	}
 	return true
@@ -65,8 +61,8 @@ func (this *Metadata) IsEqual (o *Metadata) bool {
 /*
 String yes, it will print it JSON like format.
 */
-func (this *Metadata) String() string {
-	r, e := json.MarshalIndent (this, "", "\t")
+func (md *Metadata) String() string {
+	r, e := json.MarshalIndent (md, "", "\t")
 	if nil != e {
 		log.Print (e)
 	}

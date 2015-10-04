@@ -1,10 +1,4 @@
 /*
-Copyright 2015 Mhd Sulhan <ms@kilabit.info>
-All rights reserved.  Use of this source code is governed by a BSD-style
-license that can be found in the LICENSE file.
-*/
-
-/*
 Package dsv is a library for working with delimited separated value (DSV).
 
 DSV is a free-style form of CSV format of text data, where each record is
@@ -22,7 +16,8 @@ import (
 )
 
 var (
-	ErrNoInput = errors.New ("dsv: No input file is given.")
+	// ErrNoInput define an error when no Input file is given in JSON.
+	ErrNoInput = errors.New ("dsv: No input file is given")
 )
 
 /*
@@ -43,7 +38,11 @@ func (e *ErrReader) Error () string {
 }
 
 const (
+	// DefaultRejected define the default file which will contain the
+	// rejected record when not defined in JSON config.
 	DefaultRejected		= "rejected.dsv"
+	// DefaultMaxRecord define default maximum record that will be saved
+	// in memory when not defined in JSON config.
 	DefaultMaxRecord	= 10
 )
 
@@ -78,7 +77,7 @@ type Reader struct {
 }
 
 /*
-New create and initialize new instance of DSV Reader with default values.
+NewReader create and initialize new instance of DSV Reader with default values.
 */
 func NewReader () *Reader {
 	return &Reader {
@@ -97,54 +96,54 @@ func NewReader () *Reader {
 }
 
 /*
-Close all open descriptors.
+CloseReader will close all open descriptors.
 */
-func (this *Reader) CloseReader () {
-	this.bufReject.Flush ()
-	this.fReject.Close ()
-	this.fRead.Close ()
+func (reader *Reader) CloseReader () {
+	reader.bufReject.Flush ()
+	reader.fReject.Close ()
+	reader.fRead.Close ()
 }
 
 /*
 setDefault options for global config and each metadata.
 */
-func (this *Reader) setDefault () {
-	if "" == this.Rejected {
-		this.Rejected = DefaultRejected
+func (reader *Reader) setDefault () {
+	if "" == reader.Rejected {
+		reader.Rejected = DefaultRejected
 	}
-	if 0 == this.MaxRecord {
-		this.MaxRecord = DefaultMaxRecord
+	if 0 == reader.MaxRecord {
+		reader.MaxRecord = DefaultMaxRecord
 	}
-	for i := range this.FieldMetadata {
-		this.FieldMetadata[i].SetDefault ()
+	for i := range reader.FieldMetadata {
+		reader.FieldMetadata[i].SetDefault ()
 	}
 }
 
 /*
 push record to row.
 */
-func (this *Reader) push (r *[]Record) {
+func (reader *Reader) push (r *[]Record) {
 	var row = NewRow (r)
 
-	if nil == this.Records {
-		this.Records =  row
+	if nil == reader.Records {
+		reader.Records =  row
 	} else {
-		this.Records.Last.Next = row
+		reader.Records.Last.Next = row
 	}
 
-	this.Records.Last = row
+	reader.Records.Last = row
 }
 
 /*
 openReader open the input file, metadata must have been initialize.
 */
-func (this *Reader) openReader () error {
-	fRead, e := os.OpenFile (this.Input, os.O_RDONLY, 0600)
+func (reader *Reader) openReader () error {
+	fRead, e := os.OpenFile (reader.Input, os.O_RDONLY, 0600)
 	if nil != e {
 		return e
 	}
 
-	this.bufRead = bufio.NewReader (fRead)
+	reader.bufRead = bufio.NewReader (fRead)
 
 	return nil
 }
@@ -152,25 +151,25 @@ func (this *Reader) openReader () error {
 /*
 openRejected open rejected file, for saving unparseable line.
 */
-func (this *Reader) openRejected () error {
-	fReject, e := os.OpenFile (this.Rejected, os.O_CREATE | os.O_WRONLY,
+func (reader *Reader) openRejected () error {
+	fReject, e := os.OpenFile (reader.Rejected, os.O_CREATE | os.O_WRONLY,
 					0600)
 	if nil != e {
 		return e
 	}
 
-	this.bufReject = bufio.NewWriter (fReject)
+	reader.bufReject = bufio.NewWriter (fReject)
 
 	return nil
 }
 
 /*
 skipLines skip parsing n lines from input file.
-The n is defined in attribute "Skip"
+The n is defined in the attribute "Skip"
 */
-func (this *Reader) SkipLines () (e error) {
-	for i := 0; i < this.Skip; i++ {
-		_, e = this.readLine ()
+func (reader *Reader) skipLines () (e error) {
+	for i := 0; i < reader.Skip; i++ {
+		_, e = reader.readLine ()
 
 		if nil != e {
 			log.Print ("dsv: ", e)
@@ -183,35 +182,35 @@ func (this *Reader) SkipLines () (e error) {
 /*
 ParseFieldMetadata from JSON string.
 */
-func (this *Reader) ParseFieldMetadata (md string) (e error) {
-	e = json.Unmarshal ([]byte (md), this)
+func (reader *Reader) ParseFieldMetadata (md string) (e error) {
+	e = json.Unmarshal ([]byte (md), reader)
 
 	if nil != e {
 		return
 	}
 
 	// Exit immediately if no input file is defined in config.
-	if "" == this.Input {
+	if "" == reader.Input {
 		return ErrNoInput
 	}
 
 	// Set default value for metadata.
-	this.setDefault ()
+	reader.setDefault ()
 
 	// Get ready ...
-	e = this.openReader ()
+	e = reader.openReader ()
 	if nil != e {
 		return
 	}
 
-	e = this.openRejected ()
+	e = reader.openRejected ()
 	if nil != e {
 		return
 	}
 
 	// Skip lines
-	if this.Skip > 0 {
-		e = this.SkipLines ()
+	if reader.Skip > 0 {
+		e = reader.skipLines ()
 		if nil != e {
 			return
 		}
@@ -223,13 +222,13 @@ func (this *Reader) ParseFieldMetadata (md string) (e error) {
 /*
 readLine will read one line from input file.
 */
-func (this *Reader) readLine () (line []byte, e error) {
+func (reader *Reader) readLine () (line []byte, e error) {
 	var read []byte
 	stub := true
 
 	// repeat until one full line is read.
 	for stub {
-		read, stub, e = this.bufRead.ReadLine ()
+		read, stub, e = reader.bufRead.ReadLine ()
 
 		if nil != e {
 			return
@@ -255,16 +254,16 @@ This is how the algorithm works
 	(2.3) else, append byte to buffer until separator
 (3) save buffer to record
 */
-func (this *Reader) parseLine (line *[]byte) (records []Record, e error) {
+func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 	var md *Metadata
 	var p = 0
 	var l = len (*line)
 
-	records = make ([]Record, len (this.FieldMetadata))
+	records = make ([]Record, len (reader.FieldMetadata))
 
-	for f_idx := range this.FieldMetadata {
+	for mdIdx := range reader.FieldMetadata {
 		v := []byte{}
-		md = &this.FieldMetadata[f_idx]
+		md = &reader.FieldMetadata[mdIdx]
 
 		// (2.1)
 		if "" != md.LeftQuote {
@@ -353,7 +352,7 @@ func (this *Reader) parseLine (line *[]byte) (records []Record, e error) {
 			}
 		}
 
-		records[f_idx] = v
+		records[mdIdx] = v
 	}
 
 	return records, e
@@ -362,32 +361,32 @@ func (this *Reader) parseLine (line *[]byte) (records []Record, e error) {
 /*
 Read maximum 'MaxRecord' record from file.
 */
-func (this *Reader) Read () (n int, e error) {
+func (reader *Reader) Read () (n int, e error) {
 	var records []Record
 	var line []byte
 
-	defer this.bufReject.Flush ()
+	defer reader.bufReject.Flush ()
 
-	for n = 0; n < this.MaxRecord; n++ {
-		line, e = this.readLine ()
+	for n = 0; n < reader.MaxRecord; n++ {
+		line, e = reader.readLine ()
 
 		if nil != e {
 			log.Print ("dsv: ", e)
 			return n, e
 		}
 
-		records, e = this.parseLine (&line)
+		records, e = reader.parseLine (&line)
 
 		// If error, save the rejected line.
 		if nil == e {
-			this.push (&records)
+			reader.push (&records)
 		} else {
-			this.bufReject.Write (line)
-			this.bufReject.WriteString ("\n")
+			reader.bufReject.Write (line)
+			reader.bufReject.WriteString ("\n")
 		}
 	}
 
-	this.NRecord = n
+	reader.NRecord = n
 
 	return n, e
 }
@@ -395,22 +394,22 @@ func (this *Reader) Read () (n int, e error) {
 /*
 IsEqual compare only the configuration and metadata with other instance.
 */
-func (this *Reader) IsEqual (other *Reader) bool {
-	if (this == other) {
+func (reader *Reader) IsEqual (other *Reader) bool {
+	if (reader == other) {
 		return true
 	}
-	if (this.Input != other.Input) {
+	if (reader.Input != other.Input) {
 		return false
 	}
 
-	l,r := len (this.FieldMetadata), len (other.FieldMetadata)
+	l,r := len (reader.FieldMetadata), len (other.FieldMetadata)
 
 	if (l != r) {
 		return false
 	}
 
 	for a := 0; a < l; a++ {
-		if ! this.FieldMetadata[a].IsEqual (&other.FieldMetadata[a]) {
+		if ! reader.FieldMetadata[a].IsEqual (&other.FieldMetadata[a]) {
 			return false
 		}
 	}
@@ -421,8 +420,8 @@ func (this *Reader) IsEqual (other *Reader) bool {
 /*
 String yes, it will print it in JSON like format.
 */
-func (this *Reader) String() string {
-	r, e := json.MarshalIndent (this, "", "\t")
+func (reader *Reader) String() string {
+	r, e := json.MarshalIndent (reader, "", "\t")
 
 	if nil != e {
 		log.Print (e)

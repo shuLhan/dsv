@@ -1,8 +1,3 @@
-/*
-Copyright 2015 Mhd Sulhan <ms@kilabit.info>
-All rights reserved.  Use of this source code is governed by a BSD-style
-license that can be found in the LICENSE file.
-*/
 package dsv
 
 import (
@@ -17,8 +12,8 @@ type Record []byte
 /*
 String return the value of record in string enclosed with double quoted.
 */
-func (this Record) String() string {
-	return "\""+ string (this) + "\","
+func (record Record) String() string {
+	return "\""+ string (record) + "\","
 }
 
 /*
@@ -44,10 +39,10 @@ func NewRow (r *[]Record) *Row {
 /*
 String return the string of each row separated by new line.
 */
-func (this *Row) String () (s string) {
-	for nil != this {
-		s += fmt.Sprintln (this.V)
-		this = this.Next
+func (row *Row) String () (s string) {
+	for nil != row {
+		s += fmt.Sprintln (row.V)
+		row = row.Next
 	}
 
 	return s
