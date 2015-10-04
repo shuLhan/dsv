@@ -16,7 +16,7 @@ import (
 
 var DEBUG = bool (os.Getenv ("DEBUG") != "")
 
-var json_sample = []string {
+var jsonSample = []string {
 	`{}`,
 	`{
 		"Input"		:"test.dsv"
@@ -112,7 +112,7 @@ func TestReaderNoInput (t *testing.T) {
 	}
 
 	dsv := dsv.NewReader ()
-	e := dsv.ParseFieldMetadata (json_sample[0])
+	e := dsv.ParseFieldMetadata (jsonSample[0])
 	if nil == e {
 		t.Error ("TestReaderNoInput: failed, should return non nil!")
 	}
@@ -136,11 +136,11 @@ func TestParseFieldMetadata (t *testing.T) {
 		out	*dsv.Reader
 	}{
 		{
-			json_sample[1],
+			jsonSample[1],
 			readers[1],
 		},
 		{
-			json_sample[3],
+			jsonSample[3],
 			readers[3],
 		},
 
@@ -212,7 +212,7 @@ func TestReader (t *testing.T) {
 
 	dsv := dsv.NewReader ()
 
-	dsv.ParseFieldMetadata (json_sample[4])
+	dsv.ParseFieldMetadata (jsonSample[4])
 
 	if DEBUG {
 		log.Println (dsv)
