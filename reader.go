@@ -55,17 +55,30 @@ Reader hold all configuration, metadata and input records.
 
 DSV Reader work like this,
 
+(1) Initialize new dsv reader object
+
 	dsvReader := dsv.NewReader ()
+
+(2) Open configuration file
+
 	e := dsvReader.Open (configfile)
-	// check for error ...
+
+(2.1) Do not forget to check for error ...
+
+(3) Make sure to close all files after finished
 
 	defer dsvReader.Close ()
 
-	for dsvReader.NRecord > 0 {
-		n, e := dsvReader.Read ()
-		// check for error ...
+(4) Create loop to read and process records.
 
-		// Iterate through records
+	for {
+		n, e := dsvReader.Read ()
+
+		if e == io.EOF {
+			break
+		}
+
+(4.1) Iterate through records
 		row := &dsvReader.Records
 		for row != nil {
 			// work with records ...
@@ -73,6 +86,9 @@ DSV Reader work like this,
 			row = row.Next
 		}
 	}
+
+Thats it.
+
 */
 type Reader struct {
 	// Input file, mandatory.
