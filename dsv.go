@@ -24,14 +24,17 @@ const (
 )
 
 var (
-	// ErrNoInput define an error when no Input file is given in JSON.
-	ErrNoInput	= errors.New ("dsv: No input file is given")
-	// ErrNoOutput define an error when no output file is given in config.
+	// ErrNoInput define an error when no Input file is given to Reader.
+	ErrNoInput	= errors.New ("dsv: No input file is given in config")
+	// ErrNoOutput define an error when no output file is given to Writer.
 	ErrNoOutput	= errors.New ("dsv: No output file is given in config")
-	// ErrNotOpen define an error when output file has not been opened yet.
+	// ErrNotOpen define an error when output file has not been opened
+	// by Writer.
 	ErrNotOpen	= errors.New ("dsv: Output file is not opened")
-	// ErrNilReader define an error when no Input file is given in JSON.
+	// ErrNilReader define an error when Reader object is nil when passed
+	// to Write function.
 	ErrNilReader	= errors.New ("dsv: Reader object is nil")
+
 	// DEBUG exported from environment to debug the library.
 	DEBUG		= bool (os.Getenv ("DEBUG") != "")
 )
