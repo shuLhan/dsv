@@ -7,6 +7,7 @@ package dsv_test
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"testing"
@@ -26,7 +27,7 @@ var jsonSample = []string {
 	}`,
 	`{
 		"Input"		:"test.dsv"
-	,	"FieldMetadata"	:
+	,	"InputMetadata"	:
 		[{
 			"Name"		:"A"
 		,	"Separator"	:","
@@ -39,7 +40,7 @@ var jsonSample = []string {
 		"Input"		:"test.dsv"
 	,	"Skip"		:1
 	,	"MaxRecord"	:1
-	,	"FieldMetadata"	:
+	,	"InputMetadata"	:
 		[{
 			"Name"		:"id"
 		,	"Separator"	:";"
@@ -50,14 +51,15 @@ var jsonSample = []string {
 		,	"RightQuote"	:"\""
 		},{
 			"Name"		:"value"
-		,	"RightQuote"	:"-"
+		,	"LeftQuote"	:"[["
+		,	"RightQuote"	:"]]"
 		}]
 	}`,
 	`{
 		"Input"		:"test.dsv"
 	,	"Skip"		:1
 	,	"MaxRecord"	:1
-	,	"FieldMetadata"	:
+	,	"InputMetadata"	:
 		[{
 			"Name"		:"id"
 		},{
@@ -90,7 +92,7 @@ var readers = []*dsv.Reader {
 	},
 	{
 		Input		:"test.dsv",
-		FieldMetadata	:[]dsv.Metadata {
+		InputMetadata	:[]dsv.Metadata {
 			{
 				Name		:"A",
 				Separator	:",",
@@ -111,8 +113,8 @@ func TestReaderNoInput (t *testing.T) {
 		log.Println (">>> TestReaderNoInput")
 	}
 
-	dsv := dsv.NewReader ()
-	e := dsv.ParseFieldMetadata (jsonSample[0])
+	dsvReader := dsv.NewReader ()
+	e := dsvReader.ParseConfig ([]byte (jsonSample[0]))
 	if nil == e {
 		t.Error ("TestReaderNoInput: failed, should return non nil!")
 	}
@@ -123,12 +125,12 @@ func TestReaderNoInput (t *testing.T) {
 }
 
 /*
-TestParseFieldMetadata test parsing metadata.
+TestParseConfig test parsing metadata.
 */
-func TestParseFieldMetadata (t *testing.T) {
+func TestParseConfig (t *testing.T) {
 
 	if DEBUG {
-		log.Println (">>> TestParseFieldMetadata")
+		log.Println (">>> TestParseConfig")
 	}
 
 	cases := []struct {
@@ -146,19 +148,19 @@ func TestParseFieldMetadata (t *testing.T) {
 
 	}
 
-	dsv := dsv.NewReader ()
+	dsvReader := dsv.NewReader ()
 
 	for _, c := range cases {
-		e := dsv.ParseFieldMetadata (c.in)
+		e := dsvReader.ParseConfig ([]byte (c.in))
 
 		if e != nil {
 			t.Error (e)
 		}
-		if ! dsv.IsEqual (c.out) {
+		if ! dsvReader.IsEqual (c.out) {
 			t.Error ("Test failed on ", c.in);
 		} else {
 			if DEBUG {
-				log.Print (dsv)
+				log.Print (dsvReader)
 			}
 		}
 	}
@@ -202,45 +204,81 @@ func TestReaderIsEqual (t *testing.T) {
 	}
 }
 
+var expectation = []string {
+	"&[\"1\", \"A-B\", \"AB\",]\n",
+	"&[\"2\", \"A-B-C\", \"BCD\",]\n",
+	"&[\"3\", \"A;B-C,D\", \"A;B C,D\",]\n",
+	"&[\"6\", \"\", \"\",]\n",
+	"&[\"9\", \"ok\", \"ok\",]\n",
+}
+
+/*
+doRead test reading the DSV data.
+*/
+func doRead (dsvReader *dsv.Reader, t *testing.T) {
+	exp	:= ""
+	i	:= 0
+	n 	:= 0
+	e	:= error (nil)
+
+	for {
+		n, e = dsvReader.Read ()
+
+		if n > 0 {
+			r := fmt.Sprint (dsvReader.Records)
+			exp += expectation[i]
+
+			if r != exp {
+				t.Error ("dsv_test: expecting\n", exp,
+					" got\n", r)
+			}
+
+			i++
+		} else if e == io.EOF {
+			// EOF
+			break
+		}
+	}
+}
+
 /*
 TestReader test reading using 
 */
-func TestReader (t *testing.T) {
+func TestReaderRead (t *testing.T) {
 	if DEBUG {
-		log.Println (">>> TestReaderSkip")
+		log.Println (">>> TestReaderRead")
 	}
 
-	dsv := dsv.NewReader ()
+	dsvReader := dsv.NewReader ()
 
-	dsv.ParseFieldMetadata (jsonSample[4])
+	dsvReader.ParseConfig ([] byte (jsonSample[4]))
 
 	if DEBUG {
-		log.Println (dsv)
+		log.Println (dsvReader)
 	}
 
-	expectation := []string {
-		"&[\"1\", \"A-B\", \"AB\",]\n",
-		"&[\"2\", \"A-B-C\", \"BCD\",]\n",
-		"&[\"3\", \"A;B-C,D\", \"A;B C,D\",]\n",
+	defer dsvReader.Close ()
+
+	doRead (dsvReader, t)
+}
+
+/*
+TestReaderOpen real example from the start.
+*/
+func TestReaderOpen (t *testing.T) {
+	if DEBUG {
+		log.Println (">>> TestReaderOpen")
 	}
 
-	exp	:= ""
-	n	:= 0
-	e	:= error(nil)
+	dsvReader := dsv.NewReader ()
 
-	for i := range expectation {
-		n = 0
-		e = nil
+	e := dsvReader.Open ("config.dsv")
 
-		for n <= 0 || e != nil {
-			n, e = dsv.Read ()
-		}
-
-		r := fmt.Sprint (dsv.Records)
-		exp += expectation[i]
-
-		if r != exp {
-			t.Error ("dsv_test: expecting\n", exp, " got\n", r)
-		}
+	if nil != e {
+		t.Error (e)
 	}
+
+	defer dsvReader.Close ()
+
+	doRead (dsvReader, t)
 }

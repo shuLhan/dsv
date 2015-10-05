@@ -1,0 +1,19 @@
+{
+	"Input"		:"test.dsv"
+,	"Skip"		:1
+,	"MaxRecord"	:1
+,	"InputMetadata"	:
+	[{
+		"Name"		:"id"
+	,	"Separator"	:";"
+	},{
+		"Name"		:"name"
+	,	"Separator"	:"-"
+	,	"LeftQuote"	:"\""
+	,	"RightQuote"	:"\""
+	},{
+		"Name"		:"value"
+	,	"LeftQuote"	:"[["
+	,	"RightQuote"	:"]]"
+	}]
+}
