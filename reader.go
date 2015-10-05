@@ -11,13 +11,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
 )
 
 var (
 	// ErrNoInput define an error when no Input file is given in JSON.
-	ErrNoInput = errors.New ("dsv: No input file is given")
+	ErrNoInput	= errors.New ("dsv: No input file is given")
+	// DEBUG exported from environment to debug the library.
+	DEBUG		= bool (os.Getenv ("DEBUG") != "")
 )
 
 /*
@@ -48,6 +52,27 @@ const (
 
 /*
 Reader hold all configuration, metadata and input records.
+
+DSV Reader work like this,
+
+	dsvReader := dsv.NewReader ()
+	e := dsvReader.Open (configfile)
+	// check for error ...
+
+	defer dsvReader.Close ()
+
+	for dsvReader.NRecord > 0 {
+		n, e := dsvReader.Read ()
+		// check for error ...
+
+		// Iterate through records
+		row := &dsvReader.Records
+		for row != nil {
+			// work with records ...
+
+			row = row.Next
+		}
+	}
 */
 type Reader struct {
 	// Input file, mandatory.
@@ -57,8 +82,8 @@ type Reader struct {
 	// Rejected is the file where record that does not fit
 	// with metadata will be saved.
 	Rejected	string		`json:"Rejected"`
-	// FieldMetadata define format each field in a record.
-	FieldMetadata	[]Metadata	`json:"FieldMetadata"`
+	// InputMetadata define format each field in a record.
+	InputMetadata	[]Metadata	`json:"InputMetadata"`
 	// MaxRecord define maximum record that this reader will read and
 	// saved in the memory at one read operation.
 	MaxRecord	int		`json:"MaxRecord"`
@@ -84,7 +109,7 @@ func NewReader () *Reader {
 		Input		:"",
 		Skip		:0,
 		Rejected	:"rejected.dsv",
-		FieldMetadata	:nil,
+		InputMetadata	:nil,
 		MaxRecord	:DefaultMaxRecord,
 		NRecord		:0,
 		Records		:nil,
@@ -96,9 +121,24 @@ func NewReader () *Reader {
 }
 
 /*
-CloseReader will close all open descriptors.
+Open configuration file.
 */
-func (reader *Reader) CloseReader () {
+func (reader *Reader) Open (fcfg string) error {
+	cfg, e := ioutil.ReadFile (fcfg)
+	if nil != e {
+		log.Print ("dsv: ", e)
+		return e
+	}
+
+	e = reader.ParseConfig (cfg)
+
+	return e
+}
+
+/*
+Close will close all open descriptors.
+*/
+func (reader *Reader) Close () {
 	reader.bufReject.Flush ()
 	reader.fReject.Close ()
 	reader.fRead.Close ()
@@ -113,9 +153,6 @@ func (reader *Reader) setDefault () {
 	}
 	if 0 == reader.MaxRecord {
 		reader.MaxRecord = DefaultMaxRecord
-	}
-	for i := range reader.FieldMetadata {
-		reader.FieldMetadata[i].SetDefault ()
 	}
 }
 
@@ -180,10 +217,10 @@ func (reader *Reader) skipLines () (e error) {
 }
 
 /*
-ParseFieldMetadata from JSON string.
+ParseConfig from JSON string.
 */
-func (reader *Reader) ParseFieldMetadata (md string) (e error) {
-	e = json.Unmarshal ([]byte (md), reader)
+func (reader *Reader) ParseConfig (cfg []byte) (e error) {
+	e = json.Unmarshal ([]byte (cfg), reader)
 
 	if nil != e {
 		return
@@ -250,8 +287,9 @@ This is how the algorithm works
 	(2.1) If using left quote, skip it
 	(2.2) If using right quote, append byte to buffer until right-quote
 		(2.2.1) Skip until the end of right quote
-		(2.2.2) Skip until separator
-	(2.3) else, append byte to buffer until separator
+		(2.2.2) If using separator, skip until separator
+	(2.3) If using separator, append byte to buffer until separator
+	(2.4) else append all byte to buffer.
 (3) save buffer to record
 */
 func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
@@ -259,20 +297,35 @@ func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 	var p = 0
 	var l = len (*line)
 
-	records = make ([]Record, len (reader.FieldMetadata))
+	records = make ([]Record, len (reader.InputMetadata))
 
-	for mdIdx := range reader.FieldMetadata {
+	for mdIdx := range reader.InputMetadata {
 		v := []byte{}
-		md = &reader.FieldMetadata[mdIdx]
+		md = &reader.InputMetadata[mdIdx]
 
 		// (2.1)
 		if "" != md.LeftQuote {
 			lq := []byte (md.LeftQuote)
 
+			if DEBUG {
+				fmt.Println (md.LeftQuote)
+			}
+
 			for i := range lq {
+				if p >= l {
+					return nil, &ErrReader {
+						"Premature end-of-line",
+						(*line),
+					}
+				}
+
+				if DEBUG {
+					fmt.Printf ("%c:%c\n", (*line)[p], lq[i])
+				}
+
 				if (*line)[p] != lq[i] {
 					return nil, &ErrReader {
-						"Invalid left quote",
+						"Invalid left-quote",
 						(*line),
 					}
 				}
@@ -291,16 +344,23 @@ func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 
 			if p >= l {
 				return nil, &ErrReader {
-					"Invalid right quote",
+					"Missing right-quote, premature end-of-line",
 					(*line),
 				}
 			}
 
 			// (2.2.1)
 			for i := range rq {
+				if p >= l {
+					return nil, &ErrReader {
+						"Missing right-quote, premature end-of-line",
+						(*line),
+					}
+				}
+
 				if (*line)[p] != rq[i] {
 					return nil, &ErrReader {
-						"Invalid right quote",
+						"Invalid right-quote",
 						(*line),
 					}
 				}
@@ -308,14 +368,27 @@ func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 			}
 
 			// (2.2.2)
-			sep := []byte (md.Separator)
+			if "" != md.Separator {
+				sep := []byte (md.Separator)
 
-			for p < l && (*line)[p] != sep[0] {
-				p++
-			}
+				for p < l && (*line)[p] != sep[0] {
+					p++
+				}
 
-			if p < l {
+				if p >= l {
+					return nil, &ErrReader {
+						"Missing separator, premature end-of-line",
+						(*line),
+					}
+				}
+
 				for i := range sep {
+					if p >= l {
+						return nil, &ErrReader {
+							"Missing separator, premature end-of-line",
+							(*line),
+						}
+					}
 					if (*line)[p] != sep[i] {
 						return nil, &ErrReader {
 							"Invalid separator",
@@ -325,7 +398,7 @@ func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 					p++
 				}
 			}
-		} else {
+		} else if "" != md.Separator {
 			// (2.3)
 			sep := []byte (md.Separator)
 
@@ -336,12 +409,19 @@ func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 
 			if p >= l {
 				return nil, &ErrReader {
-					"Invalid line",
+					"Missing separator, premature end-of-line",
 					(*line),
 				}
 			}
 
 			for i := range sep {
+				if p >= l {
+					return nil, &ErrReader {
+						"Missing separator, premature end-of-line",
+						(*line),
+					}
+				}
+
 				if (*line)[p] != sep[i] {
 					return nil, &ErrReader {
 						"Invalid separator",
@@ -350,6 +430,12 @@ func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 				}
 				p++
 			}
+		} else {
+			v = append (v, (*line)[p:]...)
+		}
+
+		if DEBUG {
+			fmt.Println (string (v))
 		}
 
 		records[mdIdx] = v
@@ -367,11 +453,13 @@ func (reader *Reader) Read () (n int, e error) {
 
 	defer reader.bufReject.Flush ()
 
-	for n = 0; n < reader.MaxRecord; n++ {
+	for n = 0; n < reader.MaxRecord; {
 		line, e = reader.readLine ()
 
 		if nil != e {
-			log.Print ("dsv: ", e)
+			if DEBUG && e != io.EOF {
+				log.Print ("dsv: ", e)
+			}
 			return n, e
 		}
 
@@ -380,7 +468,11 @@ func (reader *Reader) Read () (n int, e error) {
 		// If error, save the rejected line.
 		if nil == e {
 			reader.push (&records)
+			n++
 		} else {
+			if DEBUG {
+				fmt.Println (e)
+			}
 			reader.bufReject.Write (line)
 			reader.bufReject.WriteString ("\n")
 		}
@@ -402,14 +494,14 @@ func (reader *Reader) IsEqual (other *Reader) bool {
 		return false
 	}
 
-	l,r := len (reader.FieldMetadata), len (other.FieldMetadata)
+	l,r := len (reader.InputMetadata), len (other.InputMetadata)
 
 	if (l != r) {
 		return false
 	}
 
 	for a := 0; a < l; a++ {
-		if ! reader.FieldMetadata[a].IsEqual (&other.FieldMetadata[a]) {
+		if ! reader.InputMetadata[a].IsEqual (&other.InputMetadata[a]) {
 			return false
 		}
 	}

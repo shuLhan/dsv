@@ -5,11 +5,6 @@ import (
 	"log"
 )
 
-const (
-	// DefaultSeparator for field.
-	DefaultSeparator = ","
-)
-
 /*
 Metadata represent on how to parse each column in record.
 */
@@ -24,15 +19,6 @@ type Metadata struct {
 	// RightQuote define the characters that enclosed the field in the
 	// right side.
 	RightQuote	string	`json:"RightQuote"`
-}
-
-/*
-SetDefault value in instance.
-*/
-func (md *Metadata) SetDefault () {
-	if "" == md.Separator {
-		md.Separator = DefaultSeparator
-	}
 }
 
 /*
