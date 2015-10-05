@@ -47,7 +47,7 @@ const (
 	DefaultRejected		= "rejected.dsv"
 	// DefaultMaxRecord define default maximum record that will be saved
 	// in memory when not defined in JSON config.
-	DefaultMaxRecord	= 10
+	DefaultMaxRecord	= 256
 )
 
 /*
