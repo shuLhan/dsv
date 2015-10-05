@@ -3,19 +3,9 @@ package dsv
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
 	"os"
-)
-
-var (
-	// ErrNoOutput tell you that no output file is given in config.
-	ErrNoOutput	= errors.New ("dsv: No output file is given in config")
-	// ErrNotOpen tell you that output file has not been opened yet.
-	ErrNotOpen	= errors.New ("dsv: Output file is not opened")
-	// ErrNilReader define an error when no Input file is given in JSON.
-	ErrNilReader	= errors.New ("dsv: Reader object is nil")
 )
 
 /*
@@ -63,6 +53,13 @@ func (writer *Writer) Open (fcfg string) (e error) {
 }
 
 /*
+Init initialize writer by opening output file.
+*/
+func (writer *Writer) Init () error {
+	return writer.openOutput ()
+}
+
+/*
 ParseConfig from JSON string.
 */
 func (writer *Writer) ParseConfig (cfg []byte) (e error) {
@@ -76,9 +73,7 @@ func (writer *Writer) ParseConfig (cfg []byte) (e error) {
 		return ErrNoOutput
 	}
 
-	e = writer.openOutput ()
-
-	return e
+	return writer.Init ()
 }
 
 /*

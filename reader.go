@@ -1,27 +1,13 @@
-/*
-Package dsv is a library for working with delimited separated value (DSV).
-
-DSV is a free-style form of CSV format of text data, where each record is
-separated by newline, and each field can be separated by any string.
-*/
 package dsv
 
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
-)
-
-var (
-	// ErrNoInput define an error when no Input file is given in JSON.
-	ErrNoInput	= errors.New ("dsv: No input file is given")
-	// DEBUG exported from environment to debug the library.
-	DEBUG		= bool (os.Getenv ("DEBUG") != "")
 )
 
 /*
@@ -40,15 +26,6 @@ Error to string.
 func (e *ErrReader) Error () string {
 	return fmt.Sprintf ("dsv: %s '%s'", e.What, e.InputLine)
 }
-
-const (
-	// DefaultRejected define the default file which will contain the
-	// rejected record when not defined in JSON config.
-	DefaultRejected		= "rejected.dsv"
-	// DefaultMaxRecord define default maximum record that will be saved
-	// in memory when not defined in JSON config.
-	DefaultMaxRecord	= 256
-)
 
 /*
 Reader hold all configuration, metadata and input records.
@@ -240,20 +217,10 @@ func (reader *Reader) skipLines () (e error) {
 }
 
 /*
-ParseConfig from JSON string.
+Init initialize reader object by opening input and rejected files and
+skip n lines from input.
 */
-func (reader *Reader) ParseConfig (cfg []byte) (e error) {
-	e = json.Unmarshal ([]byte (cfg), reader)
-
-	if nil != e {
-		return
-	}
-
-	// Exit immediately if no input file is defined in config.
-	if "" == reader.Input {
-		return ErrNoInput
-	}
-
+func (reader *Reader) Init () (e error) {
 	// Set default value for metadata.
 	reader.setDefault ()
 
@@ -276,7 +243,25 @@ func (reader *Reader) ParseConfig (cfg []byte) (e error) {
 		}
 	}
 
-	return nil
+	return
+}
+
+/*
+ParseConfig from JSON string.
+*/
+func (reader *Reader) ParseConfig (cfg []byte) (e error) {
+	e = json.Unmarshal ([]byte (cfg), reader)
+
+	if nil != e {
+		return
+	}
+
+	// Exit immediately if no input file is defined in config.
+	if "" == reader.Input {
+		return ErrNoInput
+	}
+
+	return reader.Init ()
 }
 
 /*
