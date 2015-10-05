@@ -1,0 +1,5 @@
+ID 1/A-B#	{{AB}}
+ID 2/A-B-C#	{{BCD}}
+ID 3/A;B-C,D#	{{A;B C,D}}
+ID 6/#	{{}}
+ID 9/ok#	{{ok}}
