@@ -155,9 +155,15 @@ func (reader *Reader) Open (fcfg string) error {
 Close will close all open descriptors.
 */
 func (reader *Reader) Close () {
-	reader.bufReject.Flush ()
-	reader.fReject.Close ()
-	reader.fRead.Close ()
+	if nil != reader.bufReject {
+		reader.bufReject.Flush ()
+	}
+	if nil != reader.fReject {
+		reader.fReject.Close ()
+	}
+	if nil != reader.fRead {
+		reader.fRead.Close ()
+	}
 }
 
 /*
@@ -190,13 +196,13 @@ func (reader *Reader) push (r *[]Record) {
 /*
 openReader open the input file, metadata must have been initialize.
 */
-func (reader *Reader) openReader () error {
-	fRead, e := os.OpenFile (reader.Input, os.O_RDONLY, 0600)
+func (reader *Reader) openReader () (e error) {
+	reader.fRead, e = os.OpenFile (reader.Input, os.O_RDONLY, 0600)
 	if nil != e {
 		return e
 	}
 
-	reader.bufRead = bufio.NewReader (fRead)
+	reader.bufRead = bufio.NewReader (reader.fRead)
 
 	return nil
 }
@@ -204,14 +210,15 @@ func (reader *Reader) openReader () error {
 /*
 openRejected open rejected file, for saving unparseable line.
 */
-func (reader *Reader) openRejected () error {
-	fReject, e := os.OpenFile (reader.Rejected, os.O_CREATE | os.O_WRONLY,
+func (reader *Reader) openRejected () (e error) {
+	reader.fReject, e = os.OpenFile (reader.Rejected,
+					os.O_CREATE | os.O_WRONLY,
 					0600)
 	if nil != e {
 		return e
 	}
 
-	reader.bufReject = bufio.NewWriter (fReject)
+	reader.bufReject = bufio.NewWriter (reader.fReject)
 
 	return nil
 }
@@ -461,12 +468,24 @@ func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 }
 
 /*
+Reset all variables for next read operation. NRecord will be 0, and Records
+will be nil again.
+*/
+func (reader *Reader) Reset () {
+	reader.NRecord = 0
+	reader.Records = nil
+}
+
+/*
 Read maximum 'MaxRecord' record from file.
 */
 func (reader *Reader) Read () (n int, e error) {
 	var records []Record
 	var line []byte
 
+	reader.Reset ()
+
+	// remember to flush if we have rejected record.
 	defer reader.bufReject.Flush ()
 
 	for n = 0; n < reader.MaxRecord; {

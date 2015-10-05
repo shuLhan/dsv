@@ -226,9 +226,8 @@ func doRead (dsvReader *dsv.Reader, t *testing.T) {
 
 		if n > 0 {
 			r := fmt.Sprint (dsvReader.Records)
-			exp += expectation[i]
 
-			if r != exp {
+			if r != expectation[i] {
 				t.Error ("dsv_test: expecting\n", exp,
 					" got\n", r)
 			}
