@@ -14,7 +14,7 @@ import (
 /*
 doReadWrite test reading and writing the DSV data.
 */
-func doReadWriteDSV (dsv *dsv.DSV, t *testing.T) {
+func doReadWriteDSV (dsv *dsv.ReadWriter, t *testing.T) {
 	exp	:= ""
 	i	:= 0
 	n 	:= 0
@@ -42,11 +42,11 @@ func doReadWriteDSV (dsv *dsv.DSV, t *testing.T) {
 }
 
 /*
-TestDSV test reading and writing DSV.
+TestReadWriter test reading and writing DSV.
 */
-func TestDSV (t *testing.T) {
+func TestReadWriter (t *testing.T) {
 	if DEBUG {
-		log.Println (">>> TestDSV")
+		log.Println (">>> TestReadWriter")
 	}
 
 	// Initialize dsv

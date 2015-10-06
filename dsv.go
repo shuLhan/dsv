@@ -1,8 +1,9 @@
 /*
 Package dsv is a library for working with delimited separated value (DSV).
 
-DSV is a free-style form of CSV format of text data, where each record is
-separated by newline, and each field can be separated by any string.
+DSV is a free-style form of Comma Separated Value (CSV) format of text data,
+where each record is separated by newline, and each field can be separated by
+any string enclosed with left-quote and right-quote.
 */
 package dsv
 
@@ -16,10 +17,10 @@ import (
 
 const (
 	// DefaultRejected define the default file which will contain the
-	// rejected record when not defined in JSON config.
+	// rejected record.
 	DefaultRejected		= "rejected.dsv"
 	// DefaultMaxRecord define default maximum record that will be saved
-	// in memory when not defined in JSON config.
+	// in memory.
 	DefaultMaxRecord	= 256
 )
 
@@ -40,23 +41,23 @@ var (
 )
 
 /*
-DSV combine reader and writer.
+ReadWriter combine reader and writer.
 */
-type DSV struct {
+type ReadWriter struct {
 	Reader
 	Writer
 }
 
 /*
-New create a new DSV object.
+New create a new ReadWriter object.
 */
-func New () *DSV {
-	return &DSV {}
+func New () *ReadWriter {
+	return &ReadWriter {}
 }
 /*
 Open configuration file for reading and writing.
 */
-func (dsv *DSV) Open (fcfg string) (e error) {
+func (dsv *ReadWriter) Open (fcfg string) (e error) {
 	cfg, e := ioutil.ReadFile (fcfg)
 	if nil != e {
 		log.Print ("dsv: ", e)
@@ -81,7 +82,7 @@ func (dsv *DSV) Open (fcfg string) (e error) {
 /*
 Close reader and writer.
 */
-func (dsv *DSV) Close () {
+func (dsv *ReadWriter) Close () {
 	dsv.Writer.Close ()
 	dsv.Reader.Close ()
 }
