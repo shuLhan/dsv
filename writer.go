@@ -161,16 +161,16 @@ func (writer *Writer) Write (reader *Reader) (n int, e error) {
 	}
 
 	n = 0
-	row := reader.Records
+	row := reader.Records.Front ()
 
 	for nil != row {
-		e = writer.WriteSlice (row.V)
+		e = writer.WriteSlice (row.Value.(*[]Record))
 		if nil != e {
 			if DEBUG {
 				log.Println (e)
 			}
 		}
-		row = row.Next
+		row = row.Next ()
 		n++
 	}
 

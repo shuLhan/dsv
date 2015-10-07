@@ -15,7 +15,6 @@ import (
 doReadWrite test reading and writing the DSV data.
 */
 func doReadWrite (dsvReader *dsv.Reader, dsvWriter *dsv.Writer, t *testing.T) {
-	exp	:= ""
 	i	:= 0
 	n 	:= 0
 	e	:= error (nil)
@@ -27,7 +26,8 @@ func doReadWrite (dsvReader *dsv.Reader, dsvWriter *dsv.Writer, t *testing.T) {
 			r := fmt.Sprint (dsvReader.Records)
 
 			if r != expectation[i] {
-				t.Error ("dsv_test: expecting\n", exp,
+				t.Error ("dsv_test: expecting\n",
+					expectation[i],
 					" got\n", r)
 			}
 

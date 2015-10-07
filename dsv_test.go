@@ -14,24 +14,24 @@ import (
 /*
 doReadWrite test reading and writing the DSV data.
 */
-func doReadWriteDSV (dsv *dsv.ReadWriter, t *testing.T) {
-	exp	:= ""
+func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T) {
 	i	:= 0
 	n 	:= 0
 	e	:= error (nil)
 
 	for {
-		n, e = dsv.Read ()
+		n, e = rw.Read ()
 
 		if n > 0 {
-			r := fmt.Sprint (dsv.Records)
+			r := fmt.Sprint (rw.Records)
 
 			if r != expectation[i] {
-				t.Error ("dsv_test: expecting\n", exp,
+				t.Error ("dsv_test: expecting\n",
+					expectation[i],
 					" got\n", r)
 			}
 
-			dsv.Write (&dsv.Reader)
+			rw.Write (&rw.Reader)
 
 			i++
 		} else if e == io.EOF {
@@ -50,20 +50,20 @@ func TestReadWriter (t *testing.T) {
 	}
 
 	// Initialize dsv
-	dsv := dsv.New ()
+	rw := dsv.New ()
 
-	e := dsv.Open ("config.dsv")
+	e := rw.Open ("config.dsv")
 
 	if nil != e {
 		t.Error (e)
 	}
 
-	doReadWriteDSV (dsv, t)
+	doReadWriteDSV (rw, t)
 
-	dsv.Close ()
+	rw.Close ()
 
 	// Compare the ouput from Writer
-	out, e := ioutil.ReadFile (dsv.Output)
+	out, e := ioutil.ReadFile (rw.Output)
 
 	if nil != e {
 		t.Error (e)

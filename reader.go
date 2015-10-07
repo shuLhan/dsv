@@ -56,11 +56,12 @@ DSV Reader work like this,
 		}
 
 (4.1) Iterate through records
-		row := &dsvReader.Records
+
+		row := dsvReader.Records.Front ()
 		for row != nil {
 			// work with records ...
 
-			row = row.Next
+			row = row.Next ()
 		}
 	}
 
@@ -81,9 +82,9 @@ type Reader struct {
 	// saved in the memory at one read operation.
 	MaxRecord	int		`json:"MaxRecord"`
 	// NRecord define number of record readed and saved in Records.
-	NRecord		int		`json:"-"`
+	NRecord		int
 	// Records is input record that has been parsed.
-	Records		*Row		`json:"-"`
+	Records		*Row
 	// fRead as read descriptor.
 	fRead		*os.File
 	// fReject as reject descriptor.
@@ -159,15 +160,11 @@ func (reader *Reader) setDefault () {
 push record to row.
 */
 func (reader *Reader) push (r *[]Record) {
-	var row = NewRow (r)
-
 	if nil == reader.Records {
-		reader.Records =  row
-	} else {
-		reader.Records.Last.Next = row
+		reader.Records = &Row {}
 	}
 
-	reader.Records.Last = row
+	reader.Records.PushBack (r)
 }
 
 /*
@@ -300,12 +297,12 @@ This is how the algorithm works
 	(2.4) else append all byte to buffer.
 (3) save buffer to record
 */
-func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
+func (reader *Reader) parseLine (line *[]byte) (precords *[]Record, e error) {
 	var md *Metadata
 	var p = 0
 	var l = len (*line)
 
-	records = make ([]Record, len (reader.InputMetadata))
+	records := make ([]Record, len (reader.InputMetadata))
 
 	for mdIdx := range reader.InputMetadata {
 		v := []byte{}
@@ -449,7 +446,7 @@ func (reader *Reader) parseLine (line *[]byte) (records []Record, e error) {
 		records[mdIdx] = v
 	}
 
-	return records, e
+	return &records, e
 }
 
 /*
@@ -465,7 +462,7 @@ func (reader *Reader) Reset () {
 Read maximum 'MaxRecord' record from file.
 */
 func (reader *Reader) Read () (n int, e error) {
-	var records []Record
+	var records *[]Record
 	var line []byte
 
 	reader.Reset ()
@@ -487,7 +484,7 @@ func (reader *Reader) Read () (n int, e error) {
 
 		// If error, save the rejected line.
 		if nil == e {
-			reader.push (&records)
+			reader.push (records)
 			n++
 		} else {
 			if DEBUG {

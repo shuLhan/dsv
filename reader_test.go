@@ -17,6 +17,14 @@ import (
 
 var DEBUG = bool (os.Getenv ("DEBUG") != "")
 
+var expectation = []string {
+	"&[1 A-B AB]\n",
+	"&[2 A-B-C BCD]\n",
+	"&[3 A;B-C,D A;B C,D]\n",
+	"&[6  ]\n",
+	"&[9 ok ok]\n",
+}
+
 var jsonSample = []string {
 	`{}`,
 	`{
@@ -204,19 +212,10 @@ func TestReaderIsEqual (t *testing.T) {
 	}
 }
 
-var expectation = []string {
-	"&[\"1\", \"A-B\", \"AB\",]\n",
-	"&[\"2\", \"A-B-C\", \"BCD\",]\n",
-	"&[\"3\", \"A;B-C,D\", \"A;B C,D\",]\n",
-	"&[\"6\", \"\", \"\",]\n",
-	"&[\"9\", \"ok\", \"ok\",]\n",
-}
-
 /*
 doRead test reading the DSV data.
 */
 func doRead (dsvReader *dsv.Reader, t *testing.T) {
-	exp	:= ""
 	i	:= 0
 	n 	:= 0
 	e	:= error (nil)
@@ -228,7 +227,8 @@ func doRead (dsvReader *dsv.Reader, t *testing.T) {
 			r := fmt.Sprint (dsvReader.Records)
 
 			if r != expectation[i] {
-				t.Error ("dsv_test: expecting\n", exp,
+				t.Error ("dsv_test: expecting\n",
+					expectation[i],
 					" got\n", r)
 			}
 
