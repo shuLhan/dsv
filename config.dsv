@@ -6,6 +6,7 @@
 	[{
 		"Name"		:"id"
 	,	"Separator"	:";"
+	,	"Type"		:"integer"
 	},{
 		"Name"		:"name"
 	,	"Separator"	:"-"
@@ -13,8 +14,16 @@
 	,	"RightQuote"	:"\""
 	},{
 		"Name"		:"value"
+	,	"Separator"	:";"
 	,	"LeftQuote"	:"[["
 	,	"RightQuote"	:"]]"
+	},{
+		"Name"		:"integer"
+	,	"Type"		:"integer"
+	,	"Separator"	:";"
+	},{
+		"Name"		:"real"
+	,	"Type"		:"real"
 	}]
 ,	"Output"	:"output.dsv"
 ,	"OutputMetadata":
@@ -28,7 +37,13 @@
 	,	"Separator"	:"\t"
 	},{
 		"Name"		:"value"
+	,	"Separator"	:";"
 	,	"LeftQuote"	:"{{"
 	,	"RightQuote"	:"}}"
+	},{
+		"Name"		:"integer"
+	,	"Separator"	:";"
+	},{
+		"Name"		:"real"
 	}]
 }

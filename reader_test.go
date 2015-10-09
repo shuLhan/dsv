@@ -18,11 +18,13 @@ import (
 var DEBUG = bool (os.Getenv ("DEBUG") != "")
 
 var expectation = []string {
-	"&[1 A-B AB]\n",
-	"&[2 A-B-C BCD]\n",
-	"&[3 A;B-C,D A;B C,D]\n",
-	"&[6  ]\n",
-	"&[9 ok ok]\n",
+	"&[1 A-B AB 1 0.1]\n",
+	"&[2 A-B-C BCD 2 0.02]\n",
+	"&[3 A;B-C,D A;B C,D 3 0.003]\n",
+	"&[6   6 0.000006]\n",
+	"&[9 ok ok 9 0.000000009]\n",
+	"&[10 test integer 10 0.101]\n",
+	"&[12 test real 123456789 0.123456789]\n",
 }
 
 var jsonSample = []string {
@@ -52,6 +54,7 @@ var jsonSample = []string {
 		[{
 			"Name"		:"id"
 		,	"Separator"	:";"
+		,	"Type"		:"integer"
 		},{
 			"Name"		:"name"
 		,	"Separator"	:"-"
@@ -59,8 +62,16 @@ var jsonSample = []string {
 		,	"RightQuote"	:"\""
 		},{
 			"Name"		:"value"
+		,	"Separator"	:";"
 		,	"LeftQuote"	:"[["
 		,	"RightQuote"	:"]]"
+		},{
+			"Name"		:"integer"
+		,	"Type"		:"integer"
+		,	"Separator"	:";"
+		},{
+			"Name"		:"real"
+		,	"Type"		:"real"
 		}]
 	}`,
 	`{

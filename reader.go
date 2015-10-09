@@ -218,7 +218,15 @@ Init initialize reader object by opening input and rejected files and
 skip n lines from input.
 */
 func (reader *Reader) Init () (e error) {
-	// Set default value for metadata.
+	// Check and initialize metadata.
+	for i := range reader.InputMetadata {
+		e = reader.InputMetadata[i].Init ()
+		if nil != e {
+			return e
+		}
+	}
+
+	// Set default value
 	reader.setDefault ()
 
 	// Get ready ...
@@ -443,7 +451,14 @@ func (reader *Reader) parseLine (line *[]byte) (precords *[]Record, e error) {
 			fmt.Println (string (v))
 		}
 
-		records[mdIdx] = v
+		records[mdIdx], e = RecordNew (v, md.T)
+
+		if nil != e {
+			return nil, &ErrReader {
+				"Error or invalid type converstion",
+				(*line),
+			}
+		}
 	}
 
 	return &records, e

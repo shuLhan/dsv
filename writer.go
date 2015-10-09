@@ -105,9 +105,9 @@ func (writer *Writer) Close () {
 }
 
 /*
-WriteSlice dump content of slice to file using metadata format.
+WriteRecords dump content of slice to file using metadata format.
 */
-func (writer *Writer) WriteSlice (records *[]Record) (e error) {
+func (writer *Writer) WriteRecords (records *[]Record) (e error) {
 	var md *Metadata
 	var r *Record
 	v := []byte{}
@@ -125,7 +125,7 @@ func (writer *Writer) WriteSlice (records *[]Record) (e error) {
 			v = append (v, []byte (md.LeftQuote)...)
 		}
 
-		v = append (v, (*r)...)
+		v = append (v, r.ToByte ()...)
 
 		if "" != md.RightQuote {
 			v = append (v, []byte (md.RightQuote)...)
@@ -164,7 +164,7 @@ func (writer *Writer) Write (reader *Reader) (n int, e error) {
 	row := reader.Records.Front ()
 
 	for nil != row {
-		e = writer.WriteSlice (row.Value.(*[]Record))
+		e = writer.WriteRecords (row.Value.(*[]Record))
 		if nil != e {
 			if DEBUG {
 				log.Println (e)

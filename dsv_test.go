@@ -12,7 +12,7 @@ import (
 )
 
 /*
-doReadWrite test reading and writing the DSV data.
+doReadWriteDSV test reading and writing the DSV data.
 */
 func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T) {
 	i	:= 0
@@ -29,6 +29,7 @@ func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T) {
 				t.Error ("dsv_test: expecting\n",
 					expectation[i],
 					" got\n", r)
+				break
 			}
 
 			rw.Write (&rw.Reader)
