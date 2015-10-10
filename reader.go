@@ -80,6 +80,7 @@ type Reader struct {
 	InputMetadata	[]Metadata	`json:"InputMetadata"`
 	// MaxRecord define maximum record that this reader will read and
 	// saved in the memory at one read operation.
+	// If the value is -1 all records will read.
 	MaxRecord	int		`json:"MaxRecord"`
 	// NRecord define number of record readed and saved in Records.
 	NRecord		int
@@ -485,7 +486,9 @@ func (reader *Reader) Read () (n int, e error) {
 	// remember to flush if we have rejected record.
 	defer reader.bufReject.Flush ()
 
-	for n = 0; n < reader.MaxRecord; {
+	// Loop until we reached MaxRecord (> 0) or when all record has been
+	// read (= -1)
+	for {
 		line, e = reader.readLine ()
 
 		if nil != e {
@@ -501,6 +504,10 @@ func (reader *Reader) Read () (n int, e error) {
 		if nil == e {
 			reader.push (records)
 			n++
+
+			if reader.MaxRecord > 0 && n >= reader.MaxRecord {
+				break
+			}
 		} else {
 			if DEBUG {
 				fmt.Println (e)
