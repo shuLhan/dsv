@@ -12,9 +12,29 @@ import (
 )
 
 /*
+doInit create read-write object.
+*/
+func doInit (testName string, fcfg string, t *testing.T) (rw *dsv.ReadWriter, e error) {
+	if DEBUG {
+		log.Println (">>> ", testName)
+	}
+
+	// Initialize dsv
+	rw = dsv.New ()
+
+	e = rw.Open (fcfg)
+
+	if nil != e {
+		t.Fatal (e)
+	}
+
+	return
+}
+
+/*
 doReadWriteDSV test reading and writing the DSV data.
 */
-func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T) {
+func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T, check bool) {
 	i	:= 0
 	n 	:= 0
 	e	:= error (nil)
@@ -22,19 +42,24 @@ func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T) {
 	for {
 		n, e = rw.Read ()
 
-		if n > 0 {
-			r := fmt.Sprint (rw.Records)
+		if DEBUG {
+			log.Println ("n records: ", n)
+		}
 
-			if r != expectation[i] {
-				t.Error ("dsv_test: expecting\n",
-					expectation[i],
-					" got\n", r)
-				break
+		if n > 0 {
+			if check {
+				r := fmt.Sprint (rw.Records)
+
+				if r != expectation[i] {
+					t.Fatal ("dsv_test: expecting\n",
+						expectation[i],
+						" got\n", r)
+					break
+				}
+				i++
 			}
 
 			rw.Write (&rw.Reader)
-
-			i++
 		} else if e == io.EOF {
 			// EOF
 			break
@@ -42,43 +67,51 @@ func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T) {
 	}
 }
 
-/*
-TestReadWriter test reading and writing DSV.
-*/
-func TestReadWriter (t *testing.T) {
-	if DEBUG {
-		log.Println (">>> TestReadWriter")
-	}
-
-	// Initialize dsv
-	rw := dsv.New ()
-
-	e := rw.Open ("config.dsv")
-
-	if nil != e {
-		t.Error (e)
-	}
-
-	doReadWriteDSV (rw, t)
-
-	rw.Close ()
-
+func doCompare (fout *string, t *testing.T) {
 	// Compare the ouput from Writer
-	out, e := ioutil.ReadFile (rw.Output)
+	out, e := ioutil.ReadFile (*fout)
 
 	if nil != e {
-		t.Error (e)
+		t.Fatal (e)
 	}
 
 	exp, e := ioutil.ReadFile ("expected.dsv")
 
 	if nil != e {
-		t.Error (e)
+		t.Fatal (e)
 	}
 
 	r := bytes.Compare (out, exp)
 
 	if 0 != r {
-		t.Error ("Output different from expected (", r ,")")
+		t.Fatal ("Output different from expected (", r ,")")
 	}
+}
+
+/*
+TestReadWriter test reading and writing DSV.
+*/
+func TestReadWriter (t *testing.T) {
+	rw, _ := doInit ("TestReadWriter", "config.dsv", t)
+
+	doReadWriteDSV (rw, t, true)
+
+	rw.Close ()
+
+	doCompare (&rw.Output, t)
+}
+
+/*
+TestReadWriter test reading and writing DSV.
+*/
+func TestReadWriterAll (t *testing.T) {
+	rw, _ := doInit ("TestReadWriterAll", "config.dsv", t)
+
+	rw.MaxRecord = -1;
+
+	doReadWriteDSV (rw, t, false)
+
+	rw.Close ()
+
+	doCompare (&rw.Output, t)
 }
