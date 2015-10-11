@@ -21,6 +21,8 @@ type Record struct {
 	T int
 }
 
+type RecordSlice []Record
+
 /*
 RecordNew create new record from byte with specific type.
 Return record object or error when fail to convert the byte to type.

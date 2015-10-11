@@ -19,7 +19,7 @@ func TestRecord (t *testing.T) {
 
 	var e error
 
-	r := make ([]dsv.Record, len (exp))
+	r := make (dsv.RecordSlice, len (exp))
 
 	r[0], e = dsv.RecordNew ([]byte ("test"), dsv.TString)
 	if nil != e {

@@ -107,7 +107,7 @@ func (writer *Writer) Close () {
 /*
 WriteRecords dump content of slice to file using metadata format.
 */
-func (writer *Writer) WriteRecords (records *[]Record) (e error) {
+func (writer *Writer) WriteRecords (records *RecordSlice) (e error) {
 	var md *Metadata
 	var r *Record
 	v := []byte{}
@@ -164,7 +164,7 @@ func (writer *Writer) Write (reader *Reader) (n int, e error) {
 	row := reader.Records.Front ()
 
 	for nil != row {
-		e = writer.WriteRecords (row.Value.(*[]Record))
+		e = writer.WriteRecords (row.Value.(*RecordSlice))
 		if nil != e {
 			if DEBUG {
 				log.Println (e)

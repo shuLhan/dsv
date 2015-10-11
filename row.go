@@ -93,7 +93,7 @@ pointer to sub-rows,
 */
 func (rows *Row) GroupByValue (recGroupIdx int) MapStringRow {
 	var row *Row
-	var records *[]Record
+	var records *RecordSlice
 	var key string
 	var v *Row
 	var ok bool
@@ -106,7 +106,7 @@ func (rows *Row) GroupByValue (recGroupIdx int) MapStringRow {
 			break
 		}
 
-		records = row.Front ().Value.(*[]Record)
+		records = row.Front ().Value.(*RecordSlice)
 		key = fmt.Sprint ((*records)[recGroupIdx])
 
 		// check if key already mapped.

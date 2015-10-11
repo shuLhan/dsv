@@ -80,7 +80,7 @@ func TestRowGroupByValue (t *testing.T) {
 ]`,
 	}
 
-	var records = [][]dsv.Record {
+	var records = []dsv.RecordSlice {
 		{{ int64(1), dsv.TInteger }, { "+", dsv.TString }},
 		{{ int64(2), dsv.TInteger }, { "-", dsv.TString }},
 		{{ int64(3), dsv.TInteger }, { "-", dsv.TString }},

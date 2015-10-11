@@ -161,7 +161,7 @@ func (reader *Reader) setDefault () {
 /*
 push record to row.
 */
-func (reader *Reader) push (r *[]Record) {
+func (reader *Reader) push (r *RecordSlice) {
 	if nil == reader.Records {
 		reader.Records = &Row {}
 	}
@@ -307,12 +307,12 @@ This is how the algorithm works
 	(2.4) else append all byte to buffer.
 (3) save buffer to record
 */
-func (reader *Reader) parseLine (line *[]byte) (precords *[]Record, e error) {
+func (reader *Reader) parseLine (line *[]byte) (precords *RecordSlice, e error) {
 	var md *Metadata
 	var p = 0
 	var l = len (*line)
 
-	records := make ([]Record, len (reader.InputMetadata))
+	records := make (RecordSlice, len (reader.InputMetadata))
 
 	for mdIdx := range reader.InputMetadata {
 		v := []byte{}
@@ -486,7 +486,7 @@ func (reader *Reader) Reset () {
 Read maximum 'MaxRecord' record from file.
 */
 func (reader *Reader) Read () (n int, e error) {
-	var records *[]Record
+	var records *RecordSlice
 	var line []byte
 
 	reader.Reset ()
