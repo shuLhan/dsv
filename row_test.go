@@ -16,6 +16,13 @@ var exp = []string {
 	"4\n",
 }
 
+var records = []dsv.RecordSlice {
+	{{ int64(1), dsv.TInteger }, { "+", dsv.TString }},
+	{{ int64(2), dsv.TInteger }, { "-", dsv.TString }},
+	{{ int64(3), dsv.TInteger }, { "-", dsv.TString }},
+	{{ int64(4), dsv.TInteger }, { "+", dsv.TString }},
+}
+
 func TestRowPopFrontRow (t *testing.T) {
 	if DEBUG {
 		fmt.Println (">>> TestRowPopFrontRow")
@@ -62,6 +69,15 @@ func TestRowPopFrontRow (t *testing.T) {
 	}
 }
 
+func generateRow (r *[]dsv.RecordSlice) (rows *dsv.Row) {
+	rows = &dsv.Row{}
+
+	for i := range records {
+		rows.PushBack (&records[i])
+	}
+	return
+}
+
 /*
 TestRowGroupByValue test grouping in rows.
 */
@@ -80,14 +96,6 @@ func TestRowGroupByValue (t *testing.T) {
 ]`,
 	}
 
-	var records = []dsv.RecordSlice {
-		{{ int64(1), dsv.TInteger }, { "+", dsv.TString }},
-		{{ int64(2), dsv.TInteger }, { "-", dsv.TString }},
-		{{ int64(3), dsv.TInteger }, { "-", dsv.TString }},
-		{{ int64(4), dsv.TInteger }, { "+", dsv.TString }},
-	}
-	var rows = &dsv.Row{}
-
 	// test records
 	got := fmt.Sprint (records)
 
@@ -97,9 +105,7 @@ func TestRowGroupByValue (t *testing.T) {
 	}
 
 	// test rows
-	for i = range records {
-		rows.PushBack (&records[i])
-	}
+	rows := generateRow (&records)
 
 	got = fmt.Sprint (rows)
 
@@ -122,5 +128,16 @@ func TestRowGroupByValue (t *testing.T) {
 		for k,v := range classes {
 			fmt.Println (k, v.Len (), v)
 		}
+	}
+}
+
+func TestRowRandomPick (t *testing.T) {
+	var shuffled *dsv.Row
+
+	for i := 0; i < 5; i++ {
+		rows := generateRow (&records)
+
+		shuffled = rows.RandomPick (2)
+		fmt.Println ("Shuffled rows:\n", shuffled)
 	}
 }

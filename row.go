@@ -3,8 +3,9 @@ package dsv
 import (
 	"container/list"
 	"fmt"
-	"math"
+	"math/rand"
 	"reflect"
+	"time"
 )
 
 /*
@@ -13,11 +14,6 @@ Row represent each row of record in linked list model.
 type Row struct {
 	list.List
 }
-
-/*
-MapStringRow represent mapping between string (key) with rows (value).
-*/
-type MapStringRow map[string]*Row
 
 /*
 NewRow create new row object.
@@ -125,15 +121,35 @@ func (rows *Row) GroupByValue (recGroupIdx int) MapStringRow {
 }
 
 /*
-GetMinority return group in groups with minimum rows.
+RandomPick row in rows until n item and return it like has been shuffled.
+Row that has been picked will be removed from original rows.
 */
-func (groups *MapStringRow) GetMinority () (minorGroup *Row) {
-	var min = math.MaxInt32
+func (rows *Row) RandomPick (n int) (shuffled *Row) {
+	var picked int
+	var el *list.Element
+	var r interface{}
+	var i int
+	var rowsL = rows.Len ()
 
-	for k, v := range *groups {
+	if n > rowsL {
+		n = rowsL
+	}
 
-		if (*groups)[k].Len () < min {
-			minorGroup = v
+	rand.Seed (time.Now ().UnixNano ())
+
+	shuffled = &Row {}
+
+	for ; n >= 1; n-- {
+		picked = rand.Intn (rows.Len ())
+
+		el = rows.Front ()
+		for i = 1; i < picked; i++ {
+			el = el.Next ()
+		}
+
+		if el != nil {
+			r = rows.Remove (el)
+			shuffled.PushBack (r)
 		}
 	}
 
