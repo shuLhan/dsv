@@ -2,6 +2,7 @@ package dsv
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -317,6 +318,11 @@ func (reader *Reader) parseLine (line *[]byte) (precords *[]Record, e error) {
 		v := []byte{}
 		md = &reader.InputMetadata[mdIdx]
 
+		// skip all whitespace in the beginning
+		for (*line)[p] == ' ' || (*line)[p] == '\t' {
+			p++
+		}
+
 		// (2.1)
 		if "" != md.LeftQuote {
 			lq := []byte (md.LeftQuote)
@@ -452,12 +458,14 @@ func (reader *Reader) parseLine (line *[]byte) (precords *[]Record, e error) {
 			fmt.Println (string (v))
 		}
 
+		v = bytes.TrimSpace (v)
+
 		records[mdIdx], e = RecordNew (v, md.T)
 
 		if nil != e {
 			return nil, &ErrReader {
-				"Error or invalid type converstion",
-				(*line),
+				"Error or invalid type convertion",
+				v,
 			}
 		}
 	}
