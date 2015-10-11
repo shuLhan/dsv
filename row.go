@@ -3,6 +3,7 @@ package dsv
 import (
 	"container/list"
 	"fmt"
+	"math"
 	"reflect"
 )
 
@@ -12,6 +13,11 @@ Row represent each row of record in linked list model.
 type Row struct {
 	list.List
 }
+
+/*
+MapStringRow represent mapping between string (key) with rows (value).
+*/
+type MapStringRow map[string]*Row
 
 /*
 NewRow create new row object.
@@ -37,17 +43,28 @@ func (rows *Row) String () (s string) {
 }
 
 /*
-Pop cut the head, set the new head to the next element of head, and return
-last head.
+PopFront remove the head, return the element value.
 */
-func (rows *Row) Pop () *Row {
+func (rows *Row) PopFront () interface{} {
 	el := rows.Front ()
-
 	if nil == el {
 		return nil
 	}
 
 	record := rows.Remove (el)
+
+	return record
+}
+
+/*
+PopFrontRow cut the head, set the new head to the next element of head, and return
+last head.
+*/
+func (rows *Row) PopFrontRow () *Row {
+	record := rows.PopFront ()
+	if nil == record {
+		return nil
+	}
 
 	return NewRow (record)
 }
@@ -74,17 +91,17 @@ pointer to sub-rows,
 	     [3 -]
 
 */
-func (rows *Row ) GroupByValue (recGroupIdx int) map[string]*Row {
+func (rows *Row) GroupByValue (recGroupIdx int) MapStringRow {
 	var row *Row
 	var records *[]Record
 	var key string
 	var v *Row
 	var ok bool
 
-	class := make (map[string]*Row)
+	class := make (MapStringRow)
 
 	for {
-		row = rows.Pop ()
+		row = rows.PopFrontRow ()
 		if nil == row {
 			break
 		}
@@ -105,4 +122,20 @@ func (rows *Row ) GroupByValue (recGroupIdx int) map[string]*Row {
 	}
 
 	return class
+}
+
+/*
+GetMinority return group in groups with minimum rows.
+*/
+func (groups *MapStringRow) GetMinority () (minorGroup *Row) {
+	var min = math.MaxInt32
+
+	for k, v := range *groups {
+
+		if (*groups)[k].Len () < min {
+			minorGroup = v
+		}
+	}
+
+	return
 }

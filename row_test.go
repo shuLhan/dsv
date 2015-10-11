@@ -16,9 +16,9 @@ var exp = []string {
 	"4\n",
 }
 
-func TestRowPop (t *testing.T) {
+func TestRowPopFrontRow (t *testing.T) {
 	if DEBUG {
-		fmt.Println (">>> TestRowPop")
+		fmt.Println (">>> TestRowPopFrontRow")
 	}
 
 	rows := &dsv.Row {}
@@ -34,7 +34,7 @@ func TestRowPop (t *testing.T) {
 		t.Fatal ("Expecting:\n", exps, "\n Got:\n", got)
 	}
 
-	row := rows.Pop ()
+	row := rows.PopFrontRow ()
 
 	exps = strings.Join (exp[:1], "")
 	got = fmt.Sprint (row)
@@ -50,12 +50,12 @@ func TestRowPop (t *testing.T) {
 		t.Fatal ("Expecting:\n", exps, "\n Got:\n", got)
 	}
 
-	rows.Pop ()
-	rows.Pop ()
-	rows.Pop ()
-	rows.Pop ()
+	rows.PopFrontRow ()
+	rows.PopFrontRow ()
+	rows.PopFrontRow ()
+	rows.PopFrontRow ()
 
-	row = rows.Pop ()
+	row = rows.PopFrontRow ()
 
 	if nil != row {
 		t.Fatal ("Expecting:\n", nil, "\n Got:\n", row)
