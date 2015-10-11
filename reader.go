@@ -460,7 +460,7 @@ func (reader *Reader) parseLine (line *[]byte) (precords *RecordSlice, e error) 
 
 		v = bytes.TrimSpace (v)
 
-		records[mdIdx], e = RecordNew (v, md.T)
+		e = records[mdIdx].SetByte (v, md.T)
 
 		if nil != e {
 			return nil, &ErrReader {

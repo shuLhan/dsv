@@ -24,13 +24,10 @@ type Record struct {
 type RecordSlice []Record
 
 /*
-RecordNew create new record from byte with specific type.
-Return record object or error when fail to convert the byte to type.
+SetByte set the record values from bytes.
 */
-func RecordNew (v []byte, t int) (r Record, e error) {
+func (r *Record) SetByte (v []byte, t int) error {
 	s := string (v)
-
-	r = Record {}
 
 	switch t {
 	case TString:
@@ -40,7 +37,7 @@ func RecordNew (v []byte, t int) (r Record, e error) {
 		i64, e := strconv.ParseInt (s, 10, 64)
 
 		if nil != e {
-			return r, e
+			return e
 		}
 
 		r.V = i64
@@ -49,7 +46,7 @@ func RecordNew (v []byte, t int) (r Record, e error) {
 		f64, e := strconv.ParseFloat (s, 64)
 
 		if nil != e {
-			return r, e
+			return e
 		}
 
 		r.V = f64
@@ -57,7 +54,26 @@ func RecordNew (v []byte, t int) (r Record, e error) {
 
 	r.T = t
 
-	return r, nil
+	return nil
+}
+
+/*
+SetFloat will set the record content with float value and type.
+*/
+func (r *Record) SetFloat (v float64) {
+	r.V = v
+	r.T = TReal
+}
+
+/*
+RecordNew create new record from byte with specific type.
+Return record object or error when fail to convert the byte to type.
+*/
+func RecordNew (v []byte, t int) (r Record, e error) {
+	r = Record {}
+	e = (&r).SetByte (v, t)
+
+	return
 }
 
 /*
