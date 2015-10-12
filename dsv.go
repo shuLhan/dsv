@@ -1,3 +1,7 @@
+// Copyright 2015 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 /*
 Package dsv is a library for working with delimited separated value (DSV).
 
@@ -8,9 +12,9 @@ any string enclosed with left-quote and right-quote.
 package dsv
 
 import (
+	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"encoding/json"
 	"log"
 	"os"
 )
