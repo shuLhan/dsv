@@ -52,7 +52,7 @@ func TestWriter (t *testing.T) {
 	// Initialize dsv reader
 	dsvReader := dsv.NewReader ()
 
-	e := dsvReader.Open ("config.dsv")
+	e := dsvReader.Open ("testdata/config.dsv")
 
 	if nil != e {
 		t.Error (e)
@@ -63,7 +63,7 @@ func TestWriter (t *testing.T) {
 	// Initialize dsv writer
 	dsvWriter := dsv.NewWriter ()
 
-	e = dsvWriter.Open ("config.dsv")
+	e = dsvWriter.Open ("testdata/config.dsv")
 
 	if nil != e {
 		t.Error (e)
@@ -83,7 +83,7 @@ func TestWriter (t *testing.T) {
 		t.Error (e)
 	}
 
-	exp, e := ioutil.ReadFile ("expected.dsv")
+	exp, e := ioutil.ReadFile ("testdata/expected.dat")
 
 	if nil != e {
 		t.Error (e)

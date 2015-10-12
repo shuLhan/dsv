@@ -1,2 +1,3 @@
-output.dsv
-rejected.dsv
+testdata/output.dat
+testdata/rejected.dat
+rejected.dat

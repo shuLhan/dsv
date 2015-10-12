@@ -75,7 +75,7 @@ func doCompare (fout *string, t *testing.T) {
 		t.Fatal (e)
 	}
 
-	exp, e := ioutil.ReadFile ("expected.dsv")
+	exp, e := ioutil.ReadFile ("testdata/expected.dat")
 
 	if nil != e {
 		t.Fatal (e)
@@ -92,7 +92,7 @@ func doCompare (fout *string, t *testing.T) {
 TestReadWriter test reading and writing DSV.
 */
 func TestReadWriter (t *testing.T) {
-	rw, _ := doInit ("TestReadWriter", "config.dsv", t)
+	rw, _ := doInit ("TestReadWriter", "testdata/config.dsv", t)
 
 	doReadWriteDSV (rw, t, true)
 
@@ -105,7 +105,7 @@ func TestReadWriter (t *testing.T) {
 TestReadWriter test reading and writing DSV.
 */
 func TestReadWriterAll (t *testing.T) {
-	rw, _ := doInit ("TestReadWriterAll", "config.dsv", t)
+	rw, _ := doInit ("TestReadWriterAll", "testdata/config.dsv", t)
 
 	rw.MaxRecord = -1;
 

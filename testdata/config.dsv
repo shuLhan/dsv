@@ -1,5 +1,6 @@
 {
-	"Input"		:"test.dsv"
+	"Input"		:"testdata/input.dat"
+,	"Rejected"	:"testdata/rejected.dat"
 ,	"Skip"		:1
 ,	"MaxRecord"	:1
 ,	"InputMetadata"	:
@@ -25,7 +26,7 @@
 		"Name"		:"real"
 	,	"Type"		:"real"
 	}]
-,	"Output"	:"output.dsv"
+,	"Output"	:"testdata/output.dat"
 ,	"OutputMetadata":
 	[{
 		"Name"		:"id"

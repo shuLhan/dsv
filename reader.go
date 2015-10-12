@@ -104,7 +104,7 @@ func NewReader () *Reader {
 	return &Reader {
 		Input		:"",
 		Skip		:0,
-		Rejected	:"rejected.dsv",
+		Rejected	:"rejected.dat",
 		InputMetadata	:nil,
 		MaxRecord	:DefaultMaxRecord,
 		NRecord		:0,

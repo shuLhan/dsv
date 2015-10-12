@@ -30,13 +30,13 @@ var expectation = []string {
 var jsonSample = []string {
 	`{}`,
 	`{
-		"Input"		:"test.dsv"
+		"Input"		:"testdata/input.dat"
 	}`,
 	`{
-		"Input"		:"test.dsv"
+		"Input"		:"testdata/input.dat"
 	}`,
 	`{
-		"Input"		:"test.dsv"
+		"Input"		:"testdata/input.dat"
 	,	"InputMetadata"	:
 		[{
 			"Name"		:"A"
@@ -47,7 +47,7 @@ var jsonSample = []string {
 		}]
 	}`,
 	`{
-		"Input"		:"test.dsv"
+		"Input"		:"testdata/input.dat"
 	,	"Skip"		:1
 	,	"MaxRecord"	:1
 	,	"InputMetadata"	:
@@ -75,7 +75,7 @@ var jsonSample = []string {
 		}]
 	}`,
 	`{
-		"Input"		:"test.dsv"
+		"Input"		:"testdata/input.dat"
 	,	"Skip"		:1
 	,	"MaxRecord"	:1
 	,	"InputMetadata"	:
@@ -104,13 +104,13 @@ var jsonSample = []string {
 var readers = []*dsv.Reader {
 	{},
 	{
-		Input	:"test.dsv",
+		Input	:"testdata/input.dat",
 	},
 	{
 		Input	:"test-another.dsv",
 	},
 	{
-		Input		:"test.dsv",
+		Input		:"testdata/input.dat",
 		InputMetadata	:[]dsv.Metadata {
 			{
 				Name		:"A",
@@ -198,7 +198,7 @@ func TestReaderIsEqual (t *testing.T) {
 		{
 			readers[1],
 			&dsv.Reader {
-				Input :"test.dsv",
+				Input :"testdata/input.dat",
 			},
 			true,
 		},
@@ -282,7 +282,7 @@ func TestReaderOpen (t *testing.T) {
 
 	dsvReader := dsv.NewReader ()
 
-	e := dsvReader.Open ("config.dsv")
+	e := dsvReader.Open ("testdata/config.dsv")
 
 	if nil != e {
 		t.Error (e)
