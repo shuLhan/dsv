@@ -510,9 +510,14 @@ func (reader *Reader) Read () (n int, e error) {
 			return n, e
 		}
 
+		// check for empty line
+		line = bytes.TrimSpace (line)
+		if len (line) <= 0 {
+			continue
+		}
+
 		records, e = reader.parseLine (&line)
 
-		// If error, save the rejected line.
 		if nil == e {
 			reader.push (records)
 			n++
@@ -521,6 +526,7 @@ func (reader *Reader) Read () (n int, e error) {
 				break
 			}
 		} else {
+			// If error, save the rejected line.
 			if DEBUG {
 				fmt.Println (e)
 			}
