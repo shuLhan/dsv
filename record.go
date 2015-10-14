@@ -5,6 +5,7 @@
 package dsv
 
 import (
+	"math"
 	"strconv"
 )
 
@@ -42,24 +43,26 @@ func (r *Record) SetByte (v []byte, t int) error {
 		i64, e := strconv.ParseInt (s, 10, 64)
 
 		if nil != e {
-			return e
+			r.V = math.MinInt64
+		} else {
+			r.V = i64
 		}
-
-		r.V = i64
 
 	case TReal:
 		f64, e := strconv.ParseFloat (s, 64)
 
 		if nil != e {
-			return e
+			r.V = math.Inf (-1)
+		} else {
+			r.V = f64
 		}
-
-		r.V = f64
 	}
 
 	r.T = t
 
-	return nil
+	// keep returning error in case convert is failed and missing value
+	// is set.
+	return e
 }
 
 /*
@@ -111,6 +114,34 @@ func (r *Record) ToByte () (b []byte) {
 	}
 
 	return b
+}
+
+/*
+IsMissingValue check wether the value is a missing attribute.
+If it string the missing value is indicated by character '?'.
+If it integer the missing value is indicated by minimum negative integer.
+If it real the missing value is indicated by -Inf.
+*/
+func (r *Record) IsMissingValue () bool {
+	switch r.T {
+	case TString:
+		str := r.V.(string)
+		if str == "?" {
+			return true
+		}
+
+	case TInteger:
+		i64 := r.V.(int64)
+		if i64 == math.MinInt64 {
+			return true
+		}
+
+	case TReal:
+		f64 := r.V.(float64)
+		return math.IsInf (f64, -1)
+	}
+
+	return false
 }
 
 /*
