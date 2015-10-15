@@ -152,20 +152,13 @@ func (writer *Writer) WriteRecords (records *RecordSlice) (e error) {
 }
 
 /*
-Write records from Reader to file.
+WriteRows will loop each row in the list of rows.
 Return n for number of records written, and e for error that happened when
 writing to file.
 */
-func (writer *Writer) Write (reader *Reader) (n int, e error) {
-	if nil == reader {
-		return 0, ErrNilReader
-	}
-	if nil == writer.fWriter {
-		return 0, ErrNotOpen
-	}
-
+func (writer *Writer) WriteRows (rows *Row) (n int, e error) {
 	n = 0
-	row := reader.Records.Front ()
+	row := rows.Front ()
 
 	for nil != row {
 		e = writer.WriteRecords (row.Value.(*RecordSlice))
@@ -179,6 +172,22 @@ func (writer *Writer) Write (reader *Reader) (n int, e error) {
 	}
 
 	return n,nil
+}
+
+/*
+Write records from Reader to file.
+Return n for number of records written, and e for error that happened when
+writing to file.
+*/
+func (writer *Writer) Write (reader *Reader) (int, error) {
+	if nil == reader {
+		return 0, ErrNilReader
+	}
+	if nil == writer.fWriter {
+		return 0, ErrNotOpen
+	}
+
+	return writer.WriteRows (reader.Records)
 }
 
 /*
