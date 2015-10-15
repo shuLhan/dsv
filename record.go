@@ -32,7 +32,9 @@ type RecordSlice []Record
 /*
 SetByte set the record values from bytes.
 */
-func (r *Record) SetByte (v []byte, t int) error {
+func (r *Record) SetByte (v []byte, t int) (e error) {
+	var i64 int64
+	var f64 float64
 	s := string (v)
 
 	switch t {
@@ -40,16 +42,16 @@ func (r *Record) SetByte (v []byte, t int) error {
 		r.V = s
 
 	case TInteger:
-		i64, e := strconv.ParseInt (s, 10, 64)
+		i64, e = strconv.ParseInt (s, 10, 64)
 
 		if nil != e {
-			r.V = math.MinInt64
+			r.V = int64 (math.MinInt64)
 		} else {
 			r.V = i64
 		}
 
 	case TReal:
-		f64, e := strconv.ParseFloat (s, 64)
+		f64, e = strconv.ParseFloat (s, 64)
 
 		if nil != e {
 			r.V = math.Inf (-1)
@@ -62,7 +64,7 @@ func (r *Record) SetByte (v []byte, t int) error {
 
 	// keep returning error in case convert is failed and missing value
 	// is set.
-	return e
+	return
 }
 
 /*
