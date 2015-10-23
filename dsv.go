@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 )
 
 const (
@@ -73,6 +74,9 @@ func (dsv *ReadWriter) Open (fcfg string) (e error) {
 	if nil != e {
 		return
 	}
+
+	// Get directory where the config reside.
+	dsv.Path = path.Dir (fcfg)
 
 	e = dsv.Reader.Init ()
 

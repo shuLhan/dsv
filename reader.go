@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"path"
 	"os"
 )
 
@@ -76,6 +77,13 @@ Thats it.
 type Reader struct {
 	// Input file, mandatory.
 	Input		string		`json:"Input"`
+	// Path of input file, relative to the path of config file.
+	//
+	// If the configuration located in other directory, e.g.
+	// "../../config.dsv", and the Input option is set with name only, like
+	// "input.dat", we assume that its in the same directory where the
+	// configuration file belong.
+	Path		string
 	// Skip n lines from the head.
 	Skip		int		`json:"Skip"`
 	// Rejected is the file where record that does not fit
@@ -130,13 +138,22 @@ func (reader *Reader) Open (fcfg string) error {
 		return e
 	}
 
+	// Get directory where the config reside.
+	reader.Path = path.Dir (fcfg)
+
 	e = reader.ParseConfig (cfg)
+
+	if nil != e {
+		return e
+	}
+
+	e = reader.Init ()
 
 	return e
 }
 
 /*
-Close will close all open descriptors.
+Close all open descriptors.
 */
 func (reader *Reader) Close () {
 	if nil != reader.bufReject {
@@ -220,6 +237,22 @@ func (reader *Reader) skipLines () (e error) {
 }
 
 /*
+checkPath if is name only without path, prefix it with path of configuration.
+*/
+func (reader *Reader) checkPath (file string) (string) {
+	dir := path.Dir (file)
+
+	if dir == "." {
+		if reader.Path != "" && reader.Path != "." {
+			return reader.Path +"/"+ file
+		}
+	}
+
+	// nothing happen.
+	return file
+}
+
+/*
 Init initialize reader object by opening input and rejected files and
 skip n lines from input.
 */
@@ -234,6 +267,11 @@ func (reader *Reader) Init () (e error) {
 
 	// Set default value
 	reader.setDefault ()
+
+	// Check if Input is name only without path, so we can prefix it with
+	// config path.
+	reader.Input = reader.checkPath (reader.Input)
+	reader.Rejected = reader.checkPath (reader.Rejected)
 
 	// Get ready ...
 	e = reader.openReader ()
@@ -272,7 +310,7 @@ func (reader *Reader) ParseConfig (cfg []byte) (e error) {
 		return ErrNoInput
 	}
 
-	return reader.Init ()
+	return
 }
 
 /*

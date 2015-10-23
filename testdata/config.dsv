@@ -1,6 +1,6 @@
 {
-	"Input"		:"testdata/input.dat"
-,	"Rejected"	:"testdata/rejected.dat"
+	"Input"		:"input.dat"
+,	"Rejected"	:"rejected.dat"
 ,	"Skip"		:1
 ,	"MaxRecord"	:1
 ,	"InputMetadata"	:

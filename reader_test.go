@@ -134,7 +134,7 @@ func TestReaderNoInput (t *testing.T) {
 	dsvReader := dsv.NewReader ()
 	e := dsvReader.ParseConfig ([]byte (jsonSample[0]))
 	if nil == e {
-		t.Error ("TestReaderNoInput: failed, should return non nil!")
+		t.Fatal ("TestReaderNoInput: failed, should return non nil!")
 	}
 
 	if DEBUG {
@@ -172,10 +172,10 @@ func TestParseConfig (t *testing.T) {
 		e := dsvReader.ParseConfig ([]byte (c.in))
 
 		if e != nil {
-			t.Error (e)
+			t.Fatal (e)
 		}
 		if ! dsvReader.IsEqual (c.out) {
-			t.Error ("Test failed on ", c.in);
+			t.Fatal ("Test failed on ", c.in);
 		} else {
 			if DEBUG {
 				log.Print (dsvReader)
@@ -215,7 +215,7 @@ func TestReaderIsEqual (t *testing.T) {
 		r = c.in.IsEqual (c.out)
 
 		if r != c.result {
-			t.Error ("Test failed on equality between ", c.in,
+			t.Fatal ("Test failed on equality between ", c.in,
 				"\n and ",
 					c.out);
 		}
@@ -237,7 +237,7 @@ func doRead (dsvReader *dsv.Reader, t *testing.T) {
 			r := fmt.Sprint (dsvReader.Records)
 
 			if r != expectation[i] {
-				t.Error ("dsv_test: expecting\n",
+				t.Fatal ("dsv_test: expecting\n",
 					expectation[i],
 					" got\n", r)
 			}
@@ -260,13 +260,23 @@ func TestReaderRead (t *testing.T) {
 
 	dsvReader := dsv.NewReader ()
 
-	dsvReader.ParseConfig ([] byte (jsonSample[4]))
+	defer dsvReader.Close ()
+
+	e := dsvReader.ParseConfig ([] byte (jsonSample[4]))
+
+	if nil != e {
+		t.Fatal (e)
+	}
+
+	e = dsvReader.Init ()
+
+	if nil != e {
+		t.Fatal (e)
+	}
 
 	if DEBUG {
 		log.Println (dsvReader)
 	}
-
-	defer dsvReader.Close ()
 
 	doRead (dsvReader, t)
 }
@@ -284,7 +294,7 @@ func TestReaderOpen (t *testing.T) {
 	e := dsvReader.Open ("testdata/config.dsv")
 
 	if nil != e {
-		t.Error (e)
+		t.Fatal (e)
 	}
 
 	defer dsvReader.Close ()
