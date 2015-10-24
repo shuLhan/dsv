@@ -44,7 +44,7 @@ func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T, check bool) {
 	e	:= error (nil)
 
 	for {
-		n, e = rw.Read ()
+		n, e = dsv.Read (rw)
 
 		if DEBUG {
 			log.Println ("n records: ", n)

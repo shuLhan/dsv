@@ -12,12 +12,8 @@ any string enclosed with left-quote and right-quote.
 package dsv
 
 import (
-	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"log"
 	"os"
-	"path"
 )
 
 const (
@@ -59,28 +55,14 @@ New create a new ReadWriter object.
 func New () *ReadWriter {
 	return &ReadWriter {}
 }
+
 /*
 Open configuration file for reading and writing.
 */
 func (dsv *ReadWriter) Open (fcfg string) (e error) {
-	cfg, e := ioutil.ReadFile (fcfg)
-	if nil != e {
-		log.Print ("dsv: ", e)
-		return
-	}
+	e = Open (dsv, fcfg)
 
-	e = json.Unmarshal ([]byte (cfg), dsv)
-
-	if nil != e {
-		return
-	}
-
-	// Get directory where the config reside.
-	dsv.Path = path.Dir (fcfg)
-
-	e = dsv.Reader.Init ()
-
-	if nil != e {
+	if e != nil {
 		return
 	}
 

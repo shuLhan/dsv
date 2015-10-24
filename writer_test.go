@@ -24,7 +24,7 @@ func doReadWrite (dsvReader *dsv.Reader, dsvWriter *dsv.Writer, t *testing.T) {
 	e	:= error (nil)
 
 	for {
-		n, e = dsvReader.Read ()
+		n, e = dsv.Read (dsvReader)
 
 		if n > 0 {
 			r := fmt.Sprint (dsvReader.Records)
@@ -56,7 +56,7 @@ func TestWriter (t *testing.T) {
 	// Initialize dsv reader
 	dsvReader := dsv.NewReader ()
 
-	e := dsvReader.Open ("testdata/config.dsv")
+	e := dsv.Open (dsvReader, "testdata/config.dsv")
 
 	if nil != e {
 		t.Error (e)
@@ -67,7 +67,7 @@ func TestWriter (t *testing.T) {
 	// Initialize dsv writer
 	dsvWriter := dsv.NewWriter ()
 
-	e = dsvWriter.Open ("testdata/config.dsv")
+	e = dsvWriter.Open ("testdata/config.dsv", dsvWriter)
 
 	if nil != e {
 		t.Error (e)
