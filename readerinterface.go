@@ -17,11 +17,13 @@ type ReaderInterface interface {
 	SetMaxRecord (max int)
 	GetRecordRead () int
 	SetRecordRead (n int)
+	GetOutputMode () string
 
 	Reset ()
 	Flush ()
-	ReadLine () (line []byte, e error)
+	ReadLine () ([]byte, error)
 	Push (r *RecordSlice)
+	PushRecordsToFields (r *RecordSlice) error
 	Reject (line []byte)
 	Close ()
 }
@@ -60,7 +62,14 @@ func Read (reader ReaderInterface) (n int, e error) {
 		records, e = ParseLine (reader, &line)
 
 		if nil == e {
-			reader.Push (records)
+			switch reader.GetOutputMode () {
+			case "ROWS":
+				reader.Push (records)
+			case "FIELDS":
+				e = reader.PushRecordsToFields (records)
+			}
+		}
+		if nil == e {
 			n++
 
 			if reader.GetMaxRecord () > 0 &&

@@ -258,7 +258,7 @@ func doRead (dsvReader *dsv.Reader, t *testing.T) {
 }
 
 /*
-TestReader test reading using 
+TestReader test reading.
 */
 func TestReaderRead (t *testing.T) {
 	if DEBUG {
@@ -307,4 +307,95 @@ func TestReaderOpen (t *testing.T) {
 	defer dsvReader.Close ()
 
 	doRead (dsvReader, t)
+}
+
+func TestOutputMode (t *testing.T) {
+	var e error
+	var config = []string {`{
+		"Input"		:"testdata/input.dat"
+	,	"OutputMode"	:"row"
+	}`,`{
+		"Input"		:"testdata/input.dat"
+	,	"OutputMode"	:"rows"
+	}`,`{
+		"Input"		:"testdata/input.dat"
+	,	"OutputMode"	:"fields"
+	}`}
+
+	var exps = []struct {
+		status bool
+		value string
+	}{{
+		false,
+		string (config[0]),
+	},{
+		true,
+		string (config[1]),
+	},{
+		true,
+		string (config[2]),
+	}}
+
+	reader := dsv.NewReader ()
+
+	for k,v := range exps {
+		e = dsv.ParseConfig (reader, []byte (config[k]))
+
+		if e != nil {
+			t.Fatal (e)
+		}
+
+		e = reader.Init ()
+
+		if e != nil {
+			if v.status == true {
+				t.Fatal (e)
+			}
+		}
+	}
+}
+
+func TestReaderToFields (t *testing.T) {
+	var e error
+
+	reader := dsv.NewReader ()
+
+	e = dsv.ParseConfig (reader, []byte (jsonSample[4]))
+
+	if nil != e {
+		t.Fatal (e)
+	}
+
+	reader.SetOutputMode ("fields")
+
+	e = reader.Init ()
+
+	if nil != e {
+		t.Fatal (e)
+	}
+
+	var n,i int
+	for {
+		n, e = dsv.Read (reader)
+
+		if n > 0 {
+			reader.TransposeFieldsToRows ()
+
+			r := fmt.Sprint (reader.GetOutput())
+
+			reader.SetOutputMode ("rows")
+
+			if r != expectation[i] {
+				t.Fatal ("dsv_test: expecting\n",
+					expectation[i],
+					" got\n", r)
+			}
+
+			i++
+		} else if e == io.EOF {
+			// EOF
+			break
+		}
+	}
+
 }

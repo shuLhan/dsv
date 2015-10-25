@@ -9,7 +9,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"os"
+	"strings"
+)
+
+const (
+	// OutputModeRows for output mode in rows.
+	OutputModeRows		= 0
+	// OutputModeFields for output mode in fields.
+	OutputModeFields	= 1
 )
 
 /*
@@ -93,6 +102,27 @@ type Reader struct {
 	MaxRecord	int		`json:"MaxRecord"`
 	// NRecord define number of record readed and saved in Rows.
 	NRecord		int
+	// RecordMode define on how do you want the resulting record. There are
+	// two options: either in "rows" mode or "fields" mode.
+	// For example, input data file,
+	//
+	//	a,b,c
+	//	1,2,3
+	//
+	// Row mode is where each line saved in linked-list of row, resulting
+	// in Rows:
+	//
+	//	[a b c]->[1 2 3]
+	//
+	// Field mode is where each line saved by columns, resulting in Fields:
+	//
+	//	[a 1]
+	//	[b 2]
+	//	[c 3]
+	//
+	OutputMode	string		`json:"OutputMode"`
+	// Fields is input data that has been parsed.
+	Fields		[]RecordSlice
 	// Rows is input data that has been parsed.
 	Rows		*Row
 	// fRead as read descriptor.
@@ -117,6 +147,7 @@ func NewReader () *Reader {
 		InputMetadata	:nil,
 		MaxRecord	:DefaultMaxRecord,
 		NRecord		:0,
+		OutputMode	:"rows",
 		Rows		:nil,
 		fRead		:nil,
 		fReject		:nil,
@@ -217,6 +248,51 @@ func (reader *Reader) SetRecordRead (n int) {
 }
 
 /*
+GetOutputMode return mode of output in uppercase, so we does not need to
+convert it to upper or lower later to compare it.
+*/
+func (reader *Reader) GetOutputMode () (string) {
+	return strings.ToUpper (reader.OutputMode)
+}
+
+/*
+SetOutputMode to `mode`.
+*/
+func (reader *Reader) SetOutputMode (mode string) {
+	reader.OutputMode = mode
+}
+
+func (reader *Reader) GetOutput () interface{} {
+	switch reader.GetOutputMode() {
+	case "ROWS":
+		return reader.Rows
+	case "FIELDS":
+		return reader.Fields
+	}
+
+	return nil
+}
+
+/*
+checkOutputMode check if output mode is valid.
+*/
+func (reader *Reader) checkOutputMode () (e error) {
+	switch strings.ToUpper (reader.OutputMode) {
+	case "ROWS":
+		return
+	case "FIELDS":
+		return
+	}
+
+	e = &ErrReader{
+		"reader: unknown mode",
+		[]byte (reader.OutputMode),
+	}
+
+	return
+}
+
+/*
 SetDefault options for global config and each metadata.
 */
 func (reader *Reader) SetDefault () {
@@ -225,6 +301,9 @@ func (reader *Reader) SetDefault () {
 	}
 	if 0 == reader.MaxRecord {
 		reader.MaxRecord = DefaultMaxRecord
+	}
+	if "" == reader.OutputMode {
+		reader.OutputMode = "rows"
 	}
 }
 
@@ -295,6 +374,22 @@ func (reader *Reader) Init () (e error) {
 
 	// Set default value
 	reader.SetDefault ()
+
+	// Check if output mode is valid
+	e = reader.checkOutputMode ()
+
+	if nil != e {
+		return
+	}
+
+	// Initialize Fields attribute.
+	if strings.ToUpper(reader.OutputMode) == "FIELDS" {
+		reader.Fields = make([]RecordSlice, len(reader.InputMetadata))
+
+		for i := range reader.Fields {
+			reader.Fields[i] = make(RecordSlice, 0)
+		}
+	}
 
 	// Check if Input is name only without path, so we can prefix it with
 	// config path.
@@ -375,6 +470,22 @@ func (reader *Reader) Push (r *RecordSlice) {
 }
 
 /*
+PushRecordsToFields push each record in RecordSlice to Fields.
+*/
+func (reader *Reader) PushRecordsToFields (r *RecordSlice) (e error) {
+	// check if records length equal with fields length
+	if len(*r) != len(reader.Fields) {
+		return ErrMissRecordsLen
+	}
+
+	for i := range (*r) {
+		reader.Fields[i] = append(reader.Fields[i], (*r)[i])
+	}
+
+	return
+}
+
+/*
 Reject the line and save it to the reject file.
 */
 func (reader *Reader) Reject (line []byte) {
@@ -394,6 +505,40 @@ func (reader *Reader) Close () {
 	if nil != reader.fRead {
 		reader.fRead.Close ()
 	}
+}
+
+/*
+TransposeFieldsToRows will move all record in Fields into Rows.
+*/
+func (reader *Reader) TransposeFieldsToRows () {
+	if reader.GetOutputMode () != "FIELDS" {
+		return
+	}
+
+	var rowlen = math.MaxInt32
+	var flen = len(reader.Fields)
+	var f, l, r int
+
+	// Get the lest length of fields.
+	for f = 0; f < flen; f++ {
+		l = len(reader.Fields[f])
+
+		if l < rowlen {
+			rowlen = l
+		}
+	}
+
+	for r = 0; r < rowlen; r++ {
+		records := make(RecordSlice, flen)
+
+		for f = 0; f < flen; f++ {
+			records[f] = reader.Fields[f][r]
+		}
+
+		reader.Push(&records)
+	}
+
+	reader.SetOutputMode ("rows")
 }
 
 /*

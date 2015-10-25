@@ -28,6 +28,8 @@ const (
 var (
 	// ErrNoInput define an error when no Input file is given to Reader.
 	ErrNoInput	= errors.New ("dsv: No input file is given in config")
+	// ErrMissRecordsLen
+	ErrMissRecordsLen = errors.New ("dsv: Mismatch between records length and fields length")
 	// ErrNoOutput define an error when no output file is given to Writer.
 	ErrNoOutput	= errors.New ("dsv: No output file is given in config")
 	// ErrNotOpen define an error when output file has not been opened
