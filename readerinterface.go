@@ -49,6 +49,7 @@ func Read (reader ReaderInterface) (n int, e error) {
 			if DEBUG && e != io.EOF {
 				log.Print ("dsv: ", e)
 			}
+			reader.SetRecordRead (n)
 			return n, e
 		}
 
