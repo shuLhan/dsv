@@ -20,11 +20,42 @@ var exp = []string {
 	"4\n",
 }
 
-var records = []dsv.RecordSlice {
-	{{ int64(1), dsv.TInteger }, { "+", dsv.TString }},
-	{{ int64(2), dsv.TInteger }, { "-", dsv.TString }},
-	{{ int64(3), dsv.TInteger }, { "-", dsv.TString }},
-	{{ int64(4), dsv.TInteger }, { "+", dsv.TString }},
+var records []dsv.RecordSlice;
+
+func initRecords () (e error) {
+	var i = 0
+	var j = 0
+	var z = 0
+	var l = 0
+	var r dsv.Record
+	var data = [][]byte{
+		{ '1', dsv.TInteger, '+', dsv.TString },
+		{ '2', dsv.TInteger, '-', dsv.TString },
+		{ '3', dsv.TInteger, '-', dsv.TString },
+		{ '4', dsv.TInteger, '+', dsv.TString },
+	}
+
+	records = make([]dsv.RecordSlice, len (data))
+
+	for i = range data {
+		l = len(data[i])
+		records[i] = make(dsv.RecordSlice, l / 2)
+
+		z = 0
+		for j = 0; j < l; j += 2 {
+			r, e = dsv.RecordNew ([]byte{data[i][j]}, int(data[i][j+1]))
+
+			if nil != e {
+				return e
+			}
+
+			records[i][z] = r
+
+			z++
+		}
+	}
+
+	return e
 }
 
 func TestRowPopFrontRow (t *testing.T) {
@@ -100,6 +131,8 @@ func TestRowGroupByValue (t *testing.T) {
 ]`,
 	}
 
+	initRecords ()
+
 	// test records
 	got := fmt.Sprint (records)
 
@@ -137,6 +170,8 @@ func TestRowGroupByValue (t *testing.T) {
 
 func TestRowRandomPick (t *testing.T) {
 	var shuffled *dsv.Row
+
+	initRecords ()
 
 	for i := 0; i < 5; i++ {
 		rows := generateRow (&records)

@@ -23,16 +23,15 @@ Record represent each field in record.
 */
 type Record struct {
 	V interface{}
-	T int
 }
 
 // RecordSlice record with slice.
 type RecordSlice []Record
 
 /*
-SetByte set the record values from bytes.
+SetValue set the record values from bytes.
 */
-func (r *Record) SetByte (v []byte, t int) (e error) {
+func (r *Record) SetValue (v []byte, t int) (e error) {
 	var i64 int64
 	var f64 float64
 	s := string (v)
@@ -60,8 +59,6 @@ func (r *Record) SetByte (v []byte, t int) (e error) {
 		}
 	}
 
-	r.T = t
-
 	// keep returning error in case convert is failed and missing value
 	// is set.
 	return
@@ -72,7 +69,6 @@ SetFloat will set the record content with float value and type.
 */
 func (r *Record) SetFloat (v float64) {
 	r.V = v
-	r.T = TReal
 }
 
 /*
@@ -81,7 +77,7 @@ Return record object or error when fail to convert the byte to type.
 */
 func RecordNew (v []byte, t int) (r Record, e error) {
 	r = Record {}
-	e = (&r).SetByte (v, t)
+	e = (&r).SetValue (v, t)
 
 	return
 }
@@ -90,10 +86,10 @@ func RecordNew (v []byte, t int) (r Record, e error) {
 Value return value of record based on their type.
 */
 func (r *Record) Value () interface{} {
-	switch r.T {
-	case TInteger:
+	switch r.V.(type) {
+	case int64:
 		return r.V.(int64)
-	case TReal:
+	case float64:
 		return r.V.(float64)
 	}
 
@@ -104,14 +100,14 @@ func (r *Record) Value () interface{} {
 ToByte convert record value to byte.
 */
 func (r *Record) ToByte () (b []byte) {
-	switch r.T {
-	case TString:
+	switch r.V.(type) {
+	case string:
 		b = []byte (r.V.(string))
 
-	case TInteger:
+	case int64:
 		b = []byte (strconv.FormatInt (r.V.(int64), 10))
 
-	case TReal:
+	case float64:
 		b = []byte (strconv.FormatFloat (r.V.(float64), 'f', -1, 64))
 	}
 
@@ -125,20 +121,20 @@ If it integer the missing value is indicated by minimum negative integer.
 If it real the missing value is indicated by -Inf.
 */
 func (r *Record) IsMissingValue () bool {
-	switch r.T {
-	case TString:
+	switch r.V.(type) {
+	case string:
 		str := r.V.(string)
 		if str == "?" {
 			return true
 		}
 
-	case TInteger:
+	case int64:
 		i64 := r.V.(int64)
 		if i64 == math.MinInt64 {
 			return true
 		}
 
-	case TReal:
+	case float64:
 		f64 := r.V.(float64)
 		return math.IsInf (f64, -1)
 	}
@@ -150,14 +146,14 @@ func (r *Record) IsMissingValue () bool {
 String convert record value to string.
 */
 func (r Record) String () (s string) {
-	switch r.T {
-	case TString:
+	switch r.V.(type) {
+	case string:
 		s = r.V.(string)
 
-	case TInteger:
+	case int64:
 		s = strconv.FormatInt (r.V.(int64), 10)
 
-	case TReal:
+	case float64:
 		s = strconv.FormatFloat (r.V.(float64), 'f', -1, 64)
 	}
 	return

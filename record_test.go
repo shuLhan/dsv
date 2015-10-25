@@ -41,11 +41,11 @@ func TestRecord (t *testing.T) {
 	}
 
 	for i := range exp {
-		s := fmt.Sprint (r[i])
+		s := fmt.Sprint (&r[i])
 
 		if s != exp[i] {
 			t.Error ("dsv_test: expecting\n", exp[i], "\n got\n",
-				r[i])
+				&r[i])
 		}
 	}
 }

@@ -254,8 +254,7 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 		}
 
 		v = bytes.TrimSpace (v)
-
-		e = records[mdIdx].SetByte (v, md.T)
+		e = records[mdIdx].SetValue (v, md.T)
 
 		if nil != e {
 			return nil, &ErrReader {
@@ -266,5 +265,4 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 	}
 
 	return &records, e
-
 }
