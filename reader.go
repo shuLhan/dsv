@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"path"
 	"os"
 )
 
@@ -74,13 +73,13 @@ Thats it.
 type Reader struct {
 	// Input file, mandatory.
 	Input		string		`json:"Input"`
-	// Path of input file, relative to the path of config file.
+	// InputPath of input file, relative to the path of config file.
 	//
 	// If the configuration located in other directory, e.g.
 	// "../../config.dsv", and the Input option is set with name only, like
 	// "input.dat", we assume that its in the same directory where the
 	// configuration file belong.
-	Path		string
+	InputPath	string
 	// Skip n lines from the head.
 	Skip		int		`json:"Skip"`
 	// Rejected is the file where record that does not fit
@@ -112,7 +111,7 @@ NewReader create and initialize new instance of DSV Reader with default values.
 func NewReader () *Reader {
 	return &Reader {
 		Input		:"",
-		Path		:"",
+		InputPath	:"",
 		Skip		:0,
 		Rejected	:"rejected.dat",
 		InputMetadata	:nil,
@@ -144,14 +143,14 @@ func (reader *Reader) SetInput (path string) {
 GetPath return the base path of configuration file.
 */
 func (reader *Reader) GetPath () string {
-	return reader.Path
+	return reader.InputPath
 }
 
 /*
 SetPath for reading input and writing rejected file.
 */
 func (reader *Reader) SetPath (dir string) {
-	reader.Path = dir
+	reader.InputPath = dir
 }
 
 /*
@@ -230,22 +229,6 @@ func (reader *Reader) SetDefault () {
 }
 
 /*
-CheckPath if is name only without path, prefix it with path of configuration.
-*/
-func (reader *Reader) CheckPath (file string) (string) {
-	dir := path.Dir (file)
-
-	if dir == "." {
-		if reader.Path != "" && reader.Path != "." {
-			return reader.Path +"/"+ file
-		}
-	}
-
-	// nothing happen.
-	return file
-}
-
-/*
 OpenInput open the input file, metadata must have been initialize.
 */
 func (reader *Reader) OpenInput () (e error) {
@@ -288,6 +271,58 @@ func (reader *Reader) SkipLines () (e error) {
 			return
 		}
 	}
+	return
+}
+
+/*
+Init initialize reader object by opening input and rejected files and
+skip n lines from input.
+*/
+func (reader *Reader) Init () (e error) {
+	// Exit immediately if no input file is defined in config.
+	if "" == reader.Input {
+		return ErrNoInput
+	}
+
+	// Check and initialize metadata.
+	for i := range reader.InputMetadata {
+		e = reader.InputMetadata[i].Init ()
+
+		if nil != e {
+			return e
+		}
+	}
+
+	// Set default value
+	reader.SetDefault ()
+
+	// Check if Input is name only without path, so we can prefix it with
+	// config path.
+	reader.SetInput (CheckPath (reader, reader.GetInput ()))
+	reader.SetRejected (CheckPath (reader, reader.GetRejected ()))
+
+	// Get ready ...
+	e = reader.OpenInput ()
+
+	if nil != e {
+		return
+	}
+
+	e = reader.OpenRejected ()
+
+	if nil != e {
+		return
+	}
+
+	// Skip lines
+	if reader.Skip > 0 {
+		e = reader.SkipLines ()
+
+		if nil != e {
+			return
+		}
+	}
+
 	return
 }
 

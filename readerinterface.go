@@ -2,25 +2,15 @@ package dsv
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"path"
 )
 
 /*
 ReaderInterface is the interface for reading DSV file.
 */
 type ReaderInterface interface {
-	GetInput () string
-	SetInput (path string)
-	GetPath () string
-	SetPath (dir string)
-	GetSkip () int
-	GetRejected () string
-	SetRejected (path string)
 	GetInputMetadata () *[]Metadata
 	GetInputMetadataAt (idx int) *Metadata
 	GetMaxRecord () int
@@ -28,106 +18,12 @@ type ReaderInterface interface {
 	GetRecordRead () int
 	SetRecordRead (n int)
 
-	SetDefault ()
-	CheckPath (path string) string
-	OpenInput () error
-	OpenRejected () error
-	SkipLines () error
 	Reset ()
 	Flush ()
 	ReadLine () (line []byte, e error)
 	Push (r *RecordSlice)
 	Reject (line []byte)
 	Close ()
-}
-
-/*
-Open configuration file.
-*/
-func Open (reader ReaderInterface, fcfg string) error {
-	cfg, e := ioutil.ReadFile (fcfg)
-
-	if nil != e {
-		return e
-	}
-
-	// Get directory where the config reside.
-	reader.SetPath (path.Dir (fcfg))
-
-	e = ParseConfig (reader, cfg)
-
-	if nil != e {
-		return e
-	}
-
-	e = Init (reader)
-
-	return e
-}
-
-/*
-ParseConfig from JSON string.
-*/
-func ParseConfig (reader ReaderInterface, cfg []byte)  (e error) {
-	e = json.Unmarshal ([]byte (cfg), reader)
-
-	if nil != e {
-		return
-	}
-
-	// Exit immediately if no input file is defined in config.
-	if "" == reader.GetInput () {
-		return ErrNoInput
-	}
-
-	return
-}
-
-/*
-Init initialize reader object by opening input and rejected files and
-skip n lines from input.
-*/
-func Init (reader ReaderInterface) (e error) {
-	// Check and initialize metadata.
-	for i := range *(reader.GetInputMetadata ()) {
-		e = reader.GetInputMetadataAt (i).Init ()
-
-		if nil != e {
-			return e
-		}
-	}
-
-	// Set default value
-	reader.SetDefault ()
-
-	// Check if Input is name only without path, so we can prefix it with
-	// config path.
-	reader.SetInput (reader.CheckPath (reader.GetInput ()))
-	reader.SetRejected (reader.CheckPath (reader.GetRejected ()))
-
-	// Get ready ...
-	e = reader.OpenInput ()
-
-	if nil != e {
-		return
-	}
-
-	e = reader.OpenRejected ()
-
-	if nil != e {
-		return
-	}
-
-	// Skip lines
-	if reader.GetSkip () > 0 {
-		e = reader.SkipLines ()
-
-		if nil != e {
-			return
-		}
-	}
-
-	return
 }
 
 /*

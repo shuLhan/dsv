@@ -133,6 +133,13 @@ func TestReaderNoInput (t *testing.T) {
 
 	dsvReader := dsv.NewReader ()
 	e := dsv.ParseConfig (dsvReader, []byte (jsonSample[0]))
+
+	if nil != e {
+		t.Fatal (e)
+	}
+
+	e = dsvReader.Init ()
+
 	if nil == e {
 		t.Fatal ("TestReaderNoInput: failed, should return non nil!")
 	}
@@ -268,7 +275,7 @@ func TestReaderRead (t *testing.T) {
 		t.Fatal (e)
 	}
 
-	e = dsv.Init (dsvReader)
+	e = dsvReader.Init ()
 
 	if nil != e {
 		t.Fatal (e)
