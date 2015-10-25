@@ -170,7 +170,7 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 		return 0, ErrNotOpen
 	}
 
-	return writer.WriteRows (reader.Records)
+	return writer.WriteRows (reader.Rows)
 }
 
 /*

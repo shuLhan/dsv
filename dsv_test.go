@@ -52,7 +52,7 @@ func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T, check bool) {
 
 		if n > 0 {
 			if check {
-				r := fmt.Sprint (rw.Records)
+				r := fmt.Sprint (rw.Rows)
 
 				if r != expectation[i] {
 					t.Fatal ("dsv_test: expecting\n",

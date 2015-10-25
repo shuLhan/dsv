@@ -59,7 +59,7 @@ DSV Reader work like this,
 
 (4.1) Iterate through records
 
-		row := dsvReader.Records.Front ()
+		row := dsvReader.Rows.Front ()
 		for row != nil {
 			// work with records ...
 
@@ -91,10 +91,10 @@ type Reader struct {
 	// saved in the memory at one read operation.
 	// If the value is -1 all records will read.
 	MaxRecord	int		`json:"MaxRecord"`
-	// NRecord define number of record readed and saved in Records.
+	// NRecord define number of record readed and saved in Rows.
 	NRecord		int
-	// Records is input record that has been parsed.
-	Records		*Row
+	// Rows is input data that has been parsed.
+	Rows		*Row
 	// fRead as read descriptor.
 	fRead		*os.File
 	// fReject as reject descriptor.
@@ -117,7 +117,7 @@ func NewReader () *Reader {
 		InputMetadata	:nil,
 		MaxRecord	:DefaultMaxRecord,
 		NRecord		:0,
-		Records		:nil,
+		Rows		:nil,
 		fRead		:nil,
 		fReject		:nil,
 		bufRead		:nil,
@@ -327,12 +327,12 @@ func (reader *Reader) Init () (e error) {
 }
 
 /*
-Reset all variables for next read operation. NRecord will be 0, and Records
+Reset all variables for next read operation. NRecord will be 0, and Rows
 will be nil again.
 */
 func (reader *Reader) Reset () {
 	reader.NRecord = 0
-	reader.Records = nil
+	reader.Rows = nil
 }
 
 /*
@@ -367,11 +367,11 @@ func (reader *Reader) ReadLine () (line []byte, e error) {
 Push record to row.
 */
 func (reader *Reader) Push (r *RecordSlice) {
-	if nil == reader.Records {
-		reader.Records = &Row {}
+	if nil == reader.Rows {
+		reader.Rows = &Row {}
 	}
 
-	reader.Records.PushBack (r)
+	reader.Rows.PushBack (r)
 }
 
 /*

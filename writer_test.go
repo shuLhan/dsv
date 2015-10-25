@@ -27,7 +27,7 @@ func doReadWrite (dsvReader *dsv.Reader, dsvWriter *dsv.Writer, t *testing.T) {
 		n, e = dsv.Read (dsvReader)
 
 		if n > 0 {
-			r := fmt.Sprint (dsvReader.Records)
+			r := fmt.Sprint (dsvReader.Rows)
 
 			if r != expectation[i] {
 				t.Error ("dsv_test: expecting\n",

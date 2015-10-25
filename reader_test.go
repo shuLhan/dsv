@@ -241,7 +241,7 @@ func doRead (dsvReader *dsv.Reader, t *testing.T) {
 		n, e = dsv.Read (dsvReader)
 
 		if n > 0 {
-			r := fmt.Sprint (dsvReader.Records)
+			r := fmt.Sprint (dsvReader.Rows)
 
 			if r != expectation[i] {
 				t.Fatal ("dsv_test: expecting\n",
