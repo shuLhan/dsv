@@ -57,16 +57,26 @@ func New () *ReadWriter {
 }
 
 /*
+SetPath of input and output file.
+*/
+func (dsv *ReadWriter) SetPath (dir string) {
+	dsv.Reader.SetPath (dir)
+	dsv.Writer.SetPath (dir)
+}
+
+/*
 Open configuration file for reading and writing.
 */
 func (dsv *ReadWriter) Open (fcfg string) (e error) {
-	e = Open (dsv, fcfg)
+	e = Open (&dsv.Reader, fcfg)
 
 	if e != nil {
 		return
 	}
 
-	return dsv.Writer.Init ()
+	e = Open (&dsv.Writer, fcfg)
+
+	return e
 }
 
 /*
