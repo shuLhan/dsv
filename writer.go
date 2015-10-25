@@ -7,7 +7,6 @@ package dsv
 import (
 	"bufio"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -19,6 +18,8 @@ metadata.
 type Writer struct {
 	// Output file where the records will be written.
 	Output		string		`json:"Output"`
+	// OutputPath define where the output file directory belong.
+	OutputPath	string
 	// OutputMetadata define format for each field.
 	OutputMetadata	[]Metadata	`json:"OutputMetadata"`
 	// fWriter as write descriptor.
@@ -34,6 +35,7 @@ User must call Open after that to populate the output and metadata.
 func NewWriter () *Writer {
 	return &Writer {
 		Output		:"",
+		OutputPath	:"",
 		OutputMetadata	:nil,
 		fWriter		:nil,
 		BufWriter	:nil,
@@ -41,19 +43,17 @@ func NewWriter () *Writer {
 }
 
 /*
-Open file for writing.
+GetPath of directory where output file reside.
 */
-func (writer *Writer) Open (fcfg string) (e error) {
-	cfg, e := ioutil.ReadFile (fcfg)
+func (writer *Writer) GetPath () string {
+	return writer.OutputPath
+}
 
-	if nil != e {
-		log.Print ("dsv: ", e)
-		return e
-	}
-
-	e = writer.ParseConfig (cfg)
-
-	return nil
+/*
+SetPath where output file will be saved.
+*/
+func (writer *Writer) SetPath (dir string) {
+	writer.OutputPath = dir
 }
 
 /*
@@ -61,23 +61,6 @@ Init initialize writer by opening output file.
 */
 func (writer *Writer) Init () error {
 	return writer.openOutput ()
-}
-
-/*
-ParseConfig from JSON string.
-*/
-func (writer *Writer) ParseConfig (cfg []byte) (e error) {
-	e = json.Unmarshal ([]byte (cfg), writer)
-
-	if nil != e {
-		return
-	}
-
-	if "" == writer.Output {
-		return ErrNoOutput
-	}
-
-	return writer.Init ()
 }
 
 /*

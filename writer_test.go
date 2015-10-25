@@ -67,7 +67,7 @@ func TestWriter (t *testing.T) {
 	// Initialize dsv writer
 	dsvWriter := dsv.NewWriter ()
 
-	e = dsvWriter.Open ("testdata/config.dsv", dsvWriter)
+	e = dsv.Open (dsvWriter, "testdata/config.dsv")
 
 	if nil != e {
 		t.Error (e)
