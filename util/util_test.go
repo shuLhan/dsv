@@ -41,3 +41,28 @@ func TestIndirectSort(t *testing.T) {
 		}
 	}
 }
+
+func TestSortFloatSliceByIndex(t *testing.T) {
+	in1 := []float64{9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0}
+	in2 := []float64{0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0}
+
+	exp := fmt.Sprint(in1)
+
+	fmt.Println("input 1:", in1)
+	fmt.Println("input 2:", in2)
+
+	sortedIdx := util.IndirectSort(&in1)
+
+	fmt.Println("sorted idx:", sortedIdx)
+
+	util.SortFloatSliceByIndex(&in2, sortedIdx)
+
+	fmt.Println("input 1:", in1)
+	fmt.Println("input 2:", in2)
+
+	got := fmt.Sprint(in2)
+
+	if got != exp {
+		t.Fatal("Expecting ", exp,", got ", got)
+	}
+}

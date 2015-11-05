@@ -152,3 +152,27 @@ func IndirectSort(data *[]float64) *[]int {
 
 	return &r
 }
+
+/*
+SortFloatSliceByIndex will sort the slice of float `data` using sorted index
+`sortedIdx`.
+*/
+func SortFloatSliceByIndex(data* []float64, sortedIdx *[]int) {
+	for i := range (*sortedIdx) {
+		if (*sortedIdx)[i] > i {
+			SwapFloat64(data, i, (*sortedIdx)[i])
+		}
+	}
+}
+
+/*
+SortStringSliceByIndex will sort the slice of string `data` using sorted index
+`sortedIdx`.
+*/
+func SortStringSliceByIndex(data* []string, sortedIdx *[]int) {
+	for i := range (*sortedIdx) {
+		if (*sortedIdx)[i] > i {
+			SwapString(data, i, (*sortedIdx)[i])
+		}
+	}
+}
