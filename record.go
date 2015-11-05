@@ -158,3 +158,53 @@ func (r Record) String () (s string) {
 	}
 	return
 }
+
+/*
+Float convert given record to float value.
+*/
+func (r Record) Float() (f64 float64) {
+	var e error
+
+	switch r.V.(type) {
+	case string:
+		f64, e = strconv.ParseFloat (r.V.(string), 64)
+
+		if nil != e {
+			f64 = math.Inf (-1)
+		}
+
+	case int64:
+		f64 = float64(r.V.(int64))
+
+	case float64:
+		f64 = r.V.(float64)
+	}
+
+	return
+}
+
+/*
+RecordSliceToFloatSlice convert slice of record to slice of float64.
+*/
+func RecordSliceToFloatSlice(field *RecordSlice) (*[]float64) {
+	newf := make([]float64, len(*field))
+
+	for i := range (*field) {
+		newf[i] = (*field)[i].Float()
+	}
+
+	return &newf
+}
+
+/*
+RecordSliceToStringSlice convert slice of record to slice of string.
+*/
+func RecordSliceToStringSlice(field *RecordSlice) (*[]string) {
+	newf := make([]string, len(*field))
+
+	for i := range (*field) {
+		newf[i] = (*field)[i].String()
+	}
+
+	return &newf
+}
