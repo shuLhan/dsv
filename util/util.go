@@ -157,22 +157,26 @@ func IndirectSort(data *[]float64) *[]int {
 SortFloatSliceByIndex will sort the slice of float `data` using sorted index
 `sortedIdx`.
 */
-func SortFloatSliceByIndex(data* []float64, sortedIdx *[]int) {
+func SortFloatSliceByIndex(data *[]float64, sortedIdx *[]int) {
+	newdata := make([]float64, len(*data))
+
 	for i := range (*sortedIdx) {
-		if (*sortedIdx)[i] > i {
-			SwapFloat64(data, i, (*sortedIdx)[i])
-		}
+		newdata[i] = (*data)[(*sortedIdx)[i]]
 	}
+
+	(*data) = newdata
 }
 
 /*
 SortStringSliceByIndex will sort the slice of string `data` using sorted index
 `sortedIdx`.
 */
-func SortStringSliceByIndex(data* []string, sortedIdx *[]int) {
+func SortStringSliceByIndex(data *[]string, sortedIdx *[]int) {
+	newdata := make([]string, len(*data))
+
 	for i := range (*sortedIdx) {
-		if (*sortedIdx)[i] > i {
-			SwapString(data, i, (*sortedIdx)[i])
-		}
+		newdata[i] = (*data)[(*sortedIdx)[i]]
 	}
+
+	(*data) = newdata
 }
