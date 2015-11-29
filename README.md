@@ -10,16 +10,16 @@ comma.
 
 Lets process this input file `input.dat`,
 
-    Mon Dt HH:MM:SS name
+    Mon Dt HH MM SS Process
     Nov 29 23:14:36 process-1
     Nov 29 23:14:37 process-2
     Nov 29 23:14:38 process-3
 
 and generate output file `output.dat` which format like this,
 
-    "process-1","29-Nov"
-    "process-2","29-Nov"
-    "process-3","29-Nov"
+    "process_1","29-Nov"
+    "process_2","29-Nov"
+    "process_3","29-Nov"
 
 How do we do it?
 
@@ -46,18 +46,22 @@ First, create file metadata for input and output, name it `config.dsv`,
         ,   "Type"      :"integer"
         },{
             "Name"      :"second"
-        ,   "Separator" :":"
+        ,   "Separator" :" "
         ,   "Type"      :"integer"
         },{
             "Name"      :"process_name"
-        ,   "Separator" :" "
+        ,   "Separator" :"-"
+        },{
+            "Name"      :"process_id"
         }]
-
     ,   "Output"        :"output.dat"
     ,   "OutputMetadata":
         [{
             "Name"      :"process_name"
         ,   "LeftQuote" :"\""
+        ,   "Separator" :"_"
+        ],{
+            "Name"      :"process_id"
         ,   "RightQuote":"\""
         ,   "Separator" :","
         },{
