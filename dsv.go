@@ -28,7 +28,9 @@ const (
 var (
 	// ErrNoInput define an error when no Input file is given to Reader.
 	ErrNoInput	= errors.New ("dsv: No input file is given in config")
-	// ErrMissRecordsLen
+	// ErrMissRecordsLen define an error when trying to push a record slice
+	// to reader record, but their number of fields is not equal.
+	// See reader.PushRecordsToFields().
 	ErrMissRecordsLen = errors.New ("dsv: Mismatch between records length and fields length")
 	// ErrNoOutput define an error when no output file is given to Writer.
 	ErrNoOutput	= errors.New ("dsv: No output file is given in config")

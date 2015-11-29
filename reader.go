@@ -102,6 +102,10 @@ type Reader struct {
 	MaxRecord	int		`json:"MaxRecord"`
 	// NRecord define number of record readed and saved in Rows.
 	NRecord		int
+	// NFieldIn define number of input fields.
+	NFieldIn	int		`json:"-"`
+	// NFieldOut define number of output fields.
+	NFieldOut	int		`json:"-"`
 	// RecordMode define on how do you want the resulting record. There are
 	// two options: either in "rows" mode or "fields" mode.
 	// For example, input data file,
@@ -122,9 +126,9 @@ type Reader struct {
 	//
 	OutputMode	string		`json:"OutputMode"`
 	// Fields is input data that has been parsed.
-	Fields		[]RecordSlice
+	Fields		[]RecordSlice	`json:"-"`
 	// Rows is input data that has been parsed.
-	Rows		*Row
+	Rows		*Row		`json:"-"`
 	// fRead as read descriptor.
 	fRead		*os.File
 	// fReject as reject descriptor.
@@ -147,6 +151,8 @@ func NewReader () *Reader {
 		InputMetadata	:nil,
 		MaxRecord	:DefaultMaxRecord,
 		NRecord		:0,
+		NFieldIn	:0,
+		NFieldOut	:0,
 		OutputMode	:"rows",
 		Rows		:nil,
 		fRead		:nil,
@@ -262,6 +268,17 @@ func (reader *Reader) SetOutputMode (mode string) {
 	reader.OutputMode = mode
 }
 
+/*
+GetNFieldOut return number of field that will be used in output, excluding
+the field with Skip=true.
+*/
+func (reader *Reader) GetNFieldOut() int {
+	return reader.NFieldOut;
+}
+
+/*
+GetOutput return the output records, based on mode (rows or fields based).
+*/
 func (reader *Reader) GetOutput () interface{} {
 	switch reader.GetOutputMode() {
 	case "ROWS":
@@ -363,9 +380,17 @@ func (reader *Reader) Init () (e error) {
 		return ErrNoInput
 	}
 
+	// Set number of input fields.
+	reader.NFieldIn = len(reader.InputMetadata)
+
 	// Check and initialize metadata.
 	for i := range reader.InputMetadata {
 		e = reader.InputMetadata[i].Init ()
+
+		// Count number of output fields.
+		if ! reader.InputMetadata[i].Skip {
+			reader.NFieldOut++
+		}
 
 		if nil != e {
 			return e
@@ -384,7 +409,7 @@ func (reader *Reader) Init () (e error) {
 
 	// Initialize Fields attribute.
 	if strings.ToUpper(reader.OutputMode) == "FIELDS" {
-		reader.Fields = make([]RecordSlice, len(reader.InputMetadata))
+		reader.Fields = make([]RecordSlice, reader.NFieldIn)
 
 		for i := range reader.Fields {
 			reader.Fields[i] = make(RecordSlice, 0)

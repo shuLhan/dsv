@@ -18,6 +18,7 @@ type ReaderInterface interface {
 	GetRecordRead () int
 	SetRecordRead (n int)
 	GetOutputMode () string
+	GetNFieldOut() int
 
 	Reset ()
 	Flush ()
@@ -113,11 +114,12 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 	var md *Metadata
 	var p = 0
 	var l = len (*line)
+	var rIdx = 0
 	var inputMd *[]Metadata;
 
 	inputMd = reader.GetInputMetadata ()
 
-	records := make (RecordSlice, len ((*inputMd)))
+	records := make (RecordSlice, reader.GetNFieldOut())
 
 	for mdIdx := range (*inputMd) {
 		v := []byte{}
@@ -263,8 +265,13 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 			fmt.Println (string (v))
 		}
 
+		if md.Skip {
+			continue
+		}
+
 		v = bytes.TrimSpace (v)
-		e = records[mdIdx].SetValue (v, md.T)
+		e = records[rIdx].SetValue (v, md.T)
+		rIdx++
 
 		if nil != e {
 			return nil, &ErrReader {

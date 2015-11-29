@@ -28,6 +28,9 @@ type Metadata struct {
 	// RightQuote define the characters that enclosed the field in the
 	// right side.
 	RightQuote	string	`json:"RightQuote"`
+	// Skip, if its true this field will be ignored, not saved in reader
+	// object. Default to false.
+	Skip		bool	`json:"Skip"`
 }
 
 /*

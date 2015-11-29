@@ -232,7 +232,7 @@ func TestReaderIsEqual (t *testing.T) {
 /*
 doRead test reading the DSV data.
 */
-func doRead (dsvReader *dsv.Reader, t *testing.T) {
+func doRead (t *testing.T, dsvReader *dsv.Reader, exp []string) {
 	i	:= 0
 	n 	:= 0
 	e	:= error (nil)
@@ -243,9 +243,9 @@ func doRead (dsvReader *dsv.Reader, t *testing.T) {
 		if n > 0 {
 			r := fmt.Sprint (dsvReader.Rows)
 
-			if r != expectation[i] {
+			if r != exp[i] {
 				t.Fatal ("dsv_test: expecting\n",
-					expectation[i],
+					exp[i],
 					" got\n", r)
 			}
 
@@ -285,7 +285,7 @@ func TestReaderRead (t *testing.T) {
 		log.Println (dsvReader)
 	}
 
-	doRead (dsvReader, t)
+	doRead (t, dsvReader, expectation)
 }
 
 /*
@@ -306,7 +306,7 @@ func TestReaderOpen (t *testing.T) {
 
 	defer dsvReader.Close ()
 
-	doRead (dsvReader, t)
+	doRead (t, dsvReader, expectation)
 }
 
 func TestOutputMode (t *testing.T) {
@@ -397,5 +397,35 @@ func TestReaderToFields (t *testing.T) {
 			break
 		}
 	}
+}
 
+/*
+TestReaderSkip will test the 'Skip' option in Metadata.
+*/
+func TestReaderSkip(t *testing.T) {
+	var e error
+	var exp = []string {
+		"&[A-B AB 1 0.1]\n",
+		"&[A-B-C BCD 2 0.02]\n",
+		"&[A;B-C,D A;B C,D 3 0.003]\n",
+		"&[  6 0.000006]\n",
+		"&[ok ok 9 0.000000009]\n",
+		"&[test integer 10 0.101]\n",
+		"&[test real 123456789 0.123456789]\n",
+	}
+
+
+	fmt.Println("==> TestReaderSkip")
+
+	dsvReader := dsv.NewReader ()
+
+	e = dsv.Open (dsvReader, "testdata/config_skip.dsv")
+
+	if nil != e {
+		t.Fatal (e)
+	}
+
+	defer dsvReader.Close ()
+
+	doRead (t, dsvReader, exp)
 }
