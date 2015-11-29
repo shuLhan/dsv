@@ -94,25 +94,48 @@ func (writer *Writer) Close () {
 /*
 WriteRecords dump content of slice to file using metadata format.
 */
-func (writer *Writer) WriteRecords (records *RecordSlice) (e error) {
+func (writer *Writer) WriteRecords(records *RecordSlice, recordMd *[]Metadata) (
+								e error) {
 	var md *Metadata
-	var r *Record
+	var inMd *Metadata
+	var rIdx int
+	var nRecord = len(*records)
+	var recV []byte
 	v := []byte{}
 
 	for i := range writer.OutputMetadata {
 		md = &writer.OutputMetadata[i]
-		r = &(*records)[i]
 
-		// no more record?
-		if nil == r {
-			break
+		// find the input index based on name on record metadata.
+		rIdx = 0
+		for y := range (*recordMd) {
+			inMd = &(*recordMd)[y]
+
+			if inMd.Name == md.Name {
+				break
+			}
+			if ! (*recordMd)[y].Skip {
+				rIdx++
+			}
 		}
+
+		// If input field is ignored, continue to next record.
+		if inMd.Skip {
+			continue
+		}
+
+		// No input metadata matched? skip it too.
+		if rIdx >= nRecord {
+			continue
+		}
+
+		recV = (*records)[rIdx].ToByte()
 
 		if "" != md.LeftQuote {
 			v = append (v, []byte (md.LeftQuote)...)
 		}
 
-		v = append (v, r.ToByte ()...)
+		v = append (v, recV...)
 
 		if "" != md.RightQuote {
 			v = append (v, []byte (md.RightQuote)...)
@@ -139,12 +162,12 @@ WriteRows will loop each row in the list of rows.
 Return n for number of records written, and e for error that happened when
 writing to file.
 */
-func (writer *Writer) WriteRows (rows *Row) (n int, e error) {
+func (writer *Writer) WriteRows(rows *Row, recordMd *[]Metadata) (n int, e error) {
 	n = 0
 	row := rows.Front ()
 
 	for nil != row {
-		e = writer.WriteRecords (row.Value.(*RecordSlice))
+		e = writer.WriteRecords (row.Value.(*RecordSlice), recordMd)
 		if nil != e {
 			if DEBUG {
 				log.Println (e)
@@ -170,7 +193,7 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 		return 0, ErrNotOpen
 	}
 
-	return writer.WriteRows (reader.Rows)
+	return writer.WriteRows (reader.Rows, &reader.InputMetadata)
 }
 
 /*

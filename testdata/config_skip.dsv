@@ -27,4 +27,28 @@
 		"Name"		:"real"
 	,	"Type"		:"real"
 	}]
+,	"Output"	:"testdata/output_skip.dat"
+,	"OutputMetadata":
+	[{
+		"Name"		:"real"
+	,	"Separator"	:";"
+	},{
+		"Name"		:"integer"
+	,	"Separator"	:";"
+	},{
+		"Name"		:"value"
+	,	"Separator"	:";"
+	,	"LeftQuote"	:"{{"
+	,	"RightQuote"	:"}}"
+	},{
+		"Name"		:"name"
+	,	"RightQuote"	:"#"
+	},{
+		"Name"		:"id"
+	,	"LeftQuote"	:"ID "
+	,	"Separator"	:"/"
+	},{
+		"Name"		:"invalid"
+	,	"Separator"	:";"
+	}]
 }

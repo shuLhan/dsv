@@ -18,7 +18,8 @@ import (
 /*
 doReadWrite test reading and writing the DSV data.
 */
-func doReadWrite (dsvReader *dsv.Reader, dsvWriter *dsv.Writer, t *testing.T) {
+func doReadWrite (t *testing.T, dsvReader *dsv.Reader, dsvWriter *dsv.Writer,
+						expectation []string) {
 	i	:= 0
 	n 	:= 0
 	e	:= error (nil)
@@ -77,7 +78,7 @@ func TestWriter (t *testing.T) {
 		log.Print (dsvWriter)
 	}
 
-	doReadWrite (dsvReader, dsvWriter, t)
+	doReadWrite (t, dsvReader, dsvWriter, expectation)
 	dsvWriter.Close ()
 
 	// Compare the ouput from Writer
@@ -88,6 +89,61 @@ func TestWriter (t *testing.T) {
 	}
 
 	exp, e := ioutil.ReadFile ("testdata/expected.dat")
+
+	if nil != e {
+		t.Error (e)
+	}
+
+	r := bytes.Compare (out, exp)
+
+	if 0 != r {
+		t.Error ("Output different from expected (", r ,")")
+	}
+}
+
+/*
+TestWriterWithSkip test reading and writing DSV.
+*/
+func TestWriterWithSkip (t *testing.T) {
+	if DEBUG {
+		log.Println (">>> TestWriterWithSkip")
+	}
+
+	// Initialize dsv reader
+	dsvReader := dsv.NewReader ()
+
+	e := dsv.Open (dsvReader, "testdata/config_skip.dsv")
+
+	if nil != e {
+		t.Error (e)
+	}
+
+	defer dsvReader.Close ()
+
+	// Initialize dsv writer
+	dsvWriter := dsv.NewWriter ()
+
+	e = dsv.Open (dsvWriter, "testdata/config_skip.dsv")
+
+	if nil != e {
+		t.Error (e)
+	}
+
+	if DEBUG {
+		log.Print (dsvWriter)
+	}
+
+	doReadWrite (t, dsvReader, dsvWriter, exp_skip)
+	dsvWriter.Close ()
+
+	// Compare the Writer output
+	out, e := ioutil.ReadFile (dsvWriter.Output)
+
+	if nil != e {
+		t.Error (e)
+	}
+
+	exp, e := ioutil.ReadFile ("testdata/expected_skip.dat")
 
 	if nil != e {
 		t.Error (e)
