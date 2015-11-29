@@ -1,6 +1,122 @@
 [![GoDoc](https://godoc.org/github.com/shuLhan/dsv?status.svg)](https://godoc.org/github.com/shuLhan/dsv)
 
-Package dsv is a go library for working with delimited separated value (DSV).
+Package `dsv` is a Go library for working with delimited separated value (DSV).
 
 DSV is a free-style form of CSV format of text data, where each record is
-separated by newline, and each field can be separated by any string.
+separated by newline, and each field can be separated by any string, not just
+comma.
+
+## Example
+
+Lets process this input file `input.dat`,
+
+    Mon Dt HH:MM:SS name
+    Nov 29 23:14:36 process-1
+    Nov 29 23:14:37 process-2
+    Nov 29 23:14:38 process-3
+
+and generate output file `output.dat` which format like this,
+
+    "process-1","29-Nov"
+    "process-2","29-Nov"
+    "process-3","29-Nov"
+
+How do we do it?
+
+First, create file metadata for input and output, name it `config.dsv`,
+
+    {
+        "Input"         :"input.dat"
+    ,   "Skip"          :1
+    ,   "InputMetadata" :
+        [{
+            "Name"      :"month"
+        ,   "Separator" :" "
+        },{
+            "Name"      :"date"
+        ,   "Separator" :" "
+        ,   "Type"      :"integer"
+        },{
+            "Name"      :"hour"
+        ,   "Separator" :":"
+        ,   "Type"      :"integer"
+        },{
+            "Name"      :"minute"
+        ,   "Separator" :":"
+        ,   "Type"      :"integer"
+        },{
+            "Name"      :"second"
+        ,   "Separator" :":"
+        ,   "Type"      :"integer"
+        },{
+            "Name"      :"process_name"
+        ,   "Separator" :" "
+        }]
+
+    ,   "Output"        :"output.dat"
+    ,   "OutputMetadata":
+        [{
+            "Name"      :"process_name"
+        ,   "LeftQuote" :"\""
+        ,   "RightQuote":"\""
+        ,   "Separator" :","
+        },{
+            "Name"      :"date"
+        ,   "LeftQuote" :"\""
+        ,   "Separator" :"-"
+        },{
+            "Name"      :"month"
+        ,   "RightQuote":"\""
+        }]
+    }
+
+The metadata is using JSON format. For more information see `metadata.go`
+and `reader.go`.
+
+Second, we create a reader to read the input file.
+
+    dsvReader := dsv.NewReader ()
+
+    e = dsv.Open (dsvReader, "config.dsv")
+
+    if nil != e {
+        t.Fatal (e)
+    }
+
+    // we make sure all descriptor is closed.
+    defer dsvReader.Close ()
+
+Third, we create a writer to write our output data,
+
+    dsvWriter := dsv.NewWriter ()
+
+    e = dsv.Open (dsvWriter, "config.dsv")
+
+    if nil != e {
+        t.Error (e)
+    }
+
+Last action, we process them: read input records and pass them to writer.
+
+    for {
+        n, e := dsv.Read (dsvReader)
+
+        if n > 0 {
+            dsvWriter.Write (dsvReader)
+
+        // EOF, no more records.
+        } else if e == io.EOF {
+            break
+        }
+    }
+
+Easy enough? We can combine the reader and writer using dsv.New(), which will
+create reader and writer,
+
+    rw = dsv.New ()
+
+    e = rw.Open ("config.dsv")
+
+    // do usual process like in the last step.
+
+Thats it!
