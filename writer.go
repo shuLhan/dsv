@@ -43,6 +43,13 @@ func NewWriter () *Writer {
 }
 
 /*
+SetOutput will set the output file to path.
+*/
+func (writer *Writer) SetOutput(path string) {
+	writer.Output = path
+}
+
+/*
 GetPath of directory where output file reside.
 */
 func (writer *Writer) GetPath () string {
@@ -60,6 +67,13 @@ func (writer *Writer) SetPath (dir string) {
 Init initialize writer by opening output file.
 */
 func (writer *Writer) Init () error {
+	// Exit immediately if no output file is defined in config.
+	if "" == writer.Output {
+		return ErrNoOutput
+	}
+
+	writer.SetOutput(CheckPath(writer, writer.Output))
+
 	return writer.openOutput ()
 }
 
