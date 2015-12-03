@@ -47,7 +47,7 @@ func Read (reader ReaderInterface) (n int, e error) {
 		line, e = reader.ReadLine ()
 
 		if nil != e {
-			if DEBUG && e != io.EOF {
+			if e != io.EOF {
 				log.Print ("dsv: ", e)
 			}
 			reader.SetRecordRead (n)
@@ -80,9 +80,7 @@ func Read (reader ReaderInterface) (n int, e error) {
 			}
 		} else {
 			// If error, save the rejected line.
-			if DEBUG {
-				fmt.Println (e)
-			}
+			log.Println(e)
 
 			reader.Reject (line)
 			reader.Reject ([]byte ("\n"))
