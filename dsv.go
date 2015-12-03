@@ -40,6 +40,8 @@ var (
 	// ErrNilReader define an error when Reader object is nil when passed
 	// to Write function.
 	ErrNilReader	= errors.New ("dsv: Reader object is nil")
+	// ErrUnknownOutputMode will tell you when output mode is unknown.
+	ErrUnknownOutputMode = errors.New ("dsv: Unknown output mode")
 
 	// DEBUG exported from environment to debug the library.
 	DEBUG		= bool (os.Getenv ("DEBUG") != "")

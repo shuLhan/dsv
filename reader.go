@@ -291,22 +291,22 @@ func (reader *Reader) GetOutput () interface{} {
 }
 
 /*
-checkOutputMode check if output mode is valid.
+InitOutputMode check if output mode is valid.
 */
-func (reader *Reader) checkOutputMode () (e error) {
-	switch strings.ToUpper (reader.OutputMode) {
+func (reader *Reader) InitOutputMode(mode string) (e error) {
+	reader.OutputMode = mode
+
+	switch reader.GetOutputMode() {
 	case "ROWS":
+		reader.Rows = nil
 		return
 	case "FIELDS":
+		// Initialize Fields attribute.
+		reader.Fields = make([]RecordSlice, reader.NFieldOut)
 		return
 	}
 
-	e = &ErrReader{
-		"reader: unknown mode",
-		[]byte (reader.OutputMode),
-	}
-
-	return
+	return ErrUnknownOutputMode
 }
 
 /*
@@ -400,20 +400,11 @@ func (reader *Reader) Init () (e error) {
 	// Set default value
 	reader.SetDefault ()
 
-	// Check if output mode is valid
-	e = reader.checkOutputMode ()
+	// Check if output mode is valid and initialize it if valid.
+	e = reader.InitOutputMode(reader.OutputMode)
 
 	if nil != e {
 		return
-	}
-
-	// Initialize Fields attribute.
-	if strings.ToUpper(reader.OutputMode) == "FIELDS" {
-		reader.Fields = make([]RecordSlice, reader.NFieldIn)
-
-		for i := range reader.Fields {
-			reader.Fields[i] = make(RecordSlice, 0)
-		}
 	}
 
 	// Check if Input is name only without path, so we can prefix it with
@@ -453,6 +444,7 @@ will be nil again.
 func (reader *Reader) Reset () {
 	reader.NRecord = 0
 	reader.Rows = nil
+	reader.Fields = make([]RecordSlice, reader.NFieldOut)
 }
 
 /*
