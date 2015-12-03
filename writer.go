@@ -172,8 +172,9 @@ func (writer *Writer) WriteRecords(records *RecordSlice, recordMd *[]Metadata) (
 }
 
 /*
-WriteRows will loop each row in the list of rows.
-Return n for number of records written, and e for error that happened when
+WriteRows will loop each row in the list of rows and write their content to
+output file.
+Return n for number of records written, and e if error happened when
 writing to file.
 */
 func (writer *Writer) WriteRows(rows *Row, recordMd *[]Metadata) (n int, e error) {
@@ -195,6 +196,48 @@ func (writer *Writer) WriteRows(rows *Row, recordMd *[]Metadata) (n int, e error
 }
 
 /*
+WriteFields will write content of fields to output file.
+Return n for number of records written, and e if error happened when
+writing to file.
+*/
+func (writer *Writer) WriteFields(fields *[]RecordSlice, md *[]Metadata) (
+							n int, e error) {
+	nFields := len(*fields)
+	if nFields <= 0 {
+		return
+	}
+
+	// Get minimum length of all fields.
+	// In case one of the field have different length (shorter or longer),
+	// we will take the field with minimum length.
+	minLen := len((*fields)[0])
+
+	for i := 1; i < nFields; i++ {
+		l := len((*fields)[i])
+		if minLen > l {
+			minLen = l
+		}
+	}
+
+	lenField := minLen
+
+	// First loop, iterate over the field length.
+	var f int
+	records := make(RecordSlice, nFields)
+
+	for r := 0; r < lenField; r++ {
+		// Second loop, convert fields to record.
+		for f = 0; f < nFields; f++ {
+			records[f] = (*fields)[f][r]
+		}
+
+		writer.WriteRecords(&records, md)
+	}
+
+	return n,e
+}
+
+/*
 Write records from Reader to file.
 Return n for number of records written, and e for error that happened when
 writing to file.
@@ -207,7 +250,14 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 		return 0, ErrNotOpen
 	}
 
-	return writer.WriteRows (reader.Rows, &reader.InputMetadata)
+	switch reader.GetOutputMode() {
+	case "ROWS":
+		return writer.WriteRows(reader.Rows, &reader.InputMetadata)
+	case "FIELDS":
+		return writer.WriteFields(&reader.Fields, &reader.InputMetadata)
+	}
+
+	return 0, ErrUnknownOutputMode
 }
 
 /*
