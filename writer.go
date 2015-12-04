@@ -108,12 +108,12 @@ func (writer *Writer) Close () {
 /*
 WriteRecords dump content of slice to file using metadata format.
 */
-func (writer *Writer) WriteRecords(records *RecordSlice, recordMd *[]Metadata) (
+func (writer *Writer) WriteRecords(records RecordSlice, recordMd *[]Metadata) (
 								e error) {
 	var md *Metadata
 	var inMd *Metadata
 	var rIdx int
-	var nRecord = len(*records)
+	var nRecord = len(records)
 	var recV []byte
 	v := []byte{}
 
@@ -143,7 +143,7 @@ func (writer *Writer) WriteRecords(records *RecordSlice, recordMd *[]Metadata) (
 			continue
 		}
 
-		recV = (*records)[rIdx].ToByte()
+		recV = records[rIdx].ToByte()
 
 		if "" != md.LeftQuote {
 			v = append (v, []byte (md.LeftQuote)...)
@@ -177,18 +177,16 @@ output file.
 Return n for number of records written, and e if error happened when
 writing to file.
 */
-func (writer *Writer) WriteRows(rows *Row, recordMd *[]Metadata) (n int, e error) {
+func (writer *Writer) WriteRows(rows Rows, recordMd *[]Metadata) (n int, e error) {
 	n = 0
-	row := rows.Front ()
 
-	for nil != row {
-		e = writer.WriteRecords (row.Value.(*RecordSlice), recordMd)
+	for i := range(rows) {
+		e = writer.WriteRecords(rows[i], recordMd)
 		if nil != e {
 			if DEBUG {
 				log.Println (e)
 			}
 		}
-		row = row.Next ()
 		n++
 	}
 
@@ -231,7 +229,7 @@ func (writer *Writer) WriteFields(fields *[]RecordSlice, md *[]Metadata) (
 			records[f] = (*fields)[f][r]
 		}
 
-		writer.WriteRecords(&records, md)
+		writer.WriteRecords(records, md)
 	}
 
 	return n,e

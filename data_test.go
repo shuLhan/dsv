@@ -2,31 +2,34 @@ package dsv_test
 
 import (
 	"os"
+	"testing"
+
+	"github.com/shuLhan/dsv"
 )
 
-var DEBUG = bool (os.Getenv ("DEBUG") != "")
+var DEBUG = bool(os.Getenv("DEBUG") != "")
 
-var expectation = []string {
-	"&[1 A-B AB 1 0.1]\n",
-	"&[2 A-B-C BCD 2 0.02]\n",
-	"&[3 A;B-C,D A;B C,D 3 0.003]\n",
-	"&[6   6 0.000006]\n",
-	"&[9 ok ok 9 0.000000009]\n",
-	"&[10 test integer 10 0.101]\n",
-	"&[12 test real 123456789 0.123456789]\n",
+var expectation = []string{
+	"[1 A-B AB 1 0.1]",
+	"[2 A-B-C BCD 2 0.02]",
+	"[3 A;B-C,D A;B C,D 3 0.003]",
+	"[6   6 0.000006]",
+	"[9 ok ok 9 0.000000009]",
+	"[10 test integer 10 0.101]",
+	"[12 test real 123456789 0.123456789]",
 }
 
-var exp_skip = []string {
-	"&[A-B AB 1 0.1]\n",
-	"&[A-B-C BCD 2 0.02]\n",
-	"&[A;B-C,D A;B C,D 3 0.003]\n",
-	"&[  6 0.000006]\n",
-	"&[ok ok 9 0.000000009]\n",
-	"&[test integer 10 0.101]\n",
-	"&[test real 123456789 0.123456789]\n",
+var exp_skip = []string{
+	"[A-B AB 1 0.1]",
+	"[A-B-C BCD 2 0.02]",
+	"[A;B-C,D A;B C,D 3 0.003]",
+	"[  6 0.000006]",
+	"[ok ok 9 0.000000009]",
+	"[test integer 10 0.101]",
+	"[test real 123456789 0.123456789]",
 }
 
-var exp_skip_fields = []string {
+var exp_skip_fields = []string{
 	"[[A-B] [AB] [1] [0.1]]",
 	"[[A-B-C] [BCD] [2] [0.02]]",
 	"[[A;B-C,D] [A;B C,D] [3] [0.003]]",
@@ -34,4 +37,50 @@ var exp_skip_fields = []string {
 	"[[ok] [ok] [9] [0.000000009]]",
 	"[[test] [integer] [10] [0.101]]",
 	"[[test] [real] [123456789] [0.123456789]]",
+}
+
+// Testing data and function for Rows and MapRows
+var rowsData = [][]byte{
+	{'1', dsv.TInteger, '+', dsv.TString},
+	{'2', dsv.TInteger, '-', dsv.TString},
+	{'3', dsv.TInteger, '-', dsv.TString},
+	{'4', dsv.TInteger, '+', dsv.TString},
+}
+
+var rowsExpect = []string{
+	"[1 +]",
+	"[2 -]",
+	"[3 -]",
+	"[4 +]",
+}
+
+var groupByExpect = "[{+ [1 +][4 +]} {- [2 -][3 -]}]"
+
+func assert(t *testing.T, exp string, got string) {
+	if exp != got {
+		t.Fatal("expecting", exp, "got", got)
+	}
+}
+
+func initRecords() (rows dsv.Rows, e error) {
+	for i := range rowsData {
+		l := len(rowsData[i])
+		row := make(dsv.RecordSlice, 0)
+
+		z := 0
+		for j := 0; j < l; j += 2 {
+			rec, e := dsv.RecordNew([]byte{rowsData[i][j]}, int(rowsData[i][j+1]))
+
+			if nil != e {
+				return nil, e
+			}
+
+			row = append(row, rec)
+
+			z++
+		}
+
+		rows.PushBack(row)
+	}
+	return rows, nil
 }

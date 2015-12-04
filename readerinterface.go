@@ -23,8 +23,8 @@ type ReaderInterface interface {
 	Reset ()
 	Flush ()
 	ReadLine () ([]byte, error)
-	Push (r *RecordSlice)
-	PushRecordsToFields (r *RecordSlice) error
+	Push(r RecordSlice)
+	PushRecordsToFields(r RecordSlice) error
 	Reject (line []byte)
 	Close ()
 }
@@ -33,7 +33,7 @@ type ReaderInterface interface {
 Read records from input file.
 */
 func Read (reader ReaderInterface) (n int, e error) {
-	var records *RecordSlice
+	var records RecordSlice
 	var line []byte
 
 	reader.Reset ()
@@ -108,7 +108,7 @@ This is how the algorithm works
 (3) save buffer to record
 */
 func ParseLine (reader ReaderInterface, line *[]byte) (
-					precords *RecordSlice, e error) {
+					precords RecordSlice, e error) {
 	var md *Metadata
 	var p = 0
 	var l = len (*line)
@@ -279,5 +279,5 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 		}
 	}
 
-	return &records, e
+	return records, e
 }
