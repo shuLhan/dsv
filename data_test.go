@@ -2,7 +2,6 @@ package dsv_test
 
 import (
 	"os"
-	"testing"
 
 	"github.com/shuLhan/dsv"
 )
@@ -55,12 +54,6 @@ var rowsExpect = []string{
 }
 
 var groupByExpect = "[{+ [1 +][4 +]} {- [2 -][3 -]}]"
-
-func assert(t *testing.T, exp string, got string) {
-	if exp != got {
-		t.Fatal("expecting", exp, "got", got)
-	}
-}
 
 func initRecords() (rows dsv.Rows, e error) {
 	for i := range rowsData {

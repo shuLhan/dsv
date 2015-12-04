@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/shuLhan/dsv"
+	"github.com/shuLhan/dsv/util/assert"
 )
 
 func TestAddRow(t *testing.T) {
@@ -26,7 +27,7 @@ func TestAddRow(t *testing.T) {
 
 	got := fmt.Sprint(mapRows)
 
-	assert(t, groupByExpect, got)
+	assert.Equal(t, groupByExpect, got)
 }
 
 func TestGetMinority(t *testing.T) {
@@ -50,5 +51,5 @@ func TestGetMinority(t *testing.T) {
 	exp := "[4 +]"
 	got := fmt.Sprint(minRows)
 
-	assert(t, exp, got)
+	assert.Equal(t, exp, got)
 }

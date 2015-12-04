@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	_ "github.com/shuLhan/dsv"
+	"github.com/shuLhan/dsv/util/assert"
 )
 
 var exp = []string{
@@ -29,7 +29,7 @@ func TestPushBack(t *testing.T) {
 	exp := strings.Join(rowsExpect, "")
 	got := fmt.Sprint(rows)
 
-	assert(t, exp, got)
+	assert.Equal(t, exp, got)
 }
 
 func TestPopFront(t *testing.T) {
@@ -45,7 +45,7 @@ func TestPopFront(t *testing.T) {
 		exp := rowsExpect[i]
 		got := fmt.Sprint(row)
 
-		assert(t, exp, got)
+		assert.Equal(t, exp, got)
 
 		if i < l {
 			exp = strings.Join(rowsExpect[i+1:], "")
@@ -54,7 +54,7 @@ func TestPopFront(t *testing.T) {
 		}
 		got = fmt.Sprint(rows)
 
-		assert(t, exp, got)
+		assert.Equal(t, exp, got)
 	}
 
 	// empty rows
@@ -63,7 +63,7 @@ func TestPopFront(t *testing.T) {
 	exp := "[]"
 	got := fmt.Sprint(row)
 
-	assert(t, exp, got)
+	assert.Equal(t, exp, got)
 }
 
 func TestPopFrontRow(t *testing.T) {
@@ -79,7 +79,7 @@ func TestPopFrontRow(t *testing.T) {
 		exp := rowsExpect[i]
 		got := fmt.Sprint(newRows)
 
-		assert(t, exp, got)
+		assert.Equal(t, exp, got)
 
 		if i < l {
 			exp = strings.Join(rowsExpect[i+1:], "")
@@ -88,7 +88,7 @@ func TestPopFrontRow(t *testing.T) {
 		}
 		got = fmt.Sprint(rows)
 
-		assert(t, exp, got)
+		assert.Equal(t, exp, got)
 	}
 
 	// empty rows
@@ -97,7 +97,7 @@ func TestPopFrontRow(t *testing.T) {
 	exp := ""
 	got := fmt.Sprint(row)
 
-	assert(t, exp, got)
+	assert.Equal(t, exp, got)
 }
 
 func TestGroupByValue(t *testing.T) {
@@ -110,7 +110,7 @@ func TestGroupByValue(t *testing.T) {
 
 	got := fmt.Sprint(mapRows)
 
-	assert(t, groupByExpect, got)
+	assert.Equal(t, groupByExpect, got)
 }
 
 func TestRandomPick(t *testing.T) {
