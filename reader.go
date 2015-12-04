@@ -17,8 +17,8 @@ import (
 const (
 	// OutputModeRows for output mode in rows.
 	OutputModeRows		= 0
-	// OutputModeFields for output mode in fields.
-	OutputModeFields	= 1
+	// OutputModeColumns for output mode in columns.
+	OutputModeColumns	= 1
 )
 
 /*
@@ -94,7 +94,7 @@ type Reader struct {
 	// Rejected is the file where record that does not fit
 	// with metadata will be saved.
 	Rejected	string		`json:"Rejected"`
-	// InputMetadata define format each field in a record.
+	// InputMetadata define format each column in a record.
 	InputMetadata	[]Metadata	`json:"InputMetadata"`
 	// MaxRecord define maximum record that this reader will read and
 	// saved in the memory at one read operation.
@@ -102,12 +102,12 @@ type Reader struct {
 	MaxRecord	int		`json:"MaxRecord"`
 	// NRecord define number of record readed and saved in Rows.
 	NRecord		int
-	// NFieldIn define number of input fields.
-	NFieldIn	int		`json:"-"`
-	// NFieldOut define number of output fields.
-	NFieldOut	int		`json:"-"`
+	// NColumnIn define number of input columns.
+	NColumnIn	int		`json:"-"`
+	// NColumnOut define number of output columns.
+	NColumnOut	int		`json:"-"`
 	// RecordMode define on how do you want the resulting record. There are
-	// two options: either in "rows" mode or "fields" mode.
+	// two options: either in "rows" mode or "columns" mode.
 	// For example, input data file,
 	//
 	//	a,b,c
@@ -118,15 +118,15 @@ type Reader struct {
 	//
 	//	[a b c]->[1 2 3]
 	//
-	// Field mode is where each line saved by columns, resulting in Fields:
+	// Column mode is where each line saved by columns, resulting in Columns:
 	//
 	//	[a 1]
 	//	[b 2]
 	//	[c 3]
 	//
 	OutputMode	string		`json:"OutputMode"`
-	// Fields is input data that has been parsed.
-	Fields		[]Field		`json:"-"`
+	// Columns is input data that has been parsed.
+	Columns		Columns		`json:"-"`
 	// Rows is input data that has been parsed.
 	Rows		Rows		`json:"-"`
 	// fRead as read descriptor.
@@ -151,8 +151,8 @@ func NewReader () *Reader {
 		InputMetadata	:nil,
 		MaxRecord	:DefaultMaxRecord,
 		NRecord		:0,
-		NFieldIn	:0,
-		NFieldOut	:0,
+		NColumnIn	:0,
+		NColumnOut	:0,
 		OutputMode	:"rows",
 		Rows		:Rows{},
 		fRead		:nil,
@@ -269,22 +269,22 @@ func (reader *Reader) SetOutputMode (mode string) {
 }
 
 /*
-GetNFieldOut return number of field that will be used in output, excluding
-the field with Skip=true.
+GetNColumnOut return number of column that will be used in output, excluding
+the column with Skip=true.
 */
-func (reader *Reader) GetNFieldOut() int {
-	return reader.NFieldOut;
+func (reader *Reader) GetNColumnOut() int {
+	return reader.NColumnOut;
 }
 
 /*
-GetOutput return the output records, based on mode (rows or fields based).
+GetOutput return the output records, based on mode (rows or columns based).
 */
 func (reader *Reader) GetOutput () interface{} {
 	switch reader.GetOutputMode() {
 	case "ROWS":
 		return reader.Rows
-	case "FIELDS":
-		return reader.Fields
+	case "COLUMNS":
+		return reader.Columns
 	}
 
 	return nil
@@ -300,9 +300,9 @@ func (reader *Reader) InitOutputMode(mode string) (e error) {
 	case "ROWS":
 		reader.Rows = Rows{}
 		return
-	case "FIELDS":
-		// Initialize Fields attribute.
-		reader.Fields = make([]Field, reader.NFieldOut)
+	case "COLUMNS":
+		// Initialize Columns attribute.
+		reader.Columns = make(Columns, reader.NColumnOut)
 		return
 	}
 
@@ -380,16 +380,16 @@ func (reader *Reader) Init () (e error) {
 		return ErrNoInput
 	}
 
-	// Set number of input fields.
-	reader.NFieldIn = len(reader.InputMetadata)
+	// Set number of input columns.
+	reader.NColumnIn = len(reader.InputMetadata)
 
 	// Check and initialize metadata.
 	for i := range reader.InputMetadata {
 		e = reader.InputMetadata[i].Init ()
 
-		// Count number of output fields.
+		// Count number of output columns.
 		if ! reader.InputMetadata[i].Skip {
-			reader.NFieldOut++
+			reader.NColumnOut++
 		}
 
 		if nil != e {
@@ -444,7 +444,7 @@ will be nil again.
 func (reader *Reader) Reset () {
 	reader.NRecord = 0
 	reader.Rows = Rows{}
-	reader.Fields = make([]Field, reader.NFieldOut)
+	reader.Columns = make(Columns, reader.NColumnOut)
 }
 
 /*
@@ -483,16 +483,16 @@ func (reader *Reader) Push(r Row) {
 }
 
 /*
-PushRowToFields push each record in Row to Fields.
+PushRowToColumns push each record in Row to Columns.
 */
-func (reader *Reader) PushRowToFields(row Row) (e error) {
-	// check if row length equal with fields length
-	if len(row) != len(reader.Fields) {
+func (reader *Reader) PushRowToColumns(row Row) (e error) {
+	// check if row length equal with columns length
+	if len(row) != len(reader.Columns) {
 		return ErrMissRecordsLen
 	}
 
 	for i := range (row) {
-		reader.Fields[i] = append(reader.Fields[i], row[i])
+		reader.Columns[i] = append(reader.Columns[i], row[i])
 	}
 
 	return
@@ -521,20 +521,20 @@ func (reader *Reader) Close () {
 }
 
 /*
-TransposeFieldsToRows will move all record in Fields into Rows.
+TransposeColumnsToRows will move all record in Columns into Rows.
 */
-func (reader *Reader) TransposeFieldsToRows () {
-	if reader.GetOutputMode () != "FIELDS" {
+func (reader *Reader) TransposeColumnsToRows () {
+	if reader.GetOutputMode() != "COLUMNS" {
 		return
 	}
 
 	var rowlen = math.MaxInt32
-	var flen = len(reader.Fields)
+	var flen = len(reader.Columns)
 	var f, l, r int
 
-	// Get the lest length of fields.
+	// Get the least length of columns.
 	for f = 0; f < flen; f++ {
-		l = len(reader.Fields[f])
+		l = len(reader.Columns[f])
 
 		if l < rowlen {
 			rowlen = l
@@ -545,7 +545,7 @@ func (reader *Reader) TransposeFieldsToRows () {
 		row := make(Row, flen)
 
 		for f = 0; f < flen; f++ {
-			row[f] = reader.Fields[f][r]
+			row[f] = reader.Columns[f][r]
 		}
 
 		reader.Push(row)

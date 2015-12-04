@@ -14,7 +14,7 @@ import (
 
 func TestAddRow(t *testing.T) {
 	mapRows := dsv.MapRows{}
-	rows, e := initRecords()
+	rows, e := initRows()
 
 	if e != nil {
 		t.Fatal(e)
@@ -32,7 +32,7 @@ func TestAddRow(t *testing.T) {
 
 func TestGetMinority(t *testing.T) {
 	mapRows := dsv.MapRows{}
-	rows, e := initRecords()
+	rows, e := initRows()
 
 	if e != nil {
 		t.Fatal(e)

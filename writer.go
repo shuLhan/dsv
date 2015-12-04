@@ -20,7 +20,7 @@ type Writer struct {
 	Output		string		`json:"Output"`
 	// OutputPath define where the output file directory belong.
 	OutputPath	string
-	// OutputMetadata define format for each field.
+	// OutputMetadata define format for each column.
 	OutputMetadata	[]Metadata	`json:"OutputMetadata"`
 	// fWriter as write descriptor.
 	fWriter		*os.File
@@ -132,7 +132,7 @@ func (writer *Writer) WriteRow(row Row, recordMd *[]Metadata) (e error) {
 			}
 		}
 
-		// If input field is ignored, continue to next record.
+		// If input column is ignored, continue to next record.
 		if inMd.Skip {
 			continue
 		}
@@ -192,38 +192,38 @@ func (writer *Writer) WriteRows(rows Rows, recordMd *[]Metadata) (n int, e error
 }
 
 /*
-WriteFields will write content of fields to output file.
+WriteColumns will write content of columns to output file.
 Return n for number of row written, and e if error happened.
 */
-func (writer *Writer) WriteFields(fields *[]Field, md *[]Metadata) (
+func (writer *Writer) WriteColumns(columns *Columns, md *[]Metadata) (
 							n int, e error) {
-	nFields := len(*fields)
-	if nFields <= 0 {
+	nColumns := len(*columns)
+	if nColumns <= 0 {
 		return
 	}
 
-	// Get minimum length of all fields.
-	// In case one of the field have different length (shorter or longer),
-	// we will take the field with minimum length.
-	minLen := len((*fields)[0])
+	// Get minimum length of all columns.
+	// In case one of the column have different length (shorter or longer),
+	// we will take the column with minimum length.
+	minLen := len((*columns)[0])
 
-	for i := 1; i < nFields; i++ {
-		l := len((*fields)[i])
+	for i := 1; i < nColumns; i++ {
+		l := len((*columns)[i])
 		if minLen > l {
 			minLen = l
 		}
 	}
 
-	lenField := minLen
+	lenColumn := minLen
 
-	// First loop, iterate over the field length.
+	// First loop, iterate over the column length.
 	var f int
-	row := make(Row, nFields)
+	row := make(Row, nColumns)
 
-	for r := 0; r < lenField; r++ {
-		// Second loop, convert fields to record.
-		for f = 0; f < nFields; f++ {
-			row[f] = (*fields)[f][r]
+	for r := 0; r < lenColumn; r++ {
+		// Second loop, convert columns to record.
+		for f = 0; f < nColumns; f++ {
+			row[f] = (*columns)[f][r]
 		}
 
 		writer.WriteRow(row, md)
@@ -247,8 +247,8 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 	switch reader.GetOutputMode() {
 	case "ROWS":
 		return writer.WriteRows(reader.Rows, &reader.InputMetadata)
-	case "FIELDS":
-		return writer.WriteFields(&reader.Fields, &reader.InputMetadata)
+	case "COLUMNS":
+		return writer.WriteColumns(&reader.Columns, &reader.InputMetadata)
 	}
 
 	return 0, ErrUnknownOutputMode

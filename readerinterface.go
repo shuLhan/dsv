@@ -18,13 +18,13 @@ type ReaderInterface interface {
 	GetRecordRead () int
 	SetRecordRead (n int)
 	GetOutputMode () string
-	GetNFieldOut() int
+	GetNColumnOut() int
 
 	Reset ()
 	Flush ()
 	ReadLine () ([]byte, error)
 	Push(r Row)
-	PushRowToFields(r Row) error
+	PushRowToColumns(r Row) error
 	Reject (line []byte)
 	Close ()
 }
@@ -65,8 +65,8 @@ func Read (reader ReaderInterface) (n int, e error) {
 			switch reader.GetOutputMode () {
 			case "ROWS":
 				reader.Push(row)
-			case "FIELDS":
-				e = reader.PushRowToFields(row)
+			case "COLUMNS":
+				e = reader.PushRowToColumns(row)
 			}
 		}
 		if nil == e {
@@ -91,11 +91,11 @@ func Read (reader ReaderInterface) (n int, e error) {
 }
 
 /*
-ParseLine parse a line containing record. The output is array of fields added
-to list of Reader's Records.
+ParseLine parse a line containing record. The output is array of record (or row)
+added to the list of Reader's Rows.
 
 This is how the algorithm works
-(1) create n slice of row, where n is number of field metadata
+(1) create n slice of row, where n is number of column metadata
 (2) for each metadata
 	(2.1) If using left quote, skip it
 	(2.2) If using right quote, append byte to buffer until right-quote
@@ -115,7 +115,7 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 
 	inputMd = reader.GetInputMetadata ()
 
-	row = make(Row, reader.GetNFieldOut())
+	row = make(Row, reader.GetNColumnOut())
 
 	for mdIdx := range (*inputMd) {
 		v := []byte{}

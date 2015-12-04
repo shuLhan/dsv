@@ -21,7 +21,7 @@ var exp = []string{
 }
 
 func TestPushBack(t *testing.T) {
-	rows, e := initRecords()
+	rows, e := initRows()
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -33,7 +33,7 @@ func TestPushBack(t *testing.T) {
 }
 
 func TestPopFront(t *testing.T) {
-	rows, e := initRecords()
+	rows, e := initRows()
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -67,7 +67,7 @@ func TestPopFront(t *testing.T) {
 }
 
 func TestPopFrontRow(t *testing.T) {
-	rows, e := initRecords()
+	rows, e := initRows()
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -101,7 +101,7 @@ func TestPopFrontRow(t *testing.T) {
 }
 
 func TestGroupByValue(t *testing.T) {
-	rows, e := initRecords()
+	rows, e := initRows()
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -115,7 +115,7 @@ func TestGroupByValue(t *testing.T) {
 
 func TestRandomPick(t *testing.T) {
 	for i := 0; i < 5; i++ {
-		rows, e := initRecords()
+		rows, e := initRows()
 		if e != nil {
 			t.Fatal(e)
 		}

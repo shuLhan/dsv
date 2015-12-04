@@ -19,7 +19,7 @@ const (
 )
 
 /*
-Record represent each field in record.
+Record represent the smallest building set of data-set.
 */
 type Record struct {
 	V interface{}

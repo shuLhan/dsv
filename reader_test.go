@@ -306,7 +306,7 @@ func TestOutputMode (t *testing.T) {
 	,	"OutputMode"	:"rows"
 	}`,`{
 		"Input"		:"testdata/input.dat"
-	,	"OutputMode"	:"fields"
+	,	"OutputMode"	:"columns"
 	}`}
 
 	var exps = []struct {
@@ -342,7 +342,7 @@ func TestOutputMode (t *testing.T) {
 	}
 }
 
-func TestReaderToFields (t *testing.T) {
+func TestReaderToColumns(t *testing.T) {
 	var e error
 
 	reader := dsv.NewReader ()
@@ -353,7 +353,7 @@ func TestReaderToFields (t *testing.T) {
 		t.Fatal (e)
 	}
 
-	reader.SetOutputMode ("fields")
+	reader.SetOutputMode("columns")
 
 	e = reader.Init ()
 
@@ -366,7 +366,7 @@ func TestReaderToFields (t *testing.T) {
 		n, e = dsv.Read (reader)
 
 		if n > 0 {
-			reader.TransposeFieldsToRows ()
+			reader.TransposeColumnsToRows()
 
 			r := fmt.Sprint (reader.GetOutput())
 

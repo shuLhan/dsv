@@ -6,7 +6,7 @@
 Package dsv is a library for working with delimited separated value (DSV).
 
 DSV is a free-style form of Comma Separated Value (CSV) format of text data,
-where each record is separated by newline, and each field can be separated by
+where each row is separated by newline, and each column can be separated by
 any string enclosed with left-quote and right-quote.
 */
 package dsv
@@ -18,9 +18,9 @@ import (
 
 const (
 	// DefaultRejected define the default file which will contain the
-	// rejected record.
+	// rejected row.
 	DefaultRejected		= "rejected.dsv"
-	// DefaultMaxRecord define default maximum record that will be saved
+	// DefaultMaxRecord define default maximum row that will be saved
 	// in memory.
 	DefaultMaxRecord	= 256
 )
@@ -28,10 +28,10 @@ const (
 var (
 	// ErrNoInput define an error when no Input file is given to Reader.
 	ErrNoInput	= errors.New ("dsv: No input file is given in config")
-	// ErrMissRecordsLen define an error when trying to push a record slice
-	// to reader record, but their number of fields is not equal.
-	// See reader.PushRecordsToFields().
-	ErrMissRecordsLen = errors.New ("dsv: Mismatch between records length and fields length")
+	// ErrMissRecordsLen define an error when trying to push Row
+	// to Field, when their length is not equal.
+	// See reader.PushRowToColumns().
+	ErrMissRecordsLen = errors.New("dsv: Mismatch between number of record in row and columns length")
 	// ErrNoOutput define an error when no output file is given to Writer.
 	ErrNoOutput	= errors.New ("dsv: No output file is given in config")
 	// ErrNotOpen define an error when output file has not been opened

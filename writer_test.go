@@ -103,7 +103,7 @@ func TestWriter (t *testing.T) {
 }
 
 /*
-TestWriterWithSkip test reading and writing DSV with some field in input being
+TestWriterWithSkip test reading and writing DSV with some column in input being
 skipped.
 */
 func TestWriterWithSkip (t *testing.T) {
@@ -155,10 +155,10 @@ func TestWriterWithSkip (t *testing.T) {
 }
 
 /*
-TestWriterWithFields test reading and writing DSV with where each row
-is saved in OutputMode = 'fields'.
+TestWriterWithColumns test reading and writing DSV with where each row
+is saved in OutputMode = 'columns'.
 */
-func TestWriterWithFields(t *testing.T) {
+func TestWriterWithColumns(t *testing.T) {
 	// Initialize dsv reader
 	dsvReader := dsv.NewReader()
 
@@ -166,7 +166,7 @@ func TestWriterWithFields(t *testing.T) {
 	if nil != e {
 		t.Error(e)
 	}
-	dsvReader.InitOutputMode("fields")
+	dsvReader.InitOutputMode("columns")
 	defer dsvReader.Close()
 
 	// Initialize dsv writer
@@ -176,7 +176,7 @@ func TestWriterWithFields(t *testing.T) {
 		t.Error(e)
 	}
 
-	doReadWrite(t, dsvReader, dsvWriter, exp_skip_fields)
+	doReadWrite(t, dsvReader, dsvWriter, exp_skip_columns)
 	dsvWriter.Close()
 
 	// Compare the Writer output

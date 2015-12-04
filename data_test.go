@@ -28,7 +28,7 @@ var exp_skip = []string{
 	"[test real 123456789 0.123456789]",
 }
 
-var exp_skip_fields = []string{
+var exp_skip_columns = []string{
 	"[[A-B] [AB] [1] [0.1]]",
 	"[[A-B-C] [BCD] [2] [0.02]]",
 	"[[A;B-C,D] [A;B C,D] [3] [0.003]]",
@@ -55,7 +55,7 @@ var rowsExpect = []string{
 
 var groupByExpect = "[{+ [1 +][4 +]} {- [2 -][3 -]}]"
 
-func initRecords() (rows dsv.Rows, e error) {
+func initRows() (rows dsv.Rows, e error) {
 	for i := range rowsData {
 		l := len(rowsData[i])
 		row := make(dsv.Row, 0)

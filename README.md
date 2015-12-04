@@ -3,7 +3,7 @@
 Package `dsv` is a Go library for working with delimited separated value (DSV).
 
 DSV is a free-style form of CSV format of text data, where each record is
-separated by newline, and each field can be separated by any string, not just
+separated by newline, and each column can be separated by any string, not just
 comma.
 
 ## Example
@@ -108,7 +108,7 @@ Last action, we process them: read input records and pass them to writer.
         if n > 0 {
             dsvWriter.Write (dsvReader)
 
-        // EOF, no more records.
+        // EOF, no more record.
         } else if e == io.EOF {
             break
         }

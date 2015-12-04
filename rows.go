@@ -59,7 +59,7 @@ into map of string -> *Row.
 
 WARNING: returned rows will be empty!
 
-For example, given rows with target group in field index 1,
+For example, given rows with target group in column index 1,
 
 	[1 +]
 	[2 -]
