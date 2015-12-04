@@ -25,9 +25,6 @@ type Record struct {
 	V interface{}
 }
 
-// RecordSlice record with slice.
-type RecordSlice []Record
-
 /*
 SetValue set the record values from bytes.
 */
@@ -181,30 +178,4 @@ func (r Record) Float() (f64 float64) {
 	}
 
 	return
-}
-
-/*
-RecordSliceToFloatSlice convert slice of record to slice of float64.
-*/
-func RecordSliceToFloatSlice(field *RecordSlice) (*[]float64) {
-	newf := make([]float64, len(*field))
-
-	for i := range (*field) {
-		newf[i] = (*field)[i].Float()
-	}
-
-	return &newf
-}
-
-/*
-RecordSliceToStringSlice convert slice of record to slice of string.
-*/
-func RecordSliceToStringSlice(field *RecordSlice) (*[]string) {
-	newf := make([]string, len(*field))
-
-	for i := range (*field) {
-		newf[i] = (*field)[i].String()
-	}
-
-	return &newf
 }

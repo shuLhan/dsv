@@ -106,14 +106,13 @@ func (writer *Writer) Close () {
 }
 
 /*
-WriteRecords dump content of slice to file using metadata format.
+WriteRow dump content of Row to file using format in metadata.
 */
-func (writer *Writer) WriteRecords(records RecordSlice, recordMd *[]Metadata) (
-								e error) {
+func (writer *Writer) WriteRow(row Row, recordMd *[]Metadata) (e error) {
 	var md *Metadata
 	var inMd *Metadata
 	var rIdx int
-	var nRecord = len(records)
+	var nRecord = len(row)
 	var recV []byte
 	v := []byte{}
 
@@ -143,7 +142,7 @@ func (writer *Writer) WriteRecords(records RecordSlice, recordMd *[]Metadata) (
 			continue
 		}
 
-		recV = records[rIdx].ToByte()
+		recV = row[rIdx].ToByte()
 
 		if "" != md.LeftQuote {
 			v = append (v, []byte (md.LeftQuote)...)
@@ -174,14 +173,13 @@ func (writer *Writer) WriteRecords(records RecordSlice, recordMd *[]Metadata) (
 /*
 WriteRows will loop each row in the list of rows and write their content to
 output file.
-Return n for number of records written, and e if error happened when
-writing to file.
+Return n for number of row written, and e if error happened.
 */
 func (writer *Writer) WriteRows(rows Rows, recordMd *[]Metadata) (n int, e error) {
 	n = 0
 
 	for i := range(rows) {
-		e = writer.WriteRecords(rows[i], recordMd)
+		e = writer.WriteRow(rows[i], recordMd)
 		if nil != e {
 			if DEBUG {
 				log.Println (e)
@@ -195,10 +193,9 @@ func (writer *Writer) WriteRows(rows Rows, recordMd *[]Metadata) (n int, e error
 
 /*
 WriteFields will write content of fields to output file.
-Return n for number of records written, and e if error happened when
-writing to file.
+Return n for number of row written, and e if error happened.
 */
-func (writer *Writer) WriteFields(fields *[]RecordSlice, md *[]Metadata) (
+func (writer *Writer) WriteFields(fields *[]Field, md *[]Metadata) (
 							n int, e error) {
 	nFields := len(*fields)
 	if nFields <= 0 {
@@ -221,24 +218,23 @@ func (writer *Writer) WriteFields(fields *[]RecordSlice, md *[]Metadata) (
 
 	// First loop, iterate over the field length.
 	var f int
-	records := make(RecordSlice, nFields)
+	row := make(Row, nFields)
 
 	for r := 0; r < lenField; r++ {
 		// Second loop, convert fields to record.
 		for f = 0; f < nFields; f++ {
-			records[f] = (*fields)[f][r]
+			row[f] = (*fields)[f][r]
 		}
 
-		writer.WriteRecords(records, md)
+		writer.WriteRow(row, md)
 	}
 
 	return n,e
 }
 
 /*
-Write records from Reader to file.
-Return n for number of records written, and e for error that happened when
-writing to file.
+Write rows from Reader to file.
+Return n for number of row written, or e if error happened.
 */
 func (writer *Writer) Write (reader *Reader) (int, error) {
 	if nil == reader {

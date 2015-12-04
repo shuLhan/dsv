@@ -11,14 +11,19 @@ import (
 )
 
 /*
-Rows represent each row of record in slice model.
+Row represent slice of record.
 */
-type Rows []RecordSlice
+type Row []Record
+
+/*
+Rows represent slice of Row.
+*/
+type Rows []Row
 
 /*
 PushBack append record r to the end of rows.
 */
-func (rows *Rows) PushBack(r RecordSlice) {
+func (rows *Rows) PushBack(r Row) {
 	if r != nil {
 		(*rows) = append((*rows), r)
 	}
@@ -27,7 +32,7 @@ func (rows *Rows) PushBack(r RecordSlice) {
 /*
 PopFront remove the head, return the record value.
 */
-func (rows *Rows) PopFront() (row RecordSlice) {
+func (rows *Rows) PopFront() (row Row) {
 	l := len(*rows)
 	if l > 0 {
 		row = (*rows)[0]

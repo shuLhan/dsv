@@ -24,7 +24,7 @@ type MapRows []MapRowsElement
 /*
 insertRow will insert a row `v` into map using key `k`.
 */
-func (mapRows *MapRows) insertRow(k string, v RecordSlice) {
+func (mapRows *MapRows) insertRow(k string, v Row) {
 	rows := Rows{}
 	rows.PushBack(v)
 	el := MapRowsElement{k, rows}
@@ -35,7 +35,7 @@ func (mapRows *MapRows) insertRow(k string, v RecordSlice) {
 AddRow will append a row `v` into map value if they key `k` exist in map,
 otherwise it will insert a new map element.
 */
-func (mapRows *MapRows) AddRow(k string, v RecordSlice) {
+func (mapRows *MapRows) AddRow(k string, v Row) {
 	for x := range *mapRows {
 		if (*mapRows)[x].Key == k {
 			(*mapRows)[x].Value.PushBack(v)

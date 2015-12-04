@@ -23,19 +23,17 @@ type ReaderInterface interface {
 	Reset ()
 	Flush ()
 	ReadLine () ([]byte, error)
-	Push(r RecordSlice)
-	PushRecordsToFields(r RecordSlice) error
+	Push(r Row)
+	PushRowToFields(r Row) error
 	Reject (line []byte)
 	Close ()
 }
 
 /*
-Read records from input file.
+Read row from input file.
 */
 func Read (reader ReaderInterface) (n int, e error) {
-	var records RecordSlice
-	var line []byte
-
+	n = 0
 	reader.Reset ()
 
 	// remember to flush if we have rejected record.
@@ -44,7 +42,7 @@ func Read (reader ReaderInterface) (n int, e error) {
 	// Loop until we reached MaxRecord (> 0) or when all record has been
 	// read (= -1)
 	for {
-		line, e = reader.ReadLine ()
+		line, e := reader.ReadLine()
 
 		if nil != e {
 			if e != io.EOF {
@@ -61,14 +59,14 @@ func Read (reader ReaderInterface) (n int, e error) {
 			continue
 		}
 
-		records, e = ParseLine (reader, &line)
+		row, e := ParseLine(reader, &line)
 
 		if nil == e {
 			switch reader.GetOutputMode () {
 			case "ROWS":
-				reader.Push (records)
+				reader.Push(row)
 			case "FIELDS":
-				e = reader.PushRecordsToFields (records)
+				e = reader.PushRowToFields(row)
 			}
 		}
 		if nil == e {
@@ -97,7 +95,7 @@ ParseLine parse a line containing record. The output is array of fields added
 to list of Reader's Records.
 
 This is how the algorithm works
-(1) create n slice of records, where n is number of field metadata
+(1) create n slice of row, where n is number of field metadata
 (2) for each metadata
 	(2.1) If using left quote, skip it
 	(2.2) If using right quote, append byte to buffer until right-quote
@@ -108,7 +106,7 @@ This is how the algorithm works
 (3) save buffer to record
 */
 func ParseLine (reader ReaderInterface, line *[]byte) (
-					precords RecordSlice, e error) {
+					row Row, e error) {
 	var md *Metadata
 	var p = 0
 	var l = len (*line)
@@ -117,7 +115,7 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 
 	inputMd = reader.GetInputMetadata ()
 
-	records := make (RecordSlice, reader.GetNFieldOut())
+	row = make(Row, reader.GetNFieldOut())
 
 	for mdIdx := range (*inputMd) {
 		v := []byte{}
@@ -268,7 +266,7 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 		}
 
 		v = bytes.TrimSpace (v)
-		e = records[rIdx].SetValue (v, md.T)
+		e = row[rIdx].SetValue(v, md.T)
 		rIdx++
 
 		if nil != e {
@@ -279,5 +277,5 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 		}
 	}
 
-	return records, e
+	return row, e
 }

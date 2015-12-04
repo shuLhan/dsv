@@ -58,7 +58,7 @@ var groupByExpect = "[{+ [1 +][4 +]} {- [2 -][3 -]}]"
 func initRecords() (rows dsv.Rows, e error) {
 	for i := range rowsData {
 		l := len(rowsData[i])
-		row := make(dsv.RecordSlice, 0)
+		row := make(dsv.Row, 0)
 
 		z := 0
 		for j := 0; j < l; j += 2 {

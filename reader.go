@@ -126,7 +126,7 @@ type Reader struct {
 	//
 	OutputMode	string		`json:"OutputMode"`
 	// Fields is input data that has been parsed.
-	Fields		[]RecordSlice	`json:"-"`
+	Fields		[]Field		`json:"-"`
 	// Rows is input data that has been parsed.
 	Rows		Rows		`json:"-"`
 	// fRead as read descriptor.
@@ -302,7 +302,7 @@ func (reader *Reader) InitOutputMode(mode string) (e error) {
 		return
 	case "FIELDS":
 		// Initialize Fields attribute.
-		reader.Fields = make([]RecordSlice, reader.NFieldOut)
+		reader.Fields = make([]Field, reader.NFieldOut)
 		return
 	}
 
@@ -444,7 +444,7 @@ will be nil again.
 func (reader *Reader) Reset () {
 	reader.NRecord = 0
 	reader.Rows = Rows{}
-	reader.Fields = make([]RecordSlice, reader.NFieldOut)
+	reader.Fields = make([]Field, reader.NFieldOut)
 }
 
 /*
@@ -478,21 +478,21 @@ func (reader *Reader) ReadLine () (line []byte, e error) {
 /*
 Push record to row.
 */
-func (reader *Reader) Push(r RecordSlice) {
+func (reader *Reader) Push(r Row) {
 	reader.Rows.PushBack(r)
 }
 
 /*
-PushRecordsToFields push each record in RecordSlice to Fields.
+PushRowToFields push each record in Row to Fields.
 */
-func (reader *Reader) PushRecordsToFields(r RecordSlice) (e error) {
-	// check if records length equal with fields length
-	if len(r) != len(reader.Fields) {
+func (reader *Reader) PushRowToFields(row Row) (e error) {
+	// check if row length equal with fields length
+	if len(row) != len(reader.Fields) {
 		return ErrMissRecordsLen
 	}
 
-	for i := range (r) {
-		reader.Fields[i] = append(reader.Fields[i], r[i])
+	for i := range (row) {
+		reader.Fields[i] = append(reader.Fields[i], row[i])
 	}
 
 	return
@@ -542,13 +542,13 @@ func (reader *Reader) TransposeFieldsToRows () {
 	}
 
 	for r = 0; r < rowlen; r++ {
-		records := make(RecordSlice, flen)
+		row := make(Row, flen)
 
 		for f = 0; f < flen; f++ {
-			records[f] = reader.Fields[f][r]
+			row[f] = reader.Fields[f][r]
 		}
 
-		reader.Push(records)
+		reader.Push(row)
 	}
 
 	reader.SetOutputMode ("rows")
