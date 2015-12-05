@@ -94,8 +94,8 @@ RandomPick row in rows until n item and return it like its has been shuffled.
 If duplicate is true, row that has been picked can be picked up again,
 otherwise it will only picked up once.
 */
-func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked *Rows,
-							shuffled *Rows,
+func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked Rows,
+							shuffled Rows,
 							pickedIdx []int) {
 	rowsLen := len(*rows)
 
@@ -106,8 +106,6 @@ func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked *Rows,
 	}
 
 	rand.Seed(time.Now().UnixNano())
-
-	shuffled = &Rows{}
 
 	for ; n >= 1; n-- {
 		pickId := 0
@@ -144,8 +142,6 @@ func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked *Rows,
 	}
 
 	// select unpicked rows using picked index.
-	unpicked = &Rows{}
-
 	for rid := range *rows {
 		// check if row index has been picked up
 		isPicked := false

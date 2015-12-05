@@ -126,8 +126,8 @@ func TestRandomPick(t *testing.T) {
 		unpicked, shuffled,idx := rows.RandomPick(6, true)
 
 		// check if unpicked item exist in shuffled items.
-		for _, un := range *unpicked {
-			for _, pick := range *shuffled {
+		for _, un := range unpicked {
+			for _, pick := range shuffled {
 				if reflect.DeepEqual(un, pick) {
 					t.Fatal("random pick: unpicked is false")
 				}
@@ -146,13 +146,13 @@ func TestRandomPick(t *testing.T) {
 		unpicked, shuffled,idx := rows.RandomPick(3, false)
 
 		// check if picked rows is duplicate
-		if reflect.DeepEqual((*shuffled)[0], (*shuffled)[1]) {
+		if reflect.DeepEqual(shuffled[0], shuffled[1]) {
 			t.Fatal("random pick: duplicate rows found.")
 		}
 
 		// check if unpicked item exist in shuffled items.
-		for _, un := range *unpicked {
-			for _, pick := range *shuffled {
+		for _, un := range unpicked {
+			for _, pick := range shuffled {
 				if reflect.DeepEqual(un, pick) {
 					t.Fatal("random pick: unpicked is false")
 				}

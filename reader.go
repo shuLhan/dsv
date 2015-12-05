@@ -596,8 +596,8 @@ or without replacement in some machine learning domain.
 
 If output mode is columns, it will be transposed to rows.
 */
-func (reader *Reader) RandomPickRows(n int, duplicate bool) (unpicked *Rows,
-							shuffled *Rows,
+func (reader *Reader) RandomPickRows(n int, duplicate bool) (unpicked Rows,
+							shuffled Rows,
 							pickedIdx []int) {
 	if reader.GetTOutputMode() == TOutputModeColumns {
 		reader.TransposeColumnsToRows()
