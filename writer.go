@@ -244,10 +244,10 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 		return 0, ErrNotOpen
 	}
 
-	switch reader.GetOutputMode() {
-	case "ROWS":
+	switch reader.GetTOutputMode() {
+	case TOutputModeRows:
 		return writer.WriteRows(reader.Rows, &reader.InputMetadata)
-	case "COLUMNS":
+	case TOutputModeColumns:
 		return writer.WriteColumns(&reader.Columns, &reader.InputMetadata)
 	}
 

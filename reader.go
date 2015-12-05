@@ -15,10 +15,18 @@ import (
 )
 
 const (
-	// OutputModeRows for output mode in rows.
-	OutputModeRows		= 0
-	// OutputModeColumns for output mode in columns.
-	OutputModeColumns	= 1
+	// TOutputModeRows for output mode in rows.
+	TOutputModeRows = 0
+	// OutputModeRows is a string representation of output mode rows.
+	OutputModeRows = "ROWS"
+	// TOutputModeColumns for output mode in columns.
+	TOutputModeColumns = 1
+	// OutputModeColumns is a string representation of output mode columns.
+	OutputModeColumns = "COLUMNS"
+	// DefOutputMode default output mode in string.
+	DefOutputMode = OutputModeRows
+	// DefTOutputMode default output mode.
+	DefTOutputMode = TOutputModeRows
 )
 
 /*
@@ -104,7 +112,7 @@ type Reader struct {
 	NRecord		int
 	// NColumnIn define number of input columns.
 	NColumnIn	int		`json:"-"`
-	// NColumnOut define number of output columns.
+	// NColumnOut define number of output columns (input - skiped columns)
 	NColumnOut	int		`json:"-"`
 	// RecordMode define on how do you want the resulting record. There are
 	// two options: either in "rows" mode or "columns" mode.
@@ -125,6 +133,8 @@ type Reader struct {
 	//	[c 3]
 	//
 	OutputMode	string		`json:"OutputMode"`
+	// TOutputMode define the numeric value of output mode.
+	TOutputMode	int		`json:"-"`
 	// Columns is input data that has been parsed.
 	Columns		Columns		`json:"-"`
 	// Rows is input data that has been parsed.
@@ -153,7 +163,8 @@ func NewReader () *Reader {
 		NRecord		:0,
 		NColumnIn	:0,
 		NColumnOut	:0,
-		OutputMode	:"rows",
+		OutputMode	:DefOutputMode,
+		TOutputMode	:DefTOutputMode,
 		Rows		:Rows{},
 		fRead		:nil,
 		fReject		:nil,
@@ -254,18 +265,30 @@ func (reader *Reader) SetRecordRead (n int) {
 }
 
 /*
-GetOutputMode return mode of output in uppercase, so we does not need to
-convert it to upper or lower later to compare it.
+GetTOutputMode return mode of output in integer, so we does not need to
+convert it to uppercase to compare it with string.
 */
-func (reader *Reader) GetOutputMode () (string) {
-	return strings.ToUpper (reader.OutputMode)
+func (reader *Reader) GetTOutputMode() int {
+	return reader.TOutputMode
 }
 
 /*
 SetOutputMode to `mode`.
 */
-func (reader *Reader) SetOutputMode (mode string) {
+func (reader *Reader) SetOutputMode(mode string) error {
+	switch strings.ToUpper(mode) {
+	case OutputModeRows:
+		reader.TOutputMode = TOutputModeRows
+		reader.Rows = Rows{}
+	case OutputModeColumns:
+		reader.TOutputMode = TOutputModeColumns
+		reader.Columns = make(Columns, reader.NColumnOut)
+	default:
+		return ErrUnknownOutputMode
+	}
 	reader.OutputMode = mode
+
+	return nil
 }
 
 /*
@@ -279,34 +302,15 @@ func (reader *Reader) GetNColumnOut() int {
 /*
 GetOutput return the output records, based on mode (rows or columns based).
 */
-func (reader *Reader) GetOutput () interface{} {
-	switch reader.GetOutputMode() {
-	case "ROWS":
+func (reader *Reader) GetOutput() interface{} {
+	switch reader.TOutputMode {
+	case TOutputModeRows:
 		return reader.Rows
-	case "COLUMNS":
+	case TOutputModeColumns:
 		return reader.Columns
 	}
 
 	return nil
-}
-
-/*
-InitOutputMode check if output mode is valid.
-*/
-func (reader *Reader) InitOutputMode(mode string) (e error) {
-	reader.OutputMode = mode
-
-	switch reader.GetOutputMode() {
-	case "ROWS":
-		reader.Rows = Rows{}
-		return
-	case "COLUMNS":
-		// Initialize Columns attribute.
-		reader.Columns = make(Columns, reader.NColumnOut)
-		return
-	}
-
-	return ErrUnknownOutputMode
 }
 
 /*
@@ -320,7 +324,7 @@ func (reader *Reader) SetDefault () {
 		reader.MaxRecord = DefaultMaxRecord
 	}
 	if "" == reader.OutputMode {
-		reader.OutputMode = "rows"
+		reader.SetOutputMode(DefOutputMode)
 	}
 }
 
@@ -401,7 +405,7 @@ func (reader *Reader) Init () (e error) {
 	reader.SetDefault ()
 
 	// Check if output mode is valid and initialize it if valid.
-	e = reader.InitOutputMode(reader.OutputMode)
+	e = reader.SetOutputMode(reader.OutputMode)
 
 	if nil != e {
 		return
@@ -524,34 +528,33 @@ func (reader *Reader) Close () {
 TransposeColumnsToRows will move all record in Columns into Rows.
 */
 func (reader *Reader) TransposeColumnsToRows () {
-	if reader.GetOutputMode() != "COLUMNS" {
+	if reader.GetTOutputMode() != TOutputModeColumns {
 		return
 	}
 
-	var rowlen = math.MaxInt32
-	var flen = len(reader.Columns)
-	var f, l, r int
+	rowlen := math.MaxInt32
+	flen := len(reader.Columns)
+
+	reader.SetOutputMode(OutputModeRows)
 
 	// Get the least length of columns.
-	for f = 0; f < flen; f++ {
-		l = len(reader.Columns[f])
+	for f := 0; f < flen; f++ {
+		l := len(reader.Columns[f])
 
 		if l < rowlen {
 			rowlen = l
 		}
 	}
 
-	for r = 0; r < rowlen; r++ {
+	for r := 0; r < rowlen; r++ {
 		row := make(Row, flen)
 
-		for f = 0; f < flen; f++ {
+		for f := 0; f < flen; f++ {
 			row[f] = reader.Columns[f][r]
 		}
 
 		reader.Push(row)
 	}
-
-	reader.SetOutputMode ("rows")
 }
 
 /*

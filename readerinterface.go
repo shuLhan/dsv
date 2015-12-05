@@ -17,7 +17,7 @@ type ReaderInterface interface {
 	SetMaxRecord (max int)
 	GetRecordRead () int
 	SetRecordRead (n int)
-	GetOutputMode () string
+	GetTOutputMode() int
 	GetNColumnOut() int
 
 	Reset ()
@@ -62,10 +62,10 @@ func Read (reader ReaderInterface) (n int, e error) {
 		row, e := ParseLine(reader, &line)
 
 		if nil == e {
-			switch reader.GetOutputMode () {
-			case "ROWS":
+			switch reader.GetTOutputMode() {
+			case TOutputModeRows:
 				reader.Push(row)
-			case "COLUMNS":
+			case TOutputModeColumns:
 				e = reader.PushRowToColumns(row)
 			}
 		}

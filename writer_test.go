@@ -166,7 +166,7 @@ func TestWriterWithColumns(t *testing.T) {
 	if nil != e {
 		t.Error(e)
 	}
-	dsvReader.InitOutputMode("columns")
+	dsvReader.SetOutputMode(dsv.OutputModeColumns)
 	defer dsvReader.Close()
 
 	// Initialize dsv writer

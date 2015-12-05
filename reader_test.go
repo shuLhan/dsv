@@ -210,8 +210,7 @@ func TestReaderIsEqual (t *testing.T) {
 
 		if r != c.result {
 			t.Fatal ("Test failed on equality between ", c.in,
-				"\n and ",
-					c.out);
+				"\n and ", c.out);
 		}
 	}
 }
@@ -353,7 +352,7 @@ func TestReaderToColumns(t *testing.T) {
 		t.Fatal (e)
 	}
 
-	reader.SetOutputMode("columns")
+	reader.SetOutputMode(dsv.OutputModeColumns)
 
 	e = reader.Init ()
 
@@ -369,8 +368,6 @@ func TestReaderToColumns(t *testing.T) {
 			reader.TransposeColumnsToRows()
 
 			r := fmt.Sprint (reader.GetOutput())
-
-			reader.SetOutputMode ("rows")
 
 			if r != expectation[i] {
 				t.Fatal ("dsv_test: expecting\n",
