@@ -555,6 +555,9 @@ func (reader *Reader) TransposeColumnsToRows () {
 
 		reader.Push(row)
 	}
+
+	// reset the columns
+	reader.Columns = nil
 }
 
 /*
@@ -581,6 +584,25 @@ func (reader *Reader) IsEqual (other *Reader) bool {
 	}
 
 	return true
+}
+
+/*
+RandomPickRows return `n` item of row that has been selected randomly from
+reader.Rows. The ids of rows that has been picked is saved id `rowsIdx`.
+
+If duplicate is true, the row that has been picked can be picked up again,
+otherwise it only allow one pick. This is also called as random selection with
+or without replacement in some machine learning domain.
+
+If output mode is columns, it will be transposed to rows.
+*/
+func (reader *Reader) RandomPickRows(n int, duplicate bool) (unpicked *Rows,
+							shuffled *Rows,
+							pickedIdx []int) {
+	if reader.GetTOutputMode() == TOutputModeColumns {
+		reader.TransposeColumnsToRows()
+	}
+	return reader.Rows.RandomPick(n, duplicate)
 }
 
 /*

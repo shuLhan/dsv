@@ -6,6 +6,7 @@ package dsv_test
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -114,15 +115,55 @@ func TestGroupByValue(t *testing.T) {
 }
 
 func TestRandomPick(t *testing.T) {
+	rows, e := initRows()
+	if e != nil {
+		t.Fatal(e)
+	}
+
+
+	// random pick with duplicate
 	for i := 0; i < 5; i++ {
-		rows, e := initRows()
-		if e != nil {
-			t.Fatal(e)
+		unpicked, shuffled,idx := rows.RandomPick(6, true)
+
+		// check if unpicked item exist in shuffled items.
+		for _, un := range *unpicked {
+			for _, pick := range *shuffled {
+				if reflect.DeepEqual(un, pick) {
+					t.Fatal("random pick: unpicked is false")
+				}
+			}
 		}
 
-		shuffledRows := rows.RandomPick(2, true)
+		fmt.Println("Random pick with duplicate rows")
+		fmt.Println("==> shuffled rows :", shuffled)
+		fmt.Println("==> shuffled idx  :", idx)
+		fmt.Println("==> unpicked rows :", unpicked)
+		fmt.Println("==> original rows :", rows)
+	}
 
-		fmt.Println("==> shuffled rows :", shuffledRows)
-		fmt.Println("==> remaining rows:", rows)
+	// random pick without duplication
+	for i := 0; i < 5; i++ {
+		unpicked, shuffled,idx := rows.RandomPick(3, false)
+
+		// check if picked rows is duplicate
+		if reflect.DeepEqual((*shuffled)[0], (*shuffled)[1]) {
+			t.Fatal("random pick: duplicate rows found.")
+		}
+
+		// check if unpicked item exist in shuffled items.
+		for _, un := range *unpicked {
+			for _, pick := range *shuffled {
+				if reflect.DeepEqual(un, pick) {
+					t.Fatal("random pick: unpicked is false")
+				}
+			}
+		}
+
+		fmt.Println("Random pick with no duplicate rows")
+		fmt.Println("==> shuffled rows :", shuffled)
+		fmt.Println("==> shuffled idx  :", idx)
+		fmt.Println("==> unpicked rows :", unpicked)
+		fmt.Println("==> original rows :", rows)
+
 	}
 }

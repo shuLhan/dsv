@@ -91,27 +91,72 @@ func (rows *Rows) GroupByValue(GroupIdx int) (mapRows MapRows) {
 
 /*
 RandomPick row in rows until n item and return it like its has been shuffled.
-If remove is true, row that has been picked will be removed from rows,
-otherwise it will stay there and can be picked up again.
+If duplicate is true, row that has been picked can be picked up again,
+otherwise it will only picked up once.
 */
-func (rows *Rows) RandomPick(n int, remove bool) (shuffled Rows) {
+func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked *Rows,
+							shuffled *Rows,
+							pickedIdx []int) {
 	rowsLen := len(*rows)
 
-	if n > rowsLen {
+	// since duplication is not allowed, we can only select as many as rows
+	// that we have.
+	if n > rowsLen && !duplicate {
 		n = rowsLen
 	}
 
 	rand.Seed(time.Now().UnixNano())
 
-	for ; n >= 1; n-- {
-		picked := rand.Intn(len(*rows))
+	shuffled = &Rows{}
 
-		row := (*rows)[picked]
+	for ; n >= 1; n-- {
+		pickId := 0
+		for {
+			pickId = rand.Intn(len(*rows))
+
+			if duplicate {
+				// allow duplicate id
+				pickedIdx = append(pickedIdx, pickId)
+				break
+			}
+
+			// check if its already picked
+			isPicked := false
+			for _, idx := range pickedIdx {
+				if pickId == idx {
+					isPicked = true
+					break
+				}
+			}
+			// get another random id again
+			if isPicked {
+				continue
+			}
+
+			// bingo, we found unique id that has not been picked.
+			pickedIdx = append(pickedIdx, pickId)
+			break
+		}
+
+		row := (*rows)[pickId]
 
 		shuffled.PushBack(row)
+	}
 
-		if remove {
-			(*rows) = append((*rows)[:picked], (*rows)[picked+1:]...)
+	// select unpicked rows using picked index.
+	unpicked = &Rows{}
+
+	for rid := range *rows {
+		// check if row index has been picked up
+		isPicked := false
+		for _, idx := range pickedIdx {
+			if rid == idx {
+				isPicked = true
+				break
+			}
+		}
+		if !isPicked {
+			unpicked.PushBack((*rows)[rid])
 		}
 	}
 	return
