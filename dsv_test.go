@@ -5,24 +5,16 @@
 package dsv_test
 
 import (
-	"bytes"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
 	"testing"
 
 	"github.com/shuLhan/dsv"
+	"github.com/shuLhan/dsv/util/assert"
 )
 
 /*
 doInit create read-write object.
 */
-func doInit (testName string, fcfg string, t *testing.T) (rw *dsv.ReadWriter, e error) {
-	if DEBUG {
-		log.Println (">>> ", testName)
-	}
-
+func doInit(t *testing.T, fcfg string) (rw *dsv.ReadWriter, e error) {
 	// Initialize dsv
 	rw = dsv.New ()
 
@@ -36,86 +28,27 @@ func doInit (testName string, fcfg string, t *testing.T) (rw *dsv.ReadWriter, e 
 }
 
 /*
-doReadWriteDSV test reading and writing the DSV data.
-*/
-func doReadWriteDSV (rw *dsv.ReadWriter, t *testing.T, check bool) {
-	i	:= 0
-	n 	:= 0
-	e	:= error (nil)
-
-	for {
-		n, e = dsv.Read (rw)
-
-		if DEBUG {
-			log.Println ("n records: ", n)
-		}
-
-		if n > 0 {
-			if check {
-				r := fmt.Sprint (rw.Rows)
-
-				if r != expectation[i] {
-					t.Fatal ("dsv_test: expecting\n",
-						expectation[i],
-						" got\n", r)
-					break
-				}
-				i++
-			}
-
-			rw.Write (&rw.Reader)
-		} else if e == io.EOF {
-			// EOF
-			break
-		}
-	}
-}
-
-func doCompare (fout *string, t *testing.T) {
-	// Compare the ouput from Writer
-	out, e := ioutil.ReadFile (*fout)
-
-	if nil != e {
-		t.Fatal (e)
-	}
-
-	exp, e := ioutil.ReadFile ("testdata/expected.dat")
-
-	if nil != e {
-		t.Fatal (e)
-	}
-
-	r := bytes.Compare (out, exp)
-
-	if 0 != r {
-		t.Fatal ("Output different from expected (", r ,")")
-	}
-}
-
-/*
 TestReadWriter test reading and writing DSV.
 */
 func TestReadWriter (t *testing.T) {
-	rw, _ := doInit ("TestReadWriter", "testdata/config.dsv", t)
+	rw, _ := doInit(t, "testdata/config.dsv")
 
-	doReadWriteDSV (rw, t, true)
+	doReadWrite(t, &rw.Reader, &rw.Writer, expectation, true)
+	rw.Close()
 
-	rw.Close ()
-
-	doCompare (&rw.Output, t)
+	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected.dat")
 }
 
 /*
 TestReadWriter test reading and writing DSV.
 */
 func TestReadWriterAll (t *testing.T) {
-	rw, _ := doInit ("TestReadWriterAll", "testdata/config.dsv", t)
+	rw, _ := doInit(t, "testdata/config.dsv")
 
-	rw.MaxRecord = -1;
+	rw.SetMaxRecord(-1);
 
-	doReadWriteDSV (rw, t, false)
+	doReadWrite(t, &rw.Reader, &rw.Writer, expectation, false)
+	rw.Close()
 
-	rw.Close ()
-
-	doCompare (&rw.Output, t)
+	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected.dat")
 }

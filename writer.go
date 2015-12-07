@@ -16,10 +16,9 @@ Writer write records from reader or slice using format configuration in
 metadata.
 */
 type Writer struct {
+	Config				`json:"="`
 	// Output file where the records will be written.
 	Output		string		`json:"Output"`
-	// OutputPath define where the output file directory belong.
-	OutputPath	string
 	// OutputMetadata define format for each column.
 	OutputMetadata	[]Metadata	`json:"OutputMetadata"`
 	// fWriter as write descriptor.
@@ -35,11 +34,17 @@ User must call Open after that to populate the output and metadata.
 func NewWriter () *Writer {
 	return &Writer {
 		Output		:"",
-		OutputPath	:"",
 		OutputMetadata	:nil,
 		fWriter		:nil,
 		BufWriter	:nil,
 	}
+}
+
+/*
+GetOutput return output filename.
+*/
+func (writer *Writer) GetOutput() string {
+	return writer.Output
 }
 
 /*
@@ -50,37 +55,9 @@ func (writer *Writer) SetOutput(path string) {
 }
 
 /*
-GetPath of directory where output file reside.
+OpenOutput file and buffered writer.
 */
-func (writer *Writer) GetPath () string {
-	return writer.OutputPath
-}
-
-/*
-SetPath where output file will be saved.
-*/
-func (writer *Writer) SetPath (dir string) {
-	writer.OutputPath = dir
-}
-
-/*
-Init initialize writer by opening output file.
-*/
-func (writer *Writer) Init () error {
-	// Exit immediately if no output file is defined in config.
-	if "" == writer.Output {
-		return ErrNoOutput
-	}
-
-	writer.SetOutput(CheckPath(writer, writer.Output))
-
-	return writer.openOutput ()
-}
-
-/*
-openOutput file and buffered writer.
-*/
-func (writer *Writer) openOutput () (e error) {
+func (writer *Writer) OpenOutput() (e error) {
 	writer.fWriter, e = os.OpenFile (writer.Output,
 					os.O_CREATE | os.O_TRUNC | os.O_WRONLY,
 					0600)
@@ -91,6 +68,13 @@ func (writer *Writer) openOutput () (e error) {
 	writer.BufWriter = bufio.NewWriter (writer.fWriter)
 
 	return nil
+}
+
+/*
+Flush output buffer to disk.
+*/
+func (writer *Writer) Flush() {
+	writer.BufWriter.Flush()
 }
 
 /*

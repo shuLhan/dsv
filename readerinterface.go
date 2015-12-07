@@ -1,3 +1,7 @@
+// Copyright 2016 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package dsv
 
 import (
@@ -11,14 +15,30 @@ import (
 ReaderInterface is the interface for reading DSV file.
 */
 type ReaderInterface interface {
+	ConfigInterface
 	GetInputMetadata () *[]Metadata
 	GetInputMetadataAt (idx int) *Metadata
 	GetMaxRecord () int
 	SetMaxRecord (max int)
 	GetRecordRead () int
 	SetRecordRead (n int)
+	GetOutputMode() string
+	SetOutputMode(mode string) error
 	GetTOutputMode() int
+	GetNColumnIn() int
+	SetNColumnIn(n int)
 	GetNColumnOut() int
+	SetNColumnOut(n int)
+	GetInput() string
+	SetInput(path string)
+	GetRejected() string
+	SetRejected(path string)
+	GetSkip() int
+	SetSkip(n int)
+	SetDefault()
+	OpenInput() error
+	OpenRejected() error
+	SkipLines() error
 
 	Reset ()
 	Flush ()
@@ -27,6 +47,84 @@ type ReaderInterface interface {
 	PushRowToColumns(r Row) error
 	Reject (line []byte)
 	Close ()
+}
+
+/*
+OpenReader configuration file and initialize the attributes.
+*/
+func OpenReader(reader ReaderInterface, fcfg string) (e error) {
+	e = ConfigOpen(reader, fcfg)
+
+	return InitReader(reader)
+}
+
+/*
+InitReader initialize reader object by opening input and rejected files and
+skip n lines from input.
+*/
+func InitReader(reader ReaderInterface) (e error) {
+	// Exit immediately if no input file is defined in config.
+	if "" == reader.GetInput() {
+		return ErrNoInput
+	}
+
+	md := reader.GetInputMetadata()
+	nColOut := 0
+
+	// Check and initialize metadata.
+	for i := range (*md) {
+		e = (*md)[i].Init()
+
+		// Count number of output columns.
+		if ! (*md)[i].Skip {
+			nColOut++
+		}
+
+		if nil != e {
+			return e
+		}
+	}
+
+	// Set number of input and output columns.
+	reader.SetNColumnIn(len(*md))
+	reader.SetNColumnOut(nColOut)
+
+	// Set default value
+	reader.SetDefault()
+
+	// Check if output mode is valid and initialize it if valid.
+	e = reader.SetOutputMode(reader.GetOutputMode())
+
+	if nil != e {
+		return
+	}
+
+	// Check if Input is name only without path, so we can prefix it with
+	// config path.
+	reader.SetInput(ConfigCheckPath(reader, reader.GetInput()))
+	reader.SetRejected(ConfigCheckPath(reader, reader.GetRejected()))
+
+	// Get ready ...
+	e = reader.OpenInput()
+	if nil != e {
+		return
+	}
+
+	e = reader.OpenRejected()
+	if nil != e {
+		return
+	}
+
+	// Skip lines
+	if reader.GetSkip() > 0 {
+		e = reader.SkipLines()
+
+		if nil != e {
+			return
+		}
+	}
+
+	return
 }
 
 /*

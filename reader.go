@@ -88,15 +88,15 @@ Thats it.
 
 */
 type Reader struct {
-	// Input file, mandatory.
-	Input		string		`json:"Input"`
-	// InputPath of input file, relative to the path of config file.
+	// Config define path of configuration file.
 	//
 	// If the configuration located in other directory, e.g.
 	// "../../config.dsv", and the Input option is set with name only, like
 	// "input.dat", we assume that its in the same directory where the
 	// configuration file belong.
-	InputPath	string
+	Config
+	// Input file, mandatory.
+	Input		string		`json:"Input"`
 	// Skip n lines from the head.
 	Skip		int		`json:"Skip"`
 	// Rejected is the file where record that does not fit
@@ -111,9 +111,9 @@ type Reader struct {
 	// NRecord define number of record readed and saved in Rows.
 	NRecord		int
 	// NColumnIn define number of input columns.
-	NColumnIn	int		`json:"-"`
+	NColumnIn	int
 	// NColumnOut define number of output columns (input - skiped columns)
-	NColumnOut	int		`json:"-"`
+	NColumnOut	int
 	// RecordMode define on how do you want the resulting record. There are
 	// two options: either in "rows" mode or "columns" mode.
 	// For example, input data file,
@@ -155,7 +155,6 @@ NewReader create and initialize new instance of DSV Reader with default values.
 func NewReader () *Reader {
 	return &Reader {
 		Input		:"",
-		InputPath	:"",
 		Skip		:0,
 		Rejected	:"rejected.dat",
 		InputMetadata	:nil,
@@ -188,24 +187,17 @@ func (reader *Reader) SetInput (path string) {
 }
 
 /*
-GetPath return the base path of configuration file.
-*/
-func (reader *Reader) GetPath () string {
-	return reader.InputPath
-}
-
-/*
-SetPath for reading input and writing rejected file.
-*/
-func (reader *Reader) SetPath (dir string) {
-	reader.InputPath = dir
-}
-
-/*
 GetSkip return number of line that will be skipped.
 */
 func (reader *Reader) GetSkip () int {
 	return reader.Skip
+}
+
+/*
+SetSkip set number of lines that will be skipped before reading actual records.
+*/
+func (reader *Reader) SetSkip(n int) {
+	reader.Skip = n
 }
 
 /*
@@ -265,6 +257,13 @@ func (reader *Reader) SetRecordRead (n int) {
 }
 
 /*
+GetOutputMode return output mode of data.
+*/
+func (reader *Reader) GetOutputMode() string {
+	return reader.OutputMode
+}
+
+/*
 GetTOutputMode return mode of output in integer, so we does not need to
 convert it to uppercase to compare it with string.
 */
@@ -292,6 +291,21 @@ func (reader *Reader) SetOutputMode(mode string) error {
 }
 
 /*
+GetNColumnIn return number of input columns (excluding Skip columns).
+*/
+func (reader *Reader) GetNColumnIn() int {
+	return reader.NColumnIn
+}
+
+/*
+SetNColumnIn set number of input column.
+*/
+func (reader *Reader) SetNColumnIn(n int) {
+	reader.NColumnIn = n
+}
+
+
+/*
 GetNColumnOut return number of column that will be used in output, excluding
 the column with Skip=true.
 */
@@ -300,9 +314,16 @@ func (reader *Reader) GetNColumnOut() int {
 }
 
 /*
-GetOutput return the output records, based on mode (rows or columns based).
+SetNColumnOut set number of output columns.
 */
-func (reader *Reader) GetOutput() interface{} {
+func (reader *Reader) SetNColumnOut(n int) {
+	reader.NColumnOut = n
+}
+
+/*
+GetData return the output records, based on mode (rows or columns based).
+*/
+func (reader *Reader) GetData() interface{} {
 	switch reader.TOutputMode {
 	case TOutputModeRows:
 		return reader.Rows
@@ -371,73 +392,6 @@ func (reader *Reader) SkipLines () (e error) {
 			return
 		}
 	}
-	return
-}
-
-/*
-Init initialize reader object by opening input and rejected files and
-skip n lines from input.
-*/
-func (reader *Reader) Init () (e error) {
-	// Exit immediately if no input file is defined in config.
-	if "" == reader.Input {
-		return ErrNoInput
-	}
-
-	// Set number of input columns.
-	reader.NColumnIn = len(reader.InputMetadata)
-
-	// Check and initialize metadata.
-	for i := range reader.InputMetadata {
-		e = reader.InputMetadata[i].Init ()
-
-		// Count number of output columns.
-		if ! reader.InputMetadata[i].Skip {
-			reader.NColumnOut++
-		}
-
-		if nil != e {
-			return e
-		}
-	}
-
-	// Set default value
-	reader.SetDefault ()
-
-	// Check if output mode is valid and initialize it if valid.
-	e = reader.SetOutputMode(reader.OutputMode)
-
-	if nil != e {
-		return
-	}
-
-	// Check if Input is name only without path, so we can prefix it with
-	// config path.
-	reader.SetInput (CheckPath (reader, reader.GetInput ()))
-	reader.SetRejected (CheckPath (reader, reader.GetRejected ()))
-
-	// Get ready ...
-	e = reader.OpenInput ()
-
-	if nil != e {
-		return
-	}
-
-	e = reader.OpenRejected ()
-
-	if nil != e {
-		return
-	}
-
-	// Skip lines
-	if reader.Skip > 0 {
-		e = reader.SkipLines ()
-
-		if nil != e {
-			return
-		}
-	}
-
 	return
 }
 

@@ -119,13 +119,13 @@ func TestReaderNoInput (t *testing.T) {
 	}
 
 	dsvReader := dsv.NewReader ()
-	e := dsv.ParseConfig (dsvReader, []byte (jsonSample[0]))
+	e := dsv.ConfigParse(dsvReader, []byte(jsonSample[0]))
 
 	if nil != e {
 		t.Fatal (e)
 	}
 
-	e = dsvReader.Init ()
+	e = dsv.InitReader(dsvReader)
 
 	if nil == e {
 		t.Fatal ("TestReaderNoInput: failed, should return non nil!")
@@ -137,12 +137,12 @@ func TestReaderNoInput (t *testing.T) {
 }
 
 /*
-TestParseConfig test parsing metadata.
+TestConfigParse test parsing metadata.
 */
-func TestParseConfig (t *testing.T) {
+func TestConfigParse (t *testing.T) {
 
 	if DEBUG {
-		log.Println (">>> TestParseConfig")
+		log.Println (">>> TestConfigParse")
 	}
 
 	cases := []struct {
@@ -163,7 +163,7 @@ func TestParseConfig (t *testing.T) {
 	dsvReader := dsv.NewReader ()
 
 	for _, c := range cases {
-		e := dsv.ParseConfig (dsvReader, []byte (c.in))
+		e := dsv.ConfigParse(dsvReader, []byte(c.in))
 
 		if e != nil {
 			t.Fatal (e)
@@ -255,13 +255,13 @@ func TestReaderRead (t *testing.T) {
 
 	defer dsvReader.Close ()
 
-	e := dsv.ParseConfig (dsvReader, [] byte (jsonSample[4]))
+	e := dsv.ConfigParse(dsvReader, []byte(jsonSample[4]))
 
 	if nil != e {
 		t.Fatal (e)
 	}
 
-	e = dsvReader.Init ()
+	e = dsv.InitReader(dsvReader)
 
 	if nil != e {
 		t.Fatal (e)
@@ -284,7 +284,7 @@ func TestReaderOpen (t *testing.T) {
 
 	dsvReader := dsv.NewReader ()
 
-	e := dsv.Open (dsvReader, "testdata/config.dsv")
+	e := dsv.OpenReader(dsvReader, "testdata/config.dsv")
 
 	if nil != e {
 		t.Fatal (e)
@@ -325,13 +325,13 @@ func TestOutputMode (t *testing.T) {
 	reader := dsv.NewReader ()
 
 	for k,v := range exps {
-		e = dsv.ParseConfig (reader, []byte (config[k]))
+		e = dsv.ConfigParse(reader, []byte(config[k]))
 
 		if e != nil {
 			t.Fatal (e)
 		}
 
-		e = reader.Init ()
+		e = dsv.InitReader(reader)
 
 		if e != nil {
 			if v.status == true {
@@ -346,7 +346,7 @@ func TestReaderToColumns(t *testing.T) {
 
 	reader := dsv.NewReader ()
 
-	e = dsv.ParseConfig (reader, []byte (jsonSample[4]))
+	e = dsv.ConfigParse(reader, []byte(jsonSample[4]))
 
 	if nil != e {
 		t.Fatal (e)
@@ -354,7 +354,7 @@ func TestReaderToColumns(t *testing.T) {
 
 	reader.SetOutputMode(dsv.OutputModeColumns)
 
-	e = reader.Init ()
+	e = dsv.InitReader(reader)
 
 	if nil != e {
 		t.Fatal (e)
@@ -367,7 +367,7 @@ func TestReaderToColumns(t *testing.T) {
 		if n > 0 {
 			reader.TransposeColumnsToRows()
 
-			r := fmt.Sprint (reader.GetOutput())
+			r := fmt.Sprint(reader.GetData())
 
 			if r != expectation[i] {
 				t.Fatal ("dsv_test: expecting\n",
@@ -393,7 +393,7 @@ func TestReaderSkip(t *testing.T) {
 
 	dsvReader := dsv.NewReader ()
 
-	e = dsv.Open (dsvReader, "testdata/config_skip.dsv")
+	e = dsv.OpenReader(dsvReader, "testdata/config_skip.dsv")
 
 	if nil != e {
 		t.Fatal (e)
