@@ -49,15 +49,15 @@ func (mapRows *MapRows) AddRow(k string, v Row) {
 /*
 GetMinority return map value which contain the minimum rows.
 */
-func (mapRows *MapRows) GetMinority() (kMin string, vMin Rows) {
+func (mapRows *MapRows) GetMinority() (keyMin string, valMin Rows) {
 	min := math.MaxInt32
 
 	for k := range *mapRows {
 		v := (*mapRows)[k].Value
 		l := len(v)
 		if l < min {
-			kMin = (*mapRows)[k].Key
-			vMin = v
+			keyMin = (*mapRows)[k].Key
+			valMin = v
 			min = l
 		}
 	}
