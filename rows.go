@@ -108,35 +108,35 @@ func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked Rows,
 	rand.Seed(time.Now().UnixNano())
 
 	for ; n >= 1; n-- {
-		pickId := 0
+		idx := 0
 		for {
-			pickId = rand.Intn(len(*rows))
+			idx = rand.Intn(len(*rows))
 
 			if duplicate {
-				// allow duplicate id
-				pickedIdx = append(pickedIdx, pickId)
+				// allow duplicate idx
+				pickedIdx = append(pickedIdx, idx)
 				break
 			}
 
 			// check if its already picked
 			isPicked := false
-			for _, idx := range pickedIdx {
-				if pickId == idx {
+			for _, pastIdx := range pickedIdx {
+				if idx == pastIdx {
 					isPicked = true
 					break
 				}
 			}
-			// get another random id again
+			// get another random idx again
 			if isPicked {
 				continue
 			}
 
-			// bingo, we found unique id that has not been picked.
-			pickedIdx = append(pickedIdx, pickId)
+			// bingo, we found unique idx that has not been picked.
+			pickedIdx = append(pickedIdx, idx)
 			break
 		}
 
-		row := (*rows)[pickId]
+		row := (*rows)[idx]
 
 		shuffled.PushBack(row)
 	}
