@@ -79,34 +79,34 @@ and `reader.go`.
 
 Second, we create a reader to read the input file.
 
-    dsvReader := dsv.NewReader ()
+    dsvReader := dsv.NewReader()
 
-    e = dsv.Open (dsvReader, "config.dsv")
+    e = dsv.OpenReader(dsvReader, "config.dsv")
 
     if nil != e {
-        t.Fatal (e)
+        t.Fatal(e)
     }
 
-    // we make sure all descriptor is closed.
-    defer dsvReader.Close ()
+    // we will make sure all open descriptor is closed.
+    defer dsvReader.Close()
 
 Third, we create a writer to write our output data,
 
-    dsvWriter := dsv.NewWriter ()
+    dsvWriter := dsv.NewWriter()
 
-    e = dsv.Open (dsvWriter, "config.dsv")
+    e = dsv.Open(dsvWriter, "config.dsv")
 
     if nil != e {
-        t.Error (e)
+        t.Error(e)
     }
 
 Last action, we process them: read input records and pass them to writer.
 
     for {
-        n, e := dsv.Read (dsvReader)
+        n, e := dsv.Read(dsvReader)
 
         if n > 0 {
-            dsvWriter.Write (dsvReader)
+            dsvWriter.Write(dsvReader)
 
         // EOF, no more record.
         } else if e == io.EOF {
@@ -114,12 +114,12 @@ Last action, we process them: read input records and pass them to writer.
         }
     }
 
-Easy enough? We can combine the reader and writer using dsv.New(), which will
+Easy enough? We can combine the reader and writer using `dsv.New()`, which will
 create reader and writer,
 
-    rw = dsv.New ()
+    rw = dsv.New()
 
-    e = rw.Open ("config.dsv")
+    e = rw.Open("config.dsv")
 
     // do usual process like in the last step.
 
