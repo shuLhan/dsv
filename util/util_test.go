@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/shuLhan/dsv/util"
+	"github.com/shuLhan/dsv/util/assert"
 )
 
 var input = [][]float64{
@@ -36,9 +37,7 @@ func TestIndirectSort(t *testing.T) {
 		res = fmt.Sprint(input[i])
 		exp = fmt.Sprint(output[i])
 
-		if res != exp {
-			t.Fatal("Expecting:\n", exp, "\n Got:", res)
-		}
+		assert.Equal(t, exp, res)
 	}
 }
 
@@ -62,7 +61,15 @@ func TestSortFloatSliceByIndex(t *testing.T) {
 
 	got := fmt.Sprint(in2)
 
-	if got != exp {
-		t.Fatal("Expecting ", exp,", got ", got)
-	}
+	assert.Equal(t, exp, got)
+}
+
+func TestStringCountBy(t *testing.T) {
+	data := []string{"A", "B", "A", "C"}
+	class := []string{"A","B"}
+	exp := []int{2,1}
+
+	got := util.StringCountBy(data, class)
+
+	assert.Equal(t, exp, got)
 }

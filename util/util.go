@@ -180,3 +180,29 @@ func SortStringSliceByIndex(data *[]string, sortedIdx *[]int) {
 
 	(*data) = newdata
 }
+
+/*
+StringCountBy count number of occurence of `class` values in data.
+Return number of each class based on their index.
+
+For example, if data is "[A,A,B]" and class is "[A,B]", this function will
+return "[2,1]".
+
+	idx cls  count
+	0 : A -> 2
+	1 : B -> 1
+*/
+func StringCountBy(data []string, class []string) (clsCnt []int) {
+	clsCnt = make([]int, len(class))
+
+	for _, r := range data {
+		for k, v := range class {
+			if r == v {
+				clsCnt[k]++
+				break
+			}
+		}
+	}
+
+	return
+}
