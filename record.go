@@ -72,7 +72,7 @@ func (r *Record) SetFloat (v float64) {
 RecordNew create new record from byte with specific type.
 Return record object or error when fail to convert the byte to type.
 */
-func RecordNew (v []byte, t int) (r Record, e error) {
+func RecordNew(v []byte, t int) (r Record, e error) {
 	r = Record {}
 	e = (&r).SetValue (v, t)
 

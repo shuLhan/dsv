@@ -35,7 +35,7 @@ var jsonSample = []string {
 	`{
 		"Input"		:"testdata/input.dat"
 	,	"Skip"		:1
-	,	"MaxRecord"	:1
+	,	"MaxRows"	:1
 	,	"InputMetadata"	:
 		[{
 			"Name"		:"id"
@@ -63,7 +63,7 @@ var jsonSample = []string {
 	`{
 		"Input"		:"testdata/input.dat"
 	,	"Skip"		:1
-	,	"MaxRecord"	:1
+	,	"MaxRows"	:1
 	,	"InputMetadata"	:
 		[{
 			"Name"		:"id"

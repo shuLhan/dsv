@@ -45,7 +45,7 @@ TestReadWriter test reading and writing DSV.
 func TestReadWriterAll (t *testing.T) {
 	rw, _ := doInit(t, "testdata/config.dsv")
 
-	rw.SetMaxRecord(-1);
+	rw.SetMaxRows(-1);
 
 	doReadWrite(t, &rw.Reader, &rw.Writer, expectation, false)
 	rw.Close()

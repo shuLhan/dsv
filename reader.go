@@ -47,7 +47,7 @@ func (e *ErrReader) Error () string {
 }
 
 /*
-Reader hold all configuration, metadata and input records.
+Reader hold all configuration, metadata and input data.
 
 DSV Reader work like this,
 
@@ -65,7 +65,7 @@ DSV Reader work like this,
 
 	defer dsvReader.Close ()
 
-(4) Create loop to read and process records.
+(4) Create loop to read input data
 
 	for {
 		n, e := dsv.Read (dsvReader)
@@ -74,11 +74,11 @@ DSV Reader work like this,
 			break
 		}
 
-(4.1) Iterate through records
+(4.1) Iterate through rows
 
 		row := dsvReader.Rows.Front ()
 		for row != nil {
-			// work with records ...
+			// work with row ...
 
 			row = row.Next ()
 		}
@@ -99,34 +99,36 @@ type Reader struct {
 	Input		string		`json:"Input"`
 	// Skip n lines from the head.
 	Skip		int		`json:"Skip"`
-	// Rejected is the file where record that does not fit
+	// Rejected is the file name where row that does not fit
 	// with metadata will be saved.
 	Rejected	string		`json:"Rejected"`
-	// InputMetadata define format each column in a record.
+	// InputMetadata define format for each column in input data.
 	InputMetadata	[]Metadata	`json:"InputMetadata"`
-	// MaxRecord define maximum record that this reader will read and
+	// MaxRows define maximum row that this reader will read and
 	// saved in the memory at one read operation.
-	// If the value is -1 all records will read.
-	MaxRecord	int		`json:"MaxRecord"`
-	// NRecord define number of record readed and saved in Rows.
-	NRecord		int
+	// If the value is -1, all rows will read.
+	MaxRows	int		`json:"MaxRows"`
+	// NRows define number of rows has been readed and saved.
+	NRows		int
 	// NColumnIn define number of input columns.
 	NColumnIn	int
 	// NColumnOut define number of output columns (input - skiped columns)
 	NColumnOut	int
-	// RecordMode define on how do you want the resulting record. There are
+	// OutputMode define on how do you want the result is saved. There are
 	// two options: either in "rows" mode or "columns" mode.
 	// For example, input data file,
 	//
 	//	a,b,c
 	//	1,2,3
 	//
-	// Row mode is where each line saved in linked-list of row, resulting
+	// "rows" mode is where each line saved in its own slice, resulting
 	// in Rows:
 	//
-	//	[a b c]->[1 2 3]
+	//	[a b c]
+	//	[1 2 3]
 	//
-	// Column mode is where each line saved by columns, resulting in Columns:
+	// "columns" mode is where each line saved by columns, resulting in
+	// Columns:
 	//
 	//	[a 1]
 	//	[b 2]
@@ -139,13 +141,13 @@ type Reader struct {
 	Columns		Columns		`json:"-"`
 	// Rows is input data that has been parsed.
 	Rows		Rows		`json:"-"`
-	// fRead as read descriptor.
+	// fRead is read descriptor.
 	fRead		*os.File
-	// fReject as reject descriptor.
+	// fReject is reject descriptor.
 	fReject		*os.File
-	// bufRead is for working with input file.
+	// bufRead is a buffer for working with input file.
 	bufRead		*bufio.Reader
-	// bufReject is for rejected records.
+	// bufReject is a buffer for working with rejected file.
 	bufReject	*bufio.Writer
 }
 
@@ -158,8 +160,8 @@ func NewReader () *Reader {
 		Skip		:0,
 		Rejected	:"rejected.dat",
 		InputMetadata	:nil,
-		MaxRecord	:DefaultMaxRecord,
-		NRecord		:0,
+		MaxRows	:DefaultMaxRows,
+		NRows		:0,
 		NColumnIn	:0,
 		NColumnOut	:0,
 		OutputMode	:DefOutputMode,
@@ -194,7 +196,7 @@ func (reader *Reader) GetSkip () int {
 }
 
 /*
-SetSkip set number of lines that will be skipped before reading actual records.
+SetSkip set number of lines that will be skipped before reading actual data.
 */
 func (reader *Reader) SetSkip(n int) {
 	reader.Skip = n
@@ -229,31 +231,31 @@ func (reader *Reader) GetInputMetadataAt (idx int) *Metadata {
 }
 
 /*
-GetMaxRecord return number of maximum record for reading.
+GetMaxRows return number of maximum rows for reading.
 */
-func (reader *Reader) GetMaxRecord () int {
-	return reader.MaxRecord
+func (reader *Reader) GetMaxRows() int {
+	return reader.MaxRows
 }
 
 /*
-SetMaxRecord will set maximum record that will be read from input file.
+SetMaxRows will set maximum rows that will be read from input file.
 */
-func (reader *Reader) SetMaxRecord (max int) {
-	reader.MaxRecord = max
+func (reader *Reader) SetMaxRows(max int) {
+	reader.MaxRows = max
 }
 
 /*
-GetRecordRead return number of record that has been read before.
+GetNRows return number of rows that has been read before.
 */
-func (reader *Reader) GetRecordRead () int {
-	return reader.NRecord
+func (reader *Reader) GetNRows() int {
+	return reader.NRows
 }
 
 /*
-SetRecordRead will set the number of record that has been read.
+SetNRows will set the number of row that has been read.
 */
-func (reader *Reader) SetRecordRead (n int) {
-	reader.NRecord = n
+func (reader *Reader) SetNRows(n int) {
+	reader.NRows = n
 }
 
 /*
@@ -321,7 +323,7 @@ func (reader *Reader) SetNColumnOut(n int) {
 }
 
 /*
-GetData return the output records, based on mode (rows or columns based).
+GetData return the output data, based on mode (rows or columns based).
 */
 func (reader *Reader) GetData() interface{} {
 	switch reader.TOutputMode {
@@ -341,8 +343,8 @@ func (reader *Reader) SetDefault () {
 	if "" == reader.Rejected {
 		reader.Rejected = DefaultRejected
 	}
-	if 0 == reader.MaxRecord {
-		reader.MaxRecord = DefaultMaxRecord
+	if 0 == reader.MaxRows {
+		reader.MaxRows = DefaultMaxRows
 	}
 	if "" == reader.OutputMode {
 		reader.SetOutputMode(DefOutputMode)
@@ -396,11 +398,11 @@ func (reader *Reader) SkipLines () (e error) {
 }
 
 /*
-Reset all variables for next read operation. NRecord will be 0, and Rows
+Reset all variables for next read operation. NRows will be 0, and Rows
 will be nil again.
 */
 func (reader *Reader) Reset () {
-	reader.NRecord = 0
+	reader.NRows = 0
 	reader.Rows = Rows{}
 	reader.Columns = make(Columns, reader.NColumnOut)
 }
@@ -434,14 +436,14 @@ func (reader *Reader) ReadLine () (line []byte, e error) {
 }
 
 /*
-Push record to row.
+Push data to rows.
 */
 func (reader *Reader) Push(r Row) {
 	reader.Rows.PushBack(r)
 }
 
 /*
-PushRowToColumns push each record in Row to Columns.
+PushRowToColumns push each data in Row to Columns.
 */
 func (reader *Reader) PushRowToColumns(row Row) (e error) {
 	// check if row length equal with columns length
@@ -479,7 +481,7 @@ func (reader *Reader) Close () {
 }
 
 /*
-TransposeColumnsToRows will move all record in Columns into Rows.
+TransposeColumnsToRows will move all data in Columns into Rows mode.
 */
 func (reader *Reader) TransposeColumnsToRows () {
 	if reader.GetTOutputMode() != TOutputModeColumns {

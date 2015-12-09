@@ -18,10 +18,10 @@ type ReaderInterface interface {
 	ConfigInterface
 	GetInputMetadata () *[]Metadata
 	GetInputMetadataAt (idx int) *Metadata
-	GetMaxRecord () int
-	SetMaxRecord (max int)
-	GetRecordRead () int
-	SetRecordRead (n int)
+	GetMaxRows() int
+	SetMaxRows(max int)
+	GetNRows() int
+	SetNRows(n int)
 	GetOutputMode() string
 	SetOutputMode(mode string) error
 	GetTOutputMode() int
@@ -134,10 +134,10 @@ func Read (reader ReaderInterface) (n int, e error) {
 	n = 0
 	reader.Reset ()
 
-	// remember to flush if we have rejected record.
+	// remember to flush if we have rejected rows.
 	defer reader.Flush ()
 
-	// Loop until we reached MaxRecord (> 0) or when all record has been
+	// Loop until we reached MaxRows (> 0) or when all rows has been
 	// read (= -1)
 	for {
 		line, e := reader.ReadLine()
@@ -146,7 +146,7 @@ func Read (reader ReaderInterface) (n int, e error) {
 			if e != io.EOF {
 				log.Print ("dsv: ", e)
 			}
-			reader.SetRecordRead (n)
+			reader.SetNRows(n)
 			return n, e
 		}
 
@@ -169,9 +169,8 @@ func Read (reader ReaderInterface) (n int, e error) {
 		}
 		if nil == e {
 			n++
-
-			if reader.GetMaxRecord () > 0 &&
-			n >= reader.GetMaxRecord () {
+			maxrows := reader.GetMaxRows()
+			if maxrows > 0 && n >= maxrows {
 				break
 			}
 		} else {
@@ -183,17 +182,17 @@ func Read (reader ReaderInterface) (n int, e error) {
 		}
 	}
 
-	reader.SetRecordRead (n)
+	reader.SetNRows(n)
 
 	return n, e
 }
 
 /*
-ParseLine parse a line containing record. The output is array of record (or row)
-added to the list of Reader's Rows.
+ParseLine parse a line containing records. The output is array of record
+(or single row).
 
 This is how the algorithm works
-(1) create n slice of row, where n is number of column metadata
+(1) create n slice of record, where n is number of column metadata
 (2) for each metadata
 	(2.1) If using left quote, skip it
 	(2.2) If using right quote, append byte to buffer until right-quote
