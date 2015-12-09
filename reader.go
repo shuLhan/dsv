@@ -513,9 +513,9 @@ func (reader *Reader) TransposeToColumns() {
 }
 
 /*
-TransposeColumnsToRows will move all data in Columns into Rows mode.
+TransposeToRows will move all data in Columns into Rows mode.
 */
-func (reader *Reader) TransposeColumnsToRows () {
+func (reader *Reader) TransposeToRows () {
 	toutmode := reader.GetTOutputMode()
 	if toutmode == TOutputModeRows || toutmode == TOutputModeMatrix {
 		return
@@ -589,7 +589,7 @@ func (reader *Reader) RandomPickRows(n int, duplicate bool) (unpicked Rows,
 							shuffled Rows,
 							pickedIdx []int) {
 	if reader.GetTOutputMode() == TOutputModeColumns {
-		reader.TransposeColumnsToRows()
+		reader.TransposeToRows()
 	}
 	return reader.Rows.RandomPick(n, duplicate)
 }

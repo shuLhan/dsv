@@ -349,7 +349,7 @@ func TestReaderToColumns(t *testing.T) {
 		n, e = dsv.Read (reader)
 
 		if n > 0 {
-			reader.TransposeColumnsToRows()
+			reader.TransposeToRows()
 
 			r := fmt.Sprint(reader.GetData())
 
