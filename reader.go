@@ -485,6 +485,26 @@ func (reader *Reader) Close () {
 }
 
 /*
+TransposeToColumns move all data mode from rows (horizontal) to columns
+(vertical) mode.
+*/
+func (reader *Reader) TransposeToColumns() {
+	toutmode := reader.GetTOutputMode()
+	if toutmode == TOutputModeColumns || toutmode == TOutputModeMatrix {
+		return
+	}
+
+	reader.SetOutputMode(OutputModeColumns)
+
+	for _, row := range reader.Rows {
+		reader.PushRowToColumns(row)
+	}
+
+	// reset the rows
+	reader.Rows = nil
+}
+
+/*
 TransposeColumnsToRows will move all data in Columns into Rows mode.
 */
 func (reader *Reader) TransposeColumnsToRows () {

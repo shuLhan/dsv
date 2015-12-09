@@ -42,6 +42,13 @@ var exp_skip_columns = []string{
 	"[[test] [real] [123456789] [0.123456789]]",
 }
 
+var exp_skip_columns_all = []string{
+	"[A-B A-B-C A;B-C,D  ok test test]",
+	"[AB BCD A;B C,D  ok integer real]",
+	"[1 2 3 6 9 10 123456789]",
+	"[0.1 0.02 0.003 0.000006 0.000000009 0.101 0.123456789]",
+}
+
 // Testing data and function for Rows and MapRows
 var rowsData = [][]byte{
 	{'1', dsv.TInteger, '+', dsv.TString},

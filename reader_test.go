@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/shuLhan/dsv"
+	"github.com/shuLhan/dsv/util/assert"
 )
 
 var jsonSample = []string {
@@ -402,4 +403,28 @@ func TestReaderSkip(t *testing.T) {
 	defer dsvReader.Close ()
 
 	doRead (t, dsvReader, exp_skip)
+}
+
+func TestTransposeToColumns(t *testing.T) {
+	reader := dsv.NewReader()
+
+	e := dsv.OpenReader(reader, "testdata/config_skip.dsv")
+	if nil != e {
+		t.Fatal(e)
+	}
+	defer reader.Close()
+
+	reader.SetMaxRows(-1)
+
+	_, e = dsv.Read(reader)
+	if e != io.EOF {
+		t.Fatal(e)
+	}
+
+	reader.TransposeToColumns()
+
+	exp := fmt.Sprint(exp_skip_columns_all)
+	got := fmt.Sprint(reader.Columns)
+
+	assert.Equal(t, exp, got)
 }
