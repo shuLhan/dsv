@@ -16,17 +16,19 @@ import (
 
 const (
 	// TOutputModeRows for output mode in rows.
-	TOutputModeRows = 0
+	TOutputModeRows = 1
 	// OutputModeRows is a string representation of output mode rows.
 	OutputModeRows = "ROWS"
 	// TOutputModeColumns for output mode in columns.
-	TOutputModeColumns = 1
+	TOutputModeColumns = 2
 	// OutputModeColumns is a string representation of output mode columns.
 	OutputModeColumns = "COLUMNS"
-	// DefOutputMode default output mode in string.
-	DefOutputMode = OutputModeRows
-	// DefTOutputMode default output mode.
-	DefTOutputMode = TOutputModeRows
+	// TOutputModeMatrix will save data in rows and columns.
+	TOutputModeMatrix = 3
+	// OutputModeMatrix will save data in rows and columns. This mode will
+	// consume more memory that "rows" and "columns" but give greater
+	// flexibility when working with data.
+	OutputModeMatrix = "MATRIX"
 )
 
 /*
@@ -284,6 +286,10 @@ func (reader *Reader) SetOutputMode(mode string) error {
 	case OutputModeColumns:
 		reader.TOutputMode = TOutputModeColumns
 		reader.Columns = make(Columns, reader.NColumnOut)
+	case OutputModeMatrix:
+		reader.TOutputMode = TOutputModeMatrix
+		reader.Rows = Rows{}
+		reader.Columns = make(Columns, reader.NColumnOut)
 	default:
 		return ErrUnknownOutputMode
 	}
@@ -316,7 +322,7 @@ func (reader *Reader) SetNColumnOut(n int) {
 }
 
 /*
-GetData return the output data, based on mode (rows or columns based).
+GetData return the output data, based on mode (rows, columns, or matrix).
 */
 func (reader *Reader) GetData() interface{} {
 	switch reader.TOutputMode {
@@ -324,6 +330,11 @@ func (reader *Reader) GetData() interface{} {
 		return reader.Rows
 	case TOutputModeColumns:
 		return reader.Columns
+	case TOutputModeMatrix:
+		return Matrix{
+			Columns: &reader.Columns,
+			Rows: &reader.Rows,
+		}
 	}
 
 	return nil
@@ -477,7 +488,8 @@ func (reader *Reader) Close () {
 TransposeColumnsToRows will move all data in Columns into Rows mode.
 */
 func (reader *Reader) TransposeColumnsToRows () {
-	if reader.GetTOutputMode() != TOutputModeColumns {
+	toutmode := reader.GetTOutputMode()
+	if toutmode == TOutputModeRows || toutmode == TOutputModeMatrix {
 		return
 	}
 

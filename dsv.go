@@ -24,6 +24,10 @@ const (
 	// in memory for each read if input data is too large and can not be
 	// consumed in one read operation.
 	DefaultMaxRows = 256
+	// DefOutputMode default output mode is rows.
+	DefOutputMode = OutputModeRows
+	// DefTOutputMode default output mode is rows.
+	DefTOutputMode = TOutputModeRows
 )
 
 var (

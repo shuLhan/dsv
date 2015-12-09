@@ -163,6 +163,9 @@ func Read (reader ReaderInterface) (n int, e error) {
 				reader.Push(row)
 			case TOutputModeColumns:
 				e = reader.PushRowToColumns(row)
+			case TOutputModeMatrix:
+				reader.Push(row)
+				e = reader.PushRowToColumns(row)
 			}
 		}
 		if nil == e {
