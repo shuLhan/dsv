@@ -115,12 +115,12 @@ var readers = []*dsv.Reader {
 TestReaderNoInput will print error that the input is not defined.
 */
 func TestReaderNoInput (t *testing.T) {
-	if DEBUG {
-		log.Println (">>> TestReaderNoInput")
+	dsvReader, e := dsv.NewReader("")
+	if nil != e {
+		t.Fatal(e)
 	}
 
-	dsvReader := dsv.NewReader ()
-	e := dsv.ConfigParse(dsvReader, []byte(jsonSample[0]))
+	e = dsv.ConfigParse(dsvReader, []byte(jsonSample[0]))
 
 	if nil != e {
 		t.Fatal (e)
@@ -161,7 +161,10 @@ func TestConfigParse (t *testing.T) {
 
 	}
 
-	dsvReader := dsv.NewReader ()
+	dsvReader, e := dsv.NewReader("")
+	if nil != e {
+		t.Fatal(e)
+	}
 
 	for _, c := range cases {
 		e := dsv.ConfigParse(dsvReader, []byte(c.in))
@@ -248,15 +251,14 @@ func doRead (t *testing.T, dsvReader *dsv.Reader, exp []string) {
 TestReader test reading.
 */
 func TestReaderRead (t *testing.T) {
-	if DEBUG {
-		log.Println (">>> TestReaderRead")
+	dsvReader, e := dsv.NewReader("")
+	if nil != e {
+		t.Fatal(e)
 	}
-
-	dsvReader := dsv.NewReader ()
 
 	defer dsvReader.Close ()
 
-	e := dsv.ConfigParse(dsvReader, []byte(jsonSample[4]))
+	e = dsv.ConfigParse(dsvReader, []byte(jsonSample[4]))
 
 	if nil != e {
 		t.Fatal (e)
@@ -279,14 +281,7 @@ func TestReaderRead (t *testing.T) {
 TestReaderOpen real example from the start.
 */
 func TestReaderOpen (t *testing.T) {
-	if DEBUG {
-		log.Println (">>> TestReaderOpen")
-	}
-
-	dsvReader := dsv.NewReader ()
-
-	e := dsv.OpenReader(dsvReader, "testdata/config.dsv")
-
+	dsvReader, e := dsv.NewReader("testdata/config.dsv")
 	if nil != e {
 		t.Fatal (e)
 	}
@@ -323,7 +318,10 @@ func TestOutputMode (t *testing.T) {
 		string (config[2]),
 	}}
 
-	reader := dsv.NewReader ()
+	reader, e := dsv.NewReader("")
+	if nil != e {
+		t.Fatal(e)
+	}
 
 	for k,v := range exps {
 		e = dsv.ConfigParse(reader, []byte(config[k]))
@@ -343,9 +341,7 @@ func TestOutputMode (t *testing.T) {
 }
 
 func TestReaderToColumns(t *testing.T) {
-	var e error
-
-	reader := dsv.NewReader ()
+	reader, e := dsv.NewReader("")
 
 	e = dsv.ConfigParse(reader, []byte(jsonSample[4]))
 
@@ -388,14 +384,7 @@ func TestReaderToColumns(t *testing.T) {
 TestReaderSkip will test the 'Skip' option in Metadata.
 */
 func TestReaderSkip(t *testing.T) {
-	var e error
-
-	fmt.Println("==> TestReaderSkip")
-
-	dsvReader := dsv.NewReader ()
-
-	e = dsv.OpenReader(dsvReader, "testdata/config_skip.dsv")
-
+	dsvReader, e := dsv.NewReader("testdata/config_skip.dsv")
 	if nil != e {
 		t.Fatal (e)
 	}
@@ -406,9 +395,7 @@ func TestReaderSkip(t *testing.T) {
 }
 
 func TestTransposeToColumns(t *testing.T) {
-	reader := dsv.NewReader()
-
-	e := dsv.OpenReader(reader, "testdata/config_skip.dsv")
+	reader, e := dsv.NewReader("testdata/config_skip.dsv")
 	if nil != e {
 		t.Fatal(e)
 	}

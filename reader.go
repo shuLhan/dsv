@@ -55,13 +55,13 @@ DSV Reader work like this,
 
 (1) Initialize new dsv reader object
 
-	dsvReader := dsv.NewReader ()
+	dsvReader, e := dsv.NewReader(configfile)
 
-(2) Open configuration file
+(2) Do not forget to check for error ...
 
-	e := dsv.Open (dsvReader, configfile)
-
-(2.1) Do not forget to check for error ...
+	if e != nil {
+		// handle error
+	}
 
 (3) Make sure to close all files after finished
 
@@ -78,11 +78,8 @@ DSV Reader work like this,
 
 (4.1) Iterate through rows
 
-		row := dsvReader.Rows.Front ()
-		for row != nil {
+		for row := range dsvReader.GetData() {
 			// work with row ...
-
-			row = row.Next ()
 		}
 	}
 
@@ -156,8 +153,8 @@ type Reader struct {
 /*
 NewReader create and initialize new instance of DSV Reader with default values.
 */
-func NewReader () *Reader {
-	return &Reader {
+func NewReader(config string) (reader *Reader, e error) {
+	reader = &Reader {
 		Input		:"",
 		Skip		:0,
 		Rejected	:"rejected.dat",
@@ -174,6 +171,17 @@ func NewReader () *Reader {
 		bufRead		:nil,
 		bufReject	:nil,
 	}
+
+	if config == "" {
+		return
+	}
+
+	e = OpenReader(reader, config)
+	if e != nil {
+		return nil, e
+	}
+
+	return
 }
 
 /*

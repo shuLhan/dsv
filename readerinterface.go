@@ -53,6 +53,9 @@ OpenReader configuration file and initialize the attributes.
 */
 func OpenReader(reader ReaderInterface, fcfg string) (e error) {
 	e = ConfigOpen(reader, fcfg)
+	if e != nil {
+		return e
+	}
 
 	return InitReader(reader)
 }

@@ -63,8 +63,19 @@ type ReadWriter struct {
 /*
 New create a new ReadWriter object.
 */
-func New () *ReadWriter {
-	return &ReadWriter {}
+func New(config string) (rw *ReadWriter, e error) {
+	rw = &ReadWriter{}
+
+	if config == "" {
+		return
+	}
+
+	e = rw.Open(config)
+	if e != nil {
+		return nil, e
+	}
+
+	return
 }
 
 /*

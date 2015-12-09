@@ -31,13 +31,24 @@ type Writer struct {
 NewWriter create a writer object.
 User must call Open after that to populate the output and metadata.
 */
-func NewWriter () *Writer {
-	return &Writer {
+func NewWriter(config string) (writer *Writer, e error) {
+	writer = &Writer {
 		Output		:"",
 		OutputMetadata	:nil,
 		fWriter		:nil,
 		BufWriter	:nil,
 	}
+
+	if config == "" {
+		return
+	}
+
+	e = OpenWriter(writer, config)
+	if e != nil {
+		return nil, e
+	}
+
+	return
 }
 
 /*

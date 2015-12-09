@@ -21,6 +21,9 @@ OpenWriter configuration file and initialize the attributes.
 */
 func OpenWriter(writer WriterInterface, fcfg string) (e error) {
 	e = ConfigOpen(writer, fcfg)
+	if e != nil {
+		return
+	}
 
 	return InitWriter(writer)
 }

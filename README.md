@@ -79,9 +79,7 @@ and `reader.go`.
 
 Second, we create a reader to read the input file.
 
-    dsvReader := dsv.NewReader()
-
-    e = dsv.OpenReader(dsvReader, "config.dsv")
+    dsvReader, e := dsv.NewReader("config.dsv")
 
     if nil != e {
         t.Fatal(e)
@@ -92,9 +90,7 @@ Second, we create a reader to read the input file.
 
 Third, we create a writer to write our output data,
 
-    dsvWriter := dsv.NewWriter()
-
-    e = dsv.Open(dsvWriter, "config.dsv")
+    dsvWriter, e := dsv.NewWriter("config.dsv")
 
     if nil != e {
         t.Error(e)
@@ -117,9 +113,11 @@ Last action, we process them: read input records and pass them to writer.
 Easy enough? We can combine the reader and writer using `dsv.New()`, which will
 create reader and writer,
 
-    rw = dsv.New()
+    rw, e := dsv.New("config.dsv")
 
-    e = rw.Open("config.dsv")
+    if nil != e {
+        t.Error(e)
+    }
 
     // do usual process like in the last step.
 

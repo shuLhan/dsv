@@ -16,9 +16,7 @@ doInit create read-write object.
 */
 func doInit(t *testing.T, fcfg string) (rw *dsv.ReadWriter, e error) {
 	// Initialize dsv
-	rw = dsv.New ()
-
-	e = rw.Open (fcfg)
+	rw, e = dsv.New(fcfg)
 
 	if nil != e {
 		t.Fatal (e)
