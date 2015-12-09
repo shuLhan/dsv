@@ -440,9 +440,9 @@ func (reader *Reader) ReadLine () (line []byte, e error) {
 }
 
 /*
-Push data to rows.
+PushRow save the data, which is already in row object, to Rows.
 */
-func (reader *Reader) Push(r Row) {
+func (reader *Reader) PushRow(r Row) {
 	reader.Rows.PushBack(r)
 }
 
@@ -514,7 +514,7 @@ func (reader *Reader) TransposeColumnsToRows () {
 			row[f] = reader.Columns[f][r]
 		}
 
-		reader.Push(row)
+		reader.PushRow(row)
 	}
 
 	// reset the columns

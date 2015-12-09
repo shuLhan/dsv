@@ -42,7 +42,7 @@ type ReaderInterface interface {
 	Reset ()
 	Flush ()
 	ReadLine () ([]byte, error)
-	Push(r Row)
+	PushRow(r Row)
 	PushRowToColumns(r Row) error
 	Reject (line []byte)
 	Close ()
@@ -160,11 +160,11 @@ func Read (reader ReaderInterface) (n int, e error) {
 		if nil == e {
 			switch reader.GetTOutputMode() {
 			case TOutputModeRows:
-				reader.Push(row)
+				reader.PushRow(row)
 			case TOutputModeColumns:
 				e = reader.PushRowToColumns(row)
 			case TOutputModeMatrix:
-				reader.Push(row)
+				reader.PushRow(row)
 				e = reader.PushRowToColumns(row)
 			}
 		}
