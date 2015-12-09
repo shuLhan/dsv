@@ -141,11 +141,6 @@ func TestReaderNoInput (t *testing.T) {
 TestConfigParse test parsing metadata.
 */
 func TestConfigParse (t *testing.T) {
-
-	if DEBUG {
-		log.Println (">>> TestConfigParse")
-	}
-
 	cases := []struct {
 		in	string
 		out	*dsv.Reader
@@ -183,10 +178,6 @@ func TestConfigParse (t *testing.T) {
 }
 
 func TestReaderIsEqual (t *testing.T) {
-	if DEBUG {
-		log.Println (">>> TestReaderIsEqual")
-	}
-
 	cases := []struct {
 		in	*dsv.Reader
 		out	*dsv.Reader
@@ -233,11 +224,7 @@ func doRead (t *testing.T, dsvReader *dsv.Reader, exp []string) {
 		if n > 0 {
 			r := fmt.Sprint (dsvReader.Rows)
 
-			if r != exp[i] {
-				t.Fatal ("dsv_test: expecting\n",
-					exp[i],
-					" got\n", r)
-			}
+			assert.Equal(t, exp[i], r)
 
 			i++
 		} else if e == io.EOF {
@@ -366,11 +353,7 @@ func TestReaderToColumns(t *testing.T) {
 
 			r := fmt.Sprint(reader.GetData())
 
-			if r != expectation[i] {
-				t.Fatal ("dsv_test: expecting\n",
-					expectation[i],
-					" got\n", r)
-			}
+			assert.Equal(t, expectation[i], r)
 
 			i++
 		} else if e == io.EOF {
