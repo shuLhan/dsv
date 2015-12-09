@@ -79,7 +79,7 @@ func initRows() (rows dsv.Rows, e error) {
 				return nil, e
 			}
 
-			row = append(row, *rec)
+			row = append(row, rec)
 
 			z++
 		}

@@ -27,7 +27,7 @@ func TestRecord(t *testing.T) {
 			t.Error(e)
 		}
 
-		row = append(row, *r)
+		row = append(row, r)
 	}
 
 	exp := fmt.Sprint(expec)

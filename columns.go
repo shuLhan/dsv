@@ -7,7 +7,7 @@ package dsv
 /*
 Column represent slice of record. A vertical representation of data.
 */
-type Column []Record
+type Column []*Record
 
 /*
 Columns represent slice of Column.

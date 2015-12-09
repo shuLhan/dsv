@@ -496,8 +496,8 @@ func (reader *Reader) TransposeToColumns() {
 
 	reader.SetOutputMode(OutputModeColumns)
 
-	for _, row := range reader.Rows {
-		reader.PushRowToColumns(row)
+	for i := range reader.Rows {
+		reader.PushRowToColumns(reader.Rows[i])
 	}
 
 	// reset the rows

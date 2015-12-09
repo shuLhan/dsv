@@ -364,8 +364,7 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 		}
 
 		v = bytes.TrimSpace (v)
-		e = row[rIdx].SetValue(v, md.T)
-		rIdx++
+		r, e := NewRecord(v, md.T)
 
 		if nil != e {
 			return nil, &ErrReader {
@@ -373,6 +372,9 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 				v,
 			}
 		}
+
+		row[rIdx] = r
+		rIdx++
 	}
 
 	return row, e

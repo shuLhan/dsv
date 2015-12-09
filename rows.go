@@ -13,7 +13,7 @@ import (
 /*
 Row represent slice of record.
 */
-type Row []Record
+type Row []*Record
 
 /*
 Rows represent slice of Row.
