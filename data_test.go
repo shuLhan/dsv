@@ -73,13 +73,13 @@ func initRows() (rows dsv.Rows, e error) {
 
 		z := 0
 		for j := 0; j < l; j += 2 {
-			rec, e := dsv.RecordNew([]byte{rowsData[i][j]}, int(rowsData[i][j+1]))
+			rec, e := dsv.NewRecord([]byte{rowsData[i][j]}, int(rowsData[i][j+1]))
 
 			if nil != e {
 				return nil, e
 			}
 
-			row = append(row, rec)
+			row = append(row, *rec)
 
 			z++
 		}

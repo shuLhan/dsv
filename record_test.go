@@ -9,43 +9,28 @@ import (
 	"testing"
 
 	"github.com/shuLhan/dsv"
+	"github.com/shuLhan/dsv/util/assert"
 )
 
 /*
 TestRecord simply check how the stringer work.
 */
-func TestRecord (t *testing.T) {
-	var exp = []string {
-		"test",
-		"1",
-		"2",
-	}
+func TestRecord(t *testing.T) {
+	expec := []string{ "test", "1", "2", }
+	expec_type := []int{ dsv.TString, dsv.TInteger, dsv.TInteger, }
 
-	var e error
+	row := make(dsv.Row, 0)
 
-	r := make(dsv.Row, len (exp))
-
-	r[0], e = dsv.RecordNew ([]byte ("test"), dsv.TString)
-	if nil != e {
-		t.Error (e)
-	}
-
-	r[1], e = dsv.RecordNew ([]byte ("1"), dsv.TInteger)
-	if nil != e {
-		t.Error (e)
-	}
-
-	r[2], e = dsv.RecordNew ([]byte ("02"), dsv.TInteger)
-	if nil != e {
-		t.Error (e)
-	}
-
-	for i := range exp {
-		s := fmt.Sprint (&r[i])
-
-		if s != exp[i] {
-			t.Error ("dsv_test: expecting\n", exp[i], "\n got\n",
-				&r[i])
+	for i := range expec {
+		r, e := dsv.NewRecord([]byte(expec[i]), expec_type[i])
+		if nil != e {
+			t.Error(e)
 		}
+
+		row = append(row, *r)
 	}
+
+	exp := fmt.Sprint(expec)
+	got := fmt.Sprint(row)
+	assert.Equal(t, exp, got)
 }

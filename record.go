@@ -26,6 +26,21 @@ type Record struct {
 }
 
 /*
+NewRecord create new record from byte with specific type.
+Return record object or error when fail to convert the byte to type.
+*/
+func NewRecord(v []byte, t int) (r *Record, e error) {
+	r = &Record{}
+
+	e = r.SetValue(v, t)
+	if e != nil {
+		return nil, e
+	}
+
+	return
+}
+
+/*
 SetValue set the record values from bytes.
 */
 func (r *Record) SetValue (v []byte, t int) (e error) {
@@ -66,17 +81,6 @@ SetFloat will set the record content with float value and type.
 */
 func (r *Record) SetFloat (v float64) {
 	r.V = v
-}
-
-/*
-RecordNew create new record from byte with specific type.
-Return record object or error when fail to convert the byte to type.
-*/
-func RecordNew(v []byte, t int) (r Record, e error) {
-	r = Record {}
-	e = (&r).SetValue (v, t)
-
-	return
 }
 
 /*
