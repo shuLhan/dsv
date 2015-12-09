@@ -293,19 +293,12 @@ func (reader *Reader) SetOutputMode(mode string) error {
 }
 
 /*
-GetNColumnIn return number of input columns (excluding Skip columns).
+GetNColumnIn return number of input columns, or number of metadata, including
+column with Skip=true.
 */
 func (reader *Reader) GetNColumnIn() int {
-	return reader.NColumnIn
+	return len(reader.InputMetadata)
 }
-
-/*
-SetNColumnIn set number of input column.
-*/
-func (reader *Reader) SetNColumnIn(n int) {
-	reader.NColumnIn = n
-}
-
 
 /*
 GetNColumnOut return number of column that will be used in output, excluding

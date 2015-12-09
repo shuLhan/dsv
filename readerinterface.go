@@ -26,7 +26,6 @@ type ReaderInterface interface {
 	SetOutputMode(mode string) error
 	GetTOutputMode() int
 	GetNColumnIn() int
-	SetNColumnIn(n int)
 	GetNColumnOut() int
 	SetNColumnOut(n int)
 	GetInput() string
@@ -85,8 +84,7 @@ func InitReader(reader ReaderInterface) (e error) {
 		}
 	}
 
-	// Set number of input and output columns.
-	reader.SetNColumnIn(len(*md))
+	// Set number of output columns.
 	reader.SetNColumnOut(nColOut)
 
 	// Set default value
