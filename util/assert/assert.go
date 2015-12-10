@@ -15,15 +15,27 @@ import (
 	"testing"
 )
 
-/*
-Assert print fatal message when our expectation `exp` is different with test
-result `got`.
-*/
-func Equal(t *testing.T, exp, got interface{}) {
-	if !reflect.DeepEqual(exp, got) {
+func isEqual(t *testing.T, exp, got interface{}, equal bool) {
+	if reflect.DeepEqual(exp, got) != equal {
 		debug.PrintStack()
 		t.Fatal("Expecting", exp, "got", got)
 	}
+}
+
+/*
+Equal print fatal message when our expectation `exp` is different with test
+result `got`.
+*/
+func Equal(t *testing.T, exp, got interface{}) {
+	isEqual(t, exp, got, true)
+}
+
+/*
+NotEqual print fatal message when our expectation `exp` is not different with
+test result `got`.
+*/
+func NotEqual(t *testing.T, exp, got interface{}) {
+	isEqual(t, exp, got, false)
 }
 
 /*
@@ -49,8 +61,6 @@ func EqualFileContent(t *testing.T, a, b string) {
 
 	if 0 != r {
 		debug.PrintStack()
-		t.Error("Comparing", a," with ", b,": result different (", r ,")")
-		t.Error("a:\n", out)
-		t.Error("b:\n", exp)
+		t.Fatal("Comparing", a, "with", b,": result is different (", r ,")")
 	}
 }
