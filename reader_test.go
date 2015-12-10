@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 	"testing"
 
 	"github.com/shuLhan/dsv"
@@ -395,6 +396,43 @@ func TestTransposeToColumns(t *testing.T) {
 
 	exp := fmt.Sprint(exp_skip_columns_all)
 	got := fmt.Sprint(reader.Columns)
+
+	assert.Equal(t, exp, got)
+}
+
+func TestSortColumnsByIndex(t *testing.T) {
+
+	reader, e := dsv.NewReader("testdata/config_skip.dsv")
+	if nil != e {
+		t.Fatal(e)
+	}
+	defer reader.Close()
+
+	reader.SetMaxRows(-1)
+
+	_, e = dsv.Read(reader)
+	if e != io.EOF {
+		t.Fatal(e)
+	}
+
+	// reverse the data
+	var idxReverse []int
+	var expReverse []string
+
+	for x := len(exp_skip) - 1; x >= 0; x-- {
+		idxReverse = append(idxReverse, x)
+		expReverse = append(expReverse, exp_skip[x])
+	}
+
+	reader.SortColumnsByIndex(idxReverse)
+
+	exp := strings.Join(expReverse, "")
+	got := fmt.Sprint(reader.GetDataAsRows())
+
+	assert.Equal(t, exp, got)
+
+	exp = "["+ strings.Join(exp_skip_columns_all_rev, " ") +"]"
+	got = fmt.Sprint(reader.GetDataAsColumns())
 
 	assert.Equal(t, exp, got)
 }

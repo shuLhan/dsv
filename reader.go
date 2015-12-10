@@ -349,6 +349,26 @@ func (reader *Reader) GetData() interface{} {
 }
 
 /*
+GetDataAsRows return data in rows mode.
+*/
+func (reader *Reader) GetDataAsRows() Rows {
+	if reader.TOutputMode == TOutputModeColumns {
+		reader.TransposeToRows()
+	}
+	return reader.Rows
+}
+
+/*
+GetDataAsColumns return data in columns mode.
+*/
+func (reader *Reader) GetDataAsColumns() Columns {
+	if reader.TOutputMode == TOutputModeRows {
+		reader.TransposeToColumns()
+	}
+	return reader.Columns
+}
+
+/*
 SetDefault options for global config and each metadata.
 */
 func (reader *Reader) SetDefault () {
@@ -592,6 +612,19 @@ func (reader *Reader) RandomPickRows(n int, duplicate bool) (unpicked Rows,
 		reader.TransposeToRows()
 	}
 	return reader.Rows.RandomPick(n, duplicate)
+}
+
+/*
+SortColumnsByIndex will sort all columns using sorted index.
+*/
+func (reader *Reader) SortColumnsByIndex(sortedIdx []int) {
+	if reader.TOutputMode == TOutputModeRows {
+		reader.TransposeToColumns()
+	}
+
+	for i, col := range (*reader).Columns {
+		(*reader).Columns[i] = SortRecordsByIndex(col, sortedIdx)
+	}
 }
 
 /*
