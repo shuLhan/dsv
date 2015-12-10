@@ -17,25 +17,25 @@ type Columns []Column
 /*
 ToFloatSlice convert slice of record to slice of float64.
 */
-func (column *Column) ToFloatSlice() (*[]float64) {
-	newf := make([]float64, len(*column))
+func (column *Column) ToFloatSlice() (newcol []float64) {
+	newcol = make([]float64, len(*column))
 
 	for i := range *column {
-		newf[i] = (*column)[i].Float()
+		newcol[i] = (*column)[i].Float()
 	}
 
-	return &newf
+	return newcol
 }
 
 /*
 ToStringSlice convert slice of record to slice of string.
 */
-func (column *Column)ToStringSlice() (*[]string) {
-	newf := make([]string, len(*column))
+func (column *Column)ToStringSlice() (newcol []string) {
+	newcol = make([]string, len(*column))
 
 	for i := range *column {
-		newf[i] = (*column)[i].String()
+		newcol[i] = (*column)[i].String()
 	}
 
-	return &newf
+	return newcol
 }
