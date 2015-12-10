@@ -206,3 +206,53 @@ func StringCountBy(data []string, class []string) (clsCnt []int) {
 
 	return
 }
+
+/*
+IntFindMax given slice of integer, return the maximum value in slice and index
+of maximum value.
+If data is empty, return -1 in value and index.
+*/
+func IntFindMax(data []int) (max int, maxidx int) {
+	l := len(data)
+	if l <= 0 {
+		return -1, -1
+	}
+
+	i := 0
+	max = data[i]
+	maxidx = i
+
+	for i = 1; i < l; i++ {
+		if data[i] > max {
+			max = data[i]
+			maxidx = i
+		}
+	}
+
+	return
+}
+
+/*
+IntFindMin given slice of integer, return the minimum value in slice and index
+of minimum value.
+If data is empty, return -1 in value and index.
+*/
+func IntFindMin(data []int) (min int, minidx int) {
+	l := len(data)
+	if l <= 0 {
+		return -1, -1
+	}
+
+	i := 0
+	min = data[i]
+	minidx = i
+
+	for i = 1; i < l; i++ {
+		if data[i] < min {
+			min = data[i]
+			minidx = i
+		}
+	}
+
+	return
+}

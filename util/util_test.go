@@ -73,3 +73,31 @@ func TestStringCountBy(t *testing.T) {
 
 	assert.Equal(t, exp, got)
 }
+
+func TestIntFindMax(t *testing.T) {
+	in1 := []int{}
+	in2 := []int{1, 2, 3, 4, 5}
+
+	maxv, maxid := util.IntFindMax(in1)
+
+	assert.Equal(t, -1, maxid)
+
+	maxv, maxid = util.IntFindMax(in2)
+
+	assert.Equal(t, 5, maxv)
+	assert.Equal(t, 4, maxid)
+}
+
+func TestIntFindMin(t *testing.T) {
+	in1 := []int{}
+	in2 := []int{1, 2, 3, 4, 5}
+
+	minv, minid := util.IntFindMin(in1)
+
+	assert.Equal(t, -1, minid)
+
+	minv, minid = util.IntFindMin(in2)
+
+	assert.Equal(t, 1, minv)
+	assert.Equal(t, 0, minid)
+}
