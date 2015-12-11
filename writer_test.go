@@ -44,7 +44,7 @@ func TestWriterWithSkip(t *testing.T) {
 
 /*
 TestWriterWithColumns test reading and writing DSV with where each row
-is saved in OutputMode = 'columns'.
+is saved in DatasetMode = 'columns'.
 */
 func TestWriterWithColumns(t *testing.T) {
 	rw, e := dsv.New("testdata/config_skip.dsv")
@@ -52,7 +52,7 @@ func TestWriterWithColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	rw.SetOutputMode(dsv.OutputModeColumns)
+	rw.SetDatasetMode(dsv.DatasetModeCOLUMNS)
 
 	doReadWrite(t, &rw.Reader, &rw.Writer, exp_skip_columns, true)
 	rw.Close()

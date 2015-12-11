@@ -9,26 +9,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strings"
 )
 
 const (
-	// TOutputModeRows for output mode in rows.
-	TOutputModeRows = 1
-	// OutputModeRows is a string representation of output mode rows.
-	OutputModeRows = "ROWS"
-	// TOutputModeColumns for output mode in columns.
-	TOutputModeColumns = 2
-	// OutputModeColumns is a string representation of output mode columns.
-	OutputModeColumns = "COLUMNS"
-	// TOutputModeMatrix will save data in rows and columns.
-	TOutputModeMatrix = 3
-	// OutputModeMatrix will save data in rows and columns. This mode will
+	// DatasetModeROWS is a string representation of output mode rows.
+	DatasetModeROWS = "ROWS"
+	// DatasetModeCOLUMNS is a string representation of output mode columns.
+	DatasetModeCOLUMNS = "COLUMNS"
+	// DatasetModeMATRIX will save data in rows and columns. This mode will
 	// consume more memory that "rows" and "columns" but give greater
 	// flexibility when working with data.
-	OutputModeMatrix = "MATRIX"
+	DatasetModeMATRIX = "MATRIX"
 )
 
 /*
@@ -94,6 +87,8 @@ type Reader struct {
 	// "input.dat", we assume that its in the same directory where the
 	// configuration file belong.
 	Config
+	// Dataset contains the content of input file after read.
+	Dataset
 	// Input file, mandatory.
 	Input		string		`json:"Input"`
 	// Skip n lines from the head.
@@ -107,13 +102,7 @@ type Reader struct {
 	// saved in the memory at one read operation.
 	// If the value is -1, all rows will read.
 	MaxRows	int		`json:"MaxRows"`
-	// NRows define number of rows has been readed and saved.
-	NRows		int
-	// NColumnIn define number of input columns.
-	NColumnIn	int
-	// NColumnOut define number of output columns (input - skiped columns)
-	NColumnOut	int
-	// OutputMode define on how do you want the result is saved. There are
+	// DatasetMode define on how do you want the result is saved. There are
 	// two options: either in "rows" mode or "columns" mode.
 	// For example, input data file,
 	//
@@ -133,13 +122,7 @@ type Reader struct {
 	//	[b 2]
 	//	[c 3]
 	//
-	OutputMode	string		`json:"OutputMode"`
-	// TOutputMode define the numeric value of output mode.
-	TOutputMode	int		`json:"-"`
-	// Columns is input data that has been parsed.
-	Columns		Columns		`json:"-"`
-	// Rows is input data that has been parsed.
-	Rows		Rows		`json:"-"`
+	DatasetMode	string		`json:"DatasetMode"`
 	// fRead is read descriptor.
 	fRead		*os.File
 	// fReject is reject descriptor.
@@ -159,13 +142,8 @@ func NewReader(config string) (reader *Reader, e error) {
 		Skip		:0,
 		Rejected	:"rejected.dat",
 		InputMetadata	:nil,
-		MaxRows	:DefaultMaxRows,
-		NRows		:0,
-		NColumnIn	:0,
-		NColumnOut	:0,
-		OutputMode	:DefOutputMode,
-		TOutputMode	:DefTOutputMode,
-		Rows		:Rows{},
+		MaxRows		:DefaultMaxRows,
+		DatasetMode	:DefDatasetMode,
 		fRead		:nil,
 		fReject		:nil,
 		bufRead		:nil,
@@ -255,53 +233,27 @@ func (reader *Reader) SetMaxRows(max int) {
 }
 
 /*
-GetNRows return number of rows that has been read before.
+GetDatasetMode return output mode of data.
 */
-func (reader *Reader) GetNRows() int {
-	return reader.NRows
+func (reader *Reader) GetDatasetMode() string {
+	return reader.DatasetMode
 }
 
 /*
-SetNRows will set the number of row that has been read.
+SetDatasetMode to `mode`.
 */
-func (reader *Reader) SetNRows(n int) {
-	reader.NRows = n
-}
-
-/*
-GetOutputMode return output mode of data.
-*/
-func (reader *Reader) GetOutputMode() string {
-	return reader.OutputMode
-}
-
-/*
-GetTOutputMode return mode of output in integer, so we does not need to
-convert it to uppercase to compare it with string.
-*/
-func (reader *Reader) GetTOutputMode() int {
-	return reader.TOutputMode
-}
-
-/*
-SetOutputMode to `mode`.
-*/
-func (reader *Reader) SetOutputMode(mode string) error {
+func (reader *Reader) SetDatasetMode(mode string) error {
 	switch strings.ToUpper(mode) {
-	case OutputModeRows:
-		reader.TOutputMode = TOutputModeRows
-		reader.Rows = Rows{}
-	case OutputModeColumns:
-		reader.TOutputMode = TOutputModeColumns
-		reader.Columns = make(Columns, reader.NColumnOut)
-	case OutputModeMatrix:
-		reader.TOutputMode = TOutputModeMatrix
-		reader.Rows = Rows{}
-		reader.Columns = make(Columns, reader.NColumnOut)
+	case DatasetModeROWS:
+		reader.SetMode(DatasetModeRows)
+	case DatasetModeCOLUMNS:
+		reader.SetMode(DatasetModeColumns)
+	case DatasetModeMATRIX:
+		reader.SetMode(DatasetModeMatrix)
 	default:
-		return ErrUnknownOutputMode
+		return ErrUnknownDatasetMode
 	}
-	reader.OutputMode = mode
+	reader.DatasetMode = mode
 
 	return nil
 }
@@ -315,60 +267,6 @@ func (reader *Reader) GetNColumnIn() int {
 }
 
 /*
-GetNColumnOut return number of column that will be used in output, excluding
-the column with Skip=true.
-*/
-func (reader *Reader) GetNColumnOut() int {
-	return reader.NColumnOut;
-}
-
-/*
-SetNColumnOut set number of output columns.
-*/
-func (reader *Reader) SetNColumnOut(n int) {
-	reader.NColumnOut = n
-}
-
-/*
-GetData return the output data, based on mode (rows, columns, or matrix).
-*/
-func (reader *Reader) GetData() interface{} {
-	switch reader.TOutputMode {
-	case TOutputModeRows:
-		return reader.Rows
-	case TOutputModeColumns:
-		return reader.Columns
-	case TOutputModeMatrix:
-		return Matrix{
-			Columns: &reader.Columns,
-			Rows: &reader.Rows,
-		}
-	}
-
-	return nil
-}
-
-/*
-GetDataAsRows return data in rows mode.
-*/
-func (reader *Reader) GetDataAsRows() Rows {
-	if reader.TOutputMode == TOutputModeColumns {
-		reader.TransposeToRows()
-	}
-	return reader.Rows
-}
-
-/*
-GetDataAsColumns return data in columns mode.
-*/
-func (reader *Reader) GetDataAsColumns() Columns {
-	if reader.TOutputMode == TOutputModeRows {
-		reader.TransposeToColumns()
-	}
-	return reader.Columns
-}
-
-/*
 SetDefault options for global config and each metadata.
 */
 func (reader *Reader) SetDefault () {
@@ -378,8 +276,8 @@ func (reader *Reader) SetDefault () {
 	if 0 == reader.MaxRows {
 		reader.MaxRows = DefaultMaxRows
 	}
-	if "" == reader.OutputMode {
-		reader.SetOutputMode(DefOutputMode)
+	if "" == reader.DatasetMode {
+		reader.SetDatasetMode(DefDatasetMode)
 	}
 }
 
@@ -430,13 +328,11 @@ func (reader *Reader) SkipLines () (e error) {
 }
 
 /*
-Reset all variables for next read operation. NRows will be 0, and Rows
-will be nil again.
+Reset all variables for next read operation. Number of rows will be 0, and
+Rows will be empty again.
 */
 func (reader *Reader) Reset () {
-	reader.NRows = 0
-	reader.Rows = Rows{}
-	reader.Columns = make(Columns, reader.NColumnOut)
+	reader.Dataset.Reset()
 }
 
 /*
@@ -468,29 +364,6 @@ func (reader *Reader) ReadLine () (line []byte, e error) {
 }
 
 /*
-PushRow save the data, which is already in row object, to Rows.
-*/
-func (reader *Reader) PushRow(r Row) {
-	reader.Rows.PushBack(r)
-}
-
-/*
-PushRowToColumns push each data in Row to Columns.
-*/
-func (reader *Reader) PushRowToColumns(row Row) (e error) {
-	// check if row length equal with columns length
-	if len(row) != len(reader.Columns) {
-		return ErrMissRecordsLen
-	}
-
-	for i := range (row) {
-		reader.Columns[i] = append(reader.Columns[i], row[i])
-	}
-
-	return
-}
-
-/*
 Reject the line and save it to the reject file.
 */
 func (reader *Reader) Reject (line []byte) {
@@ -510,63 +383,6 @@ func (reader *Reader) Close () {
 	if nil != reader.fRead {
 		reader.fRead.Close ()
 	}
-}
-
-/*
-TransposeToColumns move all data mode from rows (horizontal) to columns
-(vertical) mode.
-*/
-func (reader *Reader) TransposeToColumns() {
-	toutmode := reader.GetTOutputMode()
-	if toutmode == TOutputModeColumns || toutmode == TOutputModeMatrix {
-		return
-	}
-
-	reader.SetOutputMode(OutputModeColumns)
-
-	for i := range reader.Rows {
-		reader.PushRowToColumns(reader.Rows[i])
-	}
-
-	// reset the rows
-	reader.Rows = nil
-}
-
-/*
-TransposeToRows will move all data in Columns into Rows mode.
-*/
-func (reader *Reader) TransposeToRows () {
-	toutmode := reader.GetTOutputMode()
-	if toutmode == TOutputModeRows || toutmode == TOutputModeMatrix {
-		return
-	}
-
-	rowlen := math.MaxInt32
-	flen := len(reader.Columns)
-
-	reader.SetOutputMode(OutputModeRows)
-
-	// Get the least length of columns.
-	for f := 0; f < flen; f++ {
-		l := len(reader.Columns[f])
-
-		if l < rowlen {
-			rowlen = l
-		}
-	}
-
-	for r := 0; r < rowlen; r++ {
-		row := make(Row, flen)
-
-		for f := 0; f < flen; f++ {
-			row[f] = reader.Columns[f][r]
-		}
-
-		reader.PushRow(row)
-	}
-
-	// reset the columns
-	reader.Columns = nil
 }
 
 /*
@@ -593,38 +409,6 @@ func (reader *Reader) IsEqual (other *Reader) bool {
 	}
 
 	return true
-}
-
-/*
-RandomPickRows return `n` item of row that has been selected randomly from
-reader.Rows. The ids of rows that has been picked is saved id `rowsIdx`.
-
-If duplicate is true, the row that has been picked can be picked up again,
-otherwise it only allow one pick. This is also called as random selection with
-or without replacement in some machine learning domain.
-
-If output mode is columns, it will be transposed to rows.
-*/
-func (reader *Reader) RandomPickRows(n int, duplicate bool) (unpicked Rows,
-							shuffled Rows,
-							pickedIdx []int) {
-	if reader.GetTOutputMode() == TOutputModeColumns {
-		reader.TransposeToRows()
-	}
-	return reader.Rows.RandomPick(n, duplicate)
-}
-
-/*
-SortColumnsByIndex will sort all columns using sorted index.
-*/
-func (reader *Reader) SortColumnsByIndex(sortedIdx []int) {
-	if reader.TOutputMode == TOutputModeRows {
-		reader.TransposeToColumns()
-	}
-
-	for i, col := range (*reader).Columns {
-		(*reader).Columns[i] = SortRecordsByIndex(col, sortedIdx)
-	}
 }
 
 /*

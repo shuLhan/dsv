@@ -16,18 +16,14 @@ ReaderInterface is the interface for reading DSV file.
 */
 type ReaderInterface interface {
 	ConfigInterface
+	DatasetInterface
 	GetInputMetadata () *[]Metadata
 	GetInputMetadataAt (idx int) *Metadata
 	GetMaxRows() int
 	SetMaxRows(max int)
-	GetNRows() int
-	SetNRows(n int)
-	GetOutputMode() string
-	SetOutputMode(mode string) error
-	GetTOutputMode() int
+	GetDatasetMode() string
+	SetDatasetMode(mode string) error
 	GetNColumnIn() int
-	GetNColumnOut() int
-	SetNColumnOut(n int)
 	GetInput() string
 	SetInput(path string)
 	GetRejected() string
@@ -39,11 +35,8 @@ type ReaderInterface interface {
 	OpenRejected() error
 	SkipLines() error
 
-	Reset ()
 	Flush ()
 	ReadLine () ([]byte, error)
-	PushRow(r Row)
-	PushRowToColumns(r Row) error
 	Reject (line []byte)
 	Close ()
 }
@@ -88,13 +81,13 @@ func InitReader(reader ReaderInterface) (e error) {
 	}
 
 	// Set number of output columns.
-	reader.SetNColumnOut(nColOut)
+	reader.SetNColumn(nColOut)
 
 	// Set default value
 	reader.SetDefault()
 
 	// Check if output mode is valid and initialize it if valid.
-	e = reader.SetOutputMode(reader.GetOutputMode())
+	e = reader.SetDatasetMode(reader.GetDatasetMode())
 
 	if nil != e {
 		return
@@ -161,12 +154,12 @@ func Read (reader ReaderInterface) (n int, e error) {
 		row, e := ParseLine(reader, &line)
 
 		if nil == e {
-			switch reader.GetTOutputMode() {
-			case TOutputModeRows:
+			switch reader.GetMode() {
+			case DatasetModeRows:
 				reader.PushRow(row)
-			case TOutputModeColumns:
+			case DatasetModeColumns:
 				e = reader.PushRowToColumns(row)
-			case TOutputModeMatrix:
+			case DatasetModeMatrix:
 				reader.PushRow(row)
 				e = reader.PushRowToColumns(row)
 			}
@@ -216,7 +209,7 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 
 	inputMd = reader.GetInputMetadata ()
 
-	row = make(Row, reader.GetNColumnOut())
+	row = make(Row, reader.GetNColumn())
 
 	for mdIdx := range (*inputMd) {
 		v := []byte{}

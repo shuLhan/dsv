@@ -279,17 +279,17 @@ func TestReaderOpen (t *testing.T) {
 	doRead (t, dsvReader, expectation)
 }
 
-func TestOutputMode (t *testing.T) {
+func TestDatasetMode (t *testing.T) {
 	var e error
 	var config = []string {`{
 		"Input"		:"testdata/input.dat"
-	,	"OutputMode"	:"row"
+	,	"DatasetMode"	:"row"
 	}`,`{
 		"Input"		:"testdata/input.dat"
-	,	"OutputMode"	:"rows"
+	,	"DatasetMode"	:"rows"
 	}`,`{
 		"Input"		:"testdata/input.dat"
-	,	"OutputMode"	:"columns"
+	,	"DatasetMode"	:"columns"
 	}`}
 
 	var exps = []struct {
@@ -337,7 +337,7 @@ func TestReaderToColumns(t *testing.T) {
 		t.Fatal (e)
 	}
 
-	reader.SetOutputMode(dsv.OutputModeColumns)
+	reader.SetDatasetMode(dsv.DatasetModeCOLUMNS)
 
 	e = dsv.InitReader(reader)
 

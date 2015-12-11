@@ -239,14 +239,16 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 		return 0, ErrNotOpen
 	}
 
-	switch reader.GetTOutputMode() {
-	case TOutputModeRows:
+	switch reader.GetMode() {
+	case DatasetModeRows:
 		return writer.WriteRows(reader.Rows, &reader.InputMetadata)
-	case TOutputModeColumns:
+	case DatasetModeColumns:
 		return writer.WriteColumns(&reader.Columns, &reader.InputMetadata)
+	case DatasetModeMatrix:
+		return writer.WriteRows(reader.Rows, &reader.InputMetadata)
 	}
 
-	return 0, ErrUnknownOutputMode
+	return 0, ErrUnknownDatasetMode
 }
 
 /*

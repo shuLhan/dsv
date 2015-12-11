@@ -24,10 +24,8 @@ const (
 	// in memory for each read if input data is too large and can not be
 	// consumed in one read operation.
 	DefaultMaxRows = 256
-	// DefOutputMode default output mode is rows.
-	DefOutputMode = OutputModeRows
-	// DefTOutputMode default output mode is rows.
-	DefTOutputMode = TOutputModeRows
+	// DefDatasetMode default output mode is rows.
+	DefDatasetMode = DatasetModeROWS
 )
 
 var (
@@ -45,8 +43,8 @@ var (
 	// ErrNilReader define an error when Reader object is nil when passed
 	// to Write function.
 	ErrNilReader	= errors.New ("dsv: Reader object is nil")
-	// ErrUnknownOutputMode will tell you when output mode is unknown.
-	ErrUnknownOutputMode = errors.New ("dsv: Unknown output mode")
+	// ErrUnknownDatasetMode will tell you when dataset mode is unknown.
+	ErrUnknownDatasetMode = errors.New("dsv: Unknown dataset mode")
 
 	// DEBUG exported from environment to debug the library.
 	DEBUG		= bool (os.Getenv ("DEBUG") != "")
