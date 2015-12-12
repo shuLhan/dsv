@@ -5,17 +5,25 @@
 package dsv
 
 import (
+	"errors"
 	"math"
 	"strconv"
 )
 
 const (
+	// TUndefined for undefined type
+	TUndefined = -1
 	// TString string type.
 	TString		= 0
 	// TInteger integer type (64 bit).
 	TInteger	= 1
 	// TReal float type (64 bit).
 	TReal		= 2
+)
+
+var (
+	// ErrRecTypeUndefined show an error if type is unknown.
+	ErrRecTypeUndefined = errors.New("dsv: Undefined type")
 )
 
 /*
@@ -38,6 +46,21 @@ func NewRecord(v []byte, t int) (r *Record, e error) {
 	}
 
 	return
+}
+
+/*
+GetType of record.
+*/
+func (r *Record) GetType() (int, error) {
+	switch r.V.(type) {
+	case int64:
+		return TInteger, nil
+	case float64:
+		return TReal, nil
+	case string:
+		return TString, nil
+	}
+	return TUndefined, ErrRecTypeUndefined
 }
 
 /*
