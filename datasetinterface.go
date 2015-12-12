@@ -13,8 +13,8 @@ type DatasetInterface interface {
 	SetMode(mode int) error
 	GetNColumn() int
 	SetNColumn(n int)
-	GetNRows() int
-	SetNRows(n int)
+	GetNRow() int
+	SetNRow(n int)
 
 	GetData() interface{}
 	GetDataAsRows() Rows

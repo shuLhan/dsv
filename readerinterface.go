@@ -140,7 +140,7 @@ func Read (reader ReaderInterface) (n int, e error) {
 			if e != io.EOF {
 				log.Print ("dsv: ", e)
 			}
-			reader.SetNRows(n)
+			reader.SetNRow(n)
 			return n, e
 		}
 
@@ -178,8 +178,6 @@ func Read (reader ReaderInterface) (n int, e error) {
 			reader.Reject ([]byte ("\n"))
 		}
 	}
-
-	reader.SetNRows(n)
 
 	return n, e
 }
