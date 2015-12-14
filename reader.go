@@ -103,7 +103,7 @@ type Reader struct {
 	// If the value is -1, all rows will read.
 	MaxRows	int		`json:"MaxRows"`
 	// DatasetMode define on how do you want the result is saved. There are
-	// two options: either in "rows" mode or "columns" mode.
+	// three options: either in "rows", "columns", or "matrix" mode.
 	// For example, input data file,
 	//
 	//	a,b,c
@@ -121,6 +121,8 @@ type Reader struct {
 	//	[a 1]
 	//	[b 2]
 	//	[c 3]
+	//
+	// "matrix" mode is where each record saved in their own row and column.
 	//
 	DatasetMode	string		`json:"DatasetMode"`
 	// fRead is read descriptor.
