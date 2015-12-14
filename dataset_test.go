@@ -49,23 +49,11 @@ func CreateDataset(t *testing.T) (dataset *dsv.Dataset) {
 	return
 }
 
-func SplitNumericCompare(t *testing.T, splitL, splitR *dsv.Dataset, maxidx int) {
-	exp := ""
-	x := 0
-	for ; x <= maxidx; x++ {
-		exp += fmt.Sprint(dataset_test[x])
+func DatasetStringJoinByIndex(t *testing.T, dataset [][]string, indis []int) (res string) {
+	for x := range indis {
+		res += fmt.Sprint(dataset[indis[x]])
 	}
-	got := fmt.Sprint(splitL.GetDataAsRows())
-
-	assert.Equal(t, exp, got)
-
-	exp = ""
-	for ; x < len(dataset_test); x++ {
-		exp += fmt.Sprint(dataset_test[x])
-	}
-	got = fmt.Sprint(splitR.GetDataAsRows())
-
-	assert.Equal(t, exp, got)
+	return res
 }
 
 func TestSplitRowsByNumeric(t *testing.T) {
@@ -77,7 +65,17 @@ func TestSplitRowsByNumeric(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	SplitNumericCompare(t, splitL, splitR, 4)
+	exp_idx := []int{0, 1, 2, 3, 4}
+	exp := DatasetStringJoinByIndex(t, dataset_test, exp_idx)
+	got := fmt.Sprint(splitL.GetDataAsRows())
+
+	assert.Equal(t, exp, got)
+
+	exp_idx = []int{5, 6, 7, 8, 9}
+	exp = DatasetStringJoinByIndex(t, dataset_test, exp_idx)
+	got = fmt.Sprint(splitR.GetDataAsRows())
+
+	assert.Equal(t, exp, got)
 
 	// Split by float
 	splitL, splitR, e = dataset.SplitRowsByNumeric(1, 1.8)
@@ -85,5 +83,37 @@ func TestSplitRowsByNumeric(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	SplitNumericCompare(t, splitL, splitR, 7)
+	exp_idx = []int{0, 1, 2, 3, 4, 5, 6, 7}
+	exp = DatasetStringJoinByIndex(t, dataset_test, exp_idx)
+	got = fmt.Sprint(splitL.GetDataAsRows())
+
+	assert.Equal(t, exp, got)
+
+	exp_idx = []int{8, 9}
+	exp = DatasetStringJoinByIndex(t, dataset_test, exp_idx)
+	got = fmt.Sprint(splitR.GetDataAsRows())
+
+	assert.Equal(t, exp, got)
+}
+
+func TestSplitRowsByCategorical(t *testing.T) {
+	dataset := CreateDataset(t)
+	splitval := []string{"A", "D"}
+
+	splitL, splitR, e := dataset.SplitRowsByCategorical(2, splitval)
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	exp_idx := []int{0, 2, 5, 7}
+	exp := DatasetStringJoinByIndex(t, dataset_test, exp_idx)
+	got := fmt.Sprint(splitL.GetDataAsRows())
+
+	assert.Equal(t, exp, got)
+
+	exp_idx = []int{1, 3, 4, 6, 8, 9}
+	exp = DatasetStringJoinByIndex(t, dataset_test, exp_idx)
+	got = fmt.Sprint(splitR.GetDataAsRows())
+
+	assert.Equal(t, exp, got)
 }

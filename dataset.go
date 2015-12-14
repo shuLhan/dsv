@@ -49,11 +49,11 @@ NewDataset create new dataset, use the mode to initialize the dataset.
 */
 func NewDataset(mode int) (dataset *Dataset) {
 	dataset = &Dataset{
-		Mode: mode,
-		NRow: 0,
+		Mode:    mode,
+		NRow:    0,
 		NColumn: 0,
 		Columns: nil,
-		Rows: nil,
+		Rows:    nil,
 	}
 
 	dataset.SetMode(mode)
@@ -365,6 +365,75 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 		dataset.TransposeToColumns()
 		splitLess.TransposeToColumns()
 		splitGreater.TransposeToColumns()
+	}
+
+	return
+}
+
+/*
+SplitRowsByCategorical will split the data using a set of split value in column
+`colidx`.
+
+For example, given two attributes,
+
+	X: [A,B,A,B,C,D,C,D]
+	Y: [1,2,3,4,5,6,7,8]
+
+if colidx is (0) or A and split value is a set `[A,C]`, the data will splitted
+into left set which contain all rows that have A or C,
+
+	X': [A,A,C,C]
+	Y': [1,3,5,7]
+
+and the right set, excluded set, will contain all rows which is not A or C,
+
+	X'': [B,B,D,D]
+	Y'': [2,4,6,8]
+*/
+func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
+	splitIn *Dataset,
+	splitEx *Dataset,
+	e error,
+) {
+	// check type of column
+	coltype, e := dataset.GetColumnType(colidx)
+	if e != nil {
+		return nil, nil, e
+	}
+
+	if coltype != TString {
+		return nil, nil, ErrInvalidColType
+	}
+
+	// should we convert the data mode back?
+	modeIsColumns := false
+
+	if dataset.Mode == DatasetModeColumns {
+		modeIsColumns = true
+		dataset.TransposeToRows()
+	}
+
+	splitIn = NewDataset(DatasetModeRows)
+	splitEx = NewDataset(DatasetModeRows)
+	found := false
+
+	for _, row := range dataset.Rows {
+		found = false
+		for _, val := range splitVal {
+			if row[colidx].String() == val {
+				splitIn.PushRow(row)
+				found = true
+				break
+			}
+		}
+		if !found {
+			splitEx.PushRow(row)
+		}
+	}
+
+	// transpose original dataset back to columns
+	if modeIsColumns {
+		dataset.TransposeToColumns()
 	}
 
 	return
