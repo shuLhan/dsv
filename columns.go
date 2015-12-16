@@ -39,3 +39,28 @@ func (column *Column)ToStringSlice() (newcol []string) {
 
 	return newcol
 }
+
+/*
+ClearValues set all value in column to empty string or zero if column type is
+numeric.
+*/
+func (column *Column) ClearValues() {
+	if len(*column) <= 0 {
+		return
+	}
+
+	var v interface{}
+
+	switch (*column)[0].V.(type) {
+	case string:
+		v = ""
+	case int64:
+		v = 0
+	case float64:
+		v = 0.0
+	}
+
+	for i := range *column {
+		(*column)[i].V = v
+	}
+}
