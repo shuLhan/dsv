@@ -103,32 +103,32 @@ func (writer *Writer) Close () {
 /*
 WriteRow dump content of Row to file using format in metadata.
 */
-func (writer *Writer) WriteRow(row Row, recordMd *[]Metadata) (e error) {
-	var md *Metadata
-	var inMd *Metadata
+func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) {
+	var md Metadata
+	var inMd MetadataInterface
 	var rIdx int
 	var nRecord = len(row)
 	var recV []byte
 	v := []byte{}
 
 	for i := range writer.OutputMetadata {
-		md = &writer.OutputMetadata[i]
+		md = writer.OutputMetadata[i]
 
 		// find the input index based on name on record metadata.
 		rIdx = 0
-		for y := range (*recordMd) {
-			inMd = &(*recordMd)[y]
+		for y := range recordMd {
+			inMd = recordMd[y]
 
-			if inMd.Name == md.Name {
+			if inMd.GetName() == md.GetName() {
 				break
 			}
-			if ! (*recordMd)[y].Skip {
+			if ! inMd.GetSkip() {
 				rIdx++
 			}
 		}
 
 		// If input column is ignored, continue to next record.
-		if inMd.Skip {
+		if inMd.GetSkip() {
 			continue
 		}
 
@@ -139,18 +139,18 @@ func (writer *Writer) WriteRow(row Row, recordMd *[]Metadata) (e error) {
 
 		recV = row[rIdx].ToByte()
 
-		if "" != md.LeftQuote {
-			v = append (v, []byte (md.LeftQuote)...)
+		if "" != md.GetLeftQuote() {
+			v = append(v, []byte(md.GetLeftQuote())...)
 		}
 
 		v = append (v, recV...)
 
-		if "" != md.RightQuote {
-			v = append (v, []byte (md.RightQuote)...)
+		if "" != md.GetRightQuote() {
+			v = append(v, []byte(md.GetRightQuote())...)
 		}
 
-		if "" != md.Separator {
-			v = append (v, []byte (md.Separator)...)
+		if "" != md.GetSeparator() {
+			v = append(v, []byte(md.GetSeparator())...)
 		}
 	}
 
@@ -170,7 +170,10 @@ WriteRows will loop each row in the list of rows and write their content to
 output file.
 Return n for number of row written, and e if error happened.
 */
-func (writer *Writer) WriteRows(rows Rows, recordMd *[]Metadata) (n int, e error) {
+func (writer *Writer) WriteRows(rows Rows, recordMd []MetadataInterface) (
+	n int,
+	e error,
+) {
 	n = 0
 
 	for i := range(rows) {
@@ -190,8 +193,10 @@ func (writer *Writer) WriteRows(rows Rows, recordMd *[]Metadata) (n int, e error
 WriteColumns will write content of columns to output file.
 Return n for number of row written, and e if error happened.
 */
-func (writer *Writer) WriteColumns(columns *Columns, md *[]Metadata) (
-							n int, e error) {
+func (writer *Writer) WriteColumns(columns *Columns, md []MetadataInterface) (
+	n int,
+	e error,
+) {
 	nColumns := len(*columns)
 	if nColumns <= 0 {
 		return
@@ -241,11 +246,12 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 
 	switch reader.GetMode() {
 	case DatasetModeRows:
-		return writer.WriteRows(reader.Rows, &reader.InputMetadata)
+		return writer.WriteRows(reader.Rows, reader.GetInputMetadata())
 	case DatasetModeColumns:
-		return writer.WriteColumns(&reader.Columns, &reader.InputMetadata)
+		return writer.WriteColumns(&reader.Columns,
+						reader.GetInputMetadata())
 	case DatasetModeMatrix:
-		return writer.WriteRows(reader.Rows, &reader.InputMetadata)
+		return writer.WriteRows(reader.Rows, reader.GetInputMetadata())
 	}
 
 	return 0, ErrUnknownDatasetMode

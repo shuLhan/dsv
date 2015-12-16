@@ -17,8 +17,8 @@ ReaderInterface is the interface for reading DSV file.
 type ReaderInterface interface {
 	ConfigInterface
 	DatasetInterface
-	GetInputMetadata () *[]Metadata
-	GetInputMetadataAt (idx int) *Metadata
+	GetInputMetadata() []MetadataInterface
+	GetInputMetadataAt(idx int) MetadataInterface
 	GetMaxRows() int
 	SetMaxRows(max int)
 	GetDatasetMode() string
@@ -65,20 +65,27 @@ func InitReader(reader ReaderInterface) (e error) {
 
 	md := reader.GetInputMetadata()
 	nColOut := 0
+	var types []int
 
 	// Check and initialize metadata.
-	for i := range (*md) {
-		e = (*md)[i].Init()
-
-		// Count number of output columns.
-		if ! (*md)[i].Skip {
-			nColOut++
-		}
+	for i := range md {
+		e = md[i].Init()
 
 		if nil != e {
 			return e
 		}
+
+		// Count number of output columns.
+		if ! md[i].GetSkip() {
+			nColOut++
+		}
+
+		// add type of metadata to list of type
+		types = append(types, md[i].GetType())
 	}
+
+	// Set column type in dataset
+	reader.SetColumnType(types)
 
 	// Set number of output columns.
 	reader.SetNColumn(nColOut)
@@ -199,19 +206,19 @@ This is how the algorithm works
 */
 func ParseLine (reader ReaderInterface, line *[]byte) (
 					row Row, e error) {
-	var md *Metadata
+	var md MetadataInterface
 	var p = 0
 	var l = len (*line)
 	var rIdx = 0
-	var inputMd *[]Metadata;
+	var inputMd []MetadataInterface;
 
-	inputMd = reader.GetInputMetadata ()
+	inputMd = reader.GetInputMetadata()
 
 	row = make(Row, reader.GetNColumn())
 
-	for mdIdx := range (*inputMd) {
+	for mdIdx := range inputMd {
 		v := []byte{}
-		md = &(*inputMd)[mdIdx]
+		md = inputMd[mdIdx]
 
 		// skip all whitespace in the beginning
 		for (*line)[p] == ' ' || (*line)[p] == '\t' {
@@ -219,11 +226,11 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 		}
 
 		// (2.1)
-		if "" != md.LeftQuote {
-			lq := []byte (md.LeftQuote)
+		if "" != md.GetLeftQuote() {
+			lq := []byte (md.GetLeftQuote())
 
 			if DEBUG {
-				fmt.Println (md.LeftQuote)
+				fmt.Println (md.GetLeftQuote())
 			}
 
 			for i := range lq {
@@ -248,8 +255,8 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 			}
 		}
 
-		if "" != md.RightQuote {
-			rq := []byte (md.RightQuote)
+		if "" != md.GetRightQuote() {
+			rq := []byte (md.GetRightQuote())
 
 			// (2.2)
 			for p < l && (*line)[p] != rq[0] {
@@ -283,8 +290,8 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 			}
 
 			// (2.2.2)
-			if "" != md.Separator {
-				sep := []byte (md.Separator)
+			if "" != md.GetSeparator() {
+				sep := []byte (md.GetSeparator())
 
 				for p < l && (*line)[p] != sep[0] {
 					p++
@@ -313,9 +320,9 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 					p++
 				}
 			}
-		} else if "" != md.Separator {
+		} else if "" != md.GetSeparator() {
 			// (2.3)
-			sep := []byte (md.Separator)
+			sep := []byte (md.GetSeparator())
 
 			for p < l && (*line)[p] != sep[0] {
 				v = append (v, (*line)[p])
@@ -353,12 +360,12 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 			fmt.Println (string (v))
 		}
 
-		if md.Skip {
+		if md.GetSkip() {
 			continue
 		}
 
 		v = bytes.TrimSpace (v)
-		r, e := NewRecord(v, md.T)
+		r, e := NewRecord(v, md.GetType())
 
 		if nil != e {
 			return nil, &ErrReader {

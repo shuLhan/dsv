@@ -36,7 +36,7 @@ type Metadata struct {
 /*
 Init initalize metadata column, i.e. check and set column type.
 */
-func (md *Metadata) Init () (e error) {
+func (md *Metadata) Init() (e error) {
 	switch strings.ToUpper (md.Type) {
 	case "STRING":
 		md.T = TString
@@ -57,23 +57,62 @@ func (md *Metadata) Init () (e error) {
 }
 
 /*
+GetName return the name of metadata.
+*/
+func (md *Metadata) GetName() string {
+	return md.Name
+}
+
+/*
+GetType return type of metadata.
+*/
+func (md *Metadata) GetType() int {
+	return md.T
+}
+
+/*
+GetSeparator return the field separator.
+*/
+func (md *Metadata) GetSeparator() string {
+	return md.Separator
+}
+
+/*
+GetLeftQuote return the string used in the beginning of record value.
+*/
+func (md *Metadata) GetLeftQuote() string {
+	return md.LeftQuote
+}
+
+/*
+GetRightQuote return string that end in record value.
+*/
+func (md *Metadata) GetRightQuote() string {
+	return md.RightQuote
+}
+
+/*
+GetSkip return number of rows that will be skipped when reading data.
+*/
+func (md *Metadata) GetSkip() bool {
+	return md.Skip
+}
+
+/*
 IsEqual return true if this metadata equal with other instance, return false
 otherwise.
 */
-func (md *Metadata) IsEqual (o *Metadata) bool {
-	if md == o {
-		return true
-	}
-	if md.Name != o.Name {
+func (md *Metadata) IsEqual(o MetadataInterface) bool {
+	if md.Name != o.GetName() {
 		return false
 	}
-	if md.Separator != o.Separator {
+	if md.Separator != o.GetSeparator() {
 		return false
 	}
-	if md.LeftQuote != o.LeftQuote {
+	if md.LeftQuote != o.GetLeftQuote() {
 		return false
 	}
-	if md.RightQuote != o.RightQuote {
+	if md.RightQuote != o.GetRightQuote() {
 		return false
 	}
 	return true

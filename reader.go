@@ -209,14 +209,19 @@ func (reader *Reader) SetRejected (path string) {
 /*
 GetInputMetadata return pointer to slice of metadata.
 */
-func (reader *Reader) GetInputMetadata () *[]Metadata {
-	return &reader.InputMetadata
+func (reader *Reader) GetInputMetadata() []MetadataInterface {
+	md := make([]MetadataInterface, len(reader.InputMetadata))
+	for i := range reader.InputMetadata {
+		md[i] = &reader.InputMetadata[i]
+	}
+
+	return md
 }
 
 /*
 GetInputMetadataAt return pointer to metadata at index 'idx'.
 */
-func (reader *Reader) GetInputMetadataAt (idx int) *Metadata {
+func (reader *Reader) GetInputMetadataAt(idx int) MetadataInterface {
 	return &reader.InputMetadata[idx]
 }
 
@@ -314,6 +319,23 @@ func (reader *Reader) OpenRejected () (e error) {
 }
 
 /*
+Open input and rejected file.
+*/
+func (reader *Reader) Open() (e error) {
+	// do not let file descriptor leaked
+	reader.Close()
+
+	e = reader.OpenInput()
+	if e != nil {
+		return
+	}
+
+	e = reader.OpenRejected()
+
+	return
+}
+
+/*
 SkipLines skip parsing n lines from input file.
 The n is defined in the attribute "Skip"
 */
@@ -333,7 +355,8 @@ func (reader *Reader) SkipLines () (e error) {
 Reset all variables for next read operation. Number of rows will be 0, and
 Rows will be empty again.
 */
-func (reader *Reader) Reset () {
+func (reader *Reader) Reset() {
+	reader.Flush()
 	reader.Dataset.Reset()
 }
 
@@ -405,7 +428,7 @@ func (reader *Reader) IsEqual (other *Reader) bool {
 	}
 
 	for a := 0; a < l; a++ {
-		if ! reader.InputMetadata[a].IsEqual (&other.InputMetadata[a]) {
+		if ! reader.InputMetadata[a].IsEqual(&other.InputMetadata[a]) {
 			return false
 		}
 	}
