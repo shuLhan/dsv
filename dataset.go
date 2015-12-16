@@ -34,6 +34,8 @@ data.
 type Dataset struct {
 	// Mode define the numeric value of output mode.
 	Mode int
+	// ColumnType define the type of data in column
+	ColumnType []int
 	// NRow define number of rows.
 	NRow int
 	// NColumn define number of columns.
@@ -47,11 +49,12 @@ type Dataset struct {
 /*
 NewDataset create new dataset, use the mode to initialize the dataset.
 */
-func NewDataset(mode int) (dataset *Dataset) {
+func NewDataset(mode int, types []int) (dataset *Dataset) {
 	dataset = &Dataset{
 		Mode:    mode,
+		ColumnType: types,
 		NRow:    0,
-		NColumn: 0,
+		NColumn: len(types),
 		Columns: nil,
 		Rows:    nil,
 	}
@@ -59,6 +62,16 @@ func NewDataset(mode int) (dataset *Dataset) {
 	dataset.SetMode(mode)
 
 	return
+}
+
+/*
+Init will set the dataset using mode and types.
+*/
+func (dataset *Dataset) Init(mode int, types []int) {
+	dataset.SetMode(mode)
+	dataset.NColumn = len(types)
+	dataset.ColumnType = types
+	dataset.NRow = 0
 }
 
 /*
@@ -83,6 +96,7 @@ SetMode of saved data to `mode`.
 func (dataset *Dataset) SetMode(mode int) error {
 	switch mode {
 	case DatasetModeRows:
+		dataset.NRow = 0
 		dataset.Mode = DatasetModeRows
 		dataset.Rows = Rows{}
 	case DatasetModeColumns:
@@ -130,28 +144,22 @@ func (dataset *Dataset) SetNRow(n int) {
 }
 
 /*
-GetColumnType return type of column in index `colidx` in
+SetColumnType of data in all columns.
+*/
+func (dataset *Dataset) SetColumnType(types []int) {
+	dataset.ColumnType = types
+}
+
+/*
+GetColumnTypeAt return type of column in index `colidx` in
 dataset.
 */
-func (dataset *Dataset) GetColumnType(colidx int) (int, error) {
-	if dataset.NRow <= 0 {
-		return TUndefined, ErrEmptySet
-	}
+func (dataset *Dataset) GetColumnTypeAt(colidx int) (int, error) {
 	if colidx >= dataset.GetNColumn() {
 		return TUndefined, ErrColIdxOutOfRange
 	}
 
-	var record *Record
-
-	if dataset.Mode == DatasetModeRows || dataset.Mode == DatasetModeMatrix {
-		record = dataset.Rows[0][colidx]
-	} else if dataset.Mode == DatasetModeColumns {
-		record = dataset.Columns[colidx][0]
-	} else {
-		return TUndefined, ErrUnknownDatasetMode
-	}
-
-	return record.GetType()
+	return dataset.ColumnType[colidx], nil
 }
 
 /*
@@ -201,6 +209,13 @@ func (dataset *Dataset) TransposeToColumns() {
 	toutmode := dataset.GetMode()
 	if toutmode == DatasetModeColumns || toutmode == DatasetModeMatrix {
 		return
+	}
+
+	// set number of column if its not set
+	if dataset.NColumn <= 0 {
+		if len(dataset.Rows) > 0 {
+			dataset.NColumn = len(dataset.Rows[0])
+		}
 	}
 
 	dataset.SetMode(DatasetModeColumns)
@@ -328,18 +343,18 @@ and right set
 	B'': {7,8}
 */
 func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
-	splitLess *Dataset,
-	splitGreater *Dataset,
+	splitLess Dataset,
+	splitGreater Dataset,
 	e error,
 ) {
 	// check type of column
-	coltype, e := dataset.GetColumnType(colidx)
+	coltype, e := dataset.GetColumnTypeAt(colidx)
 	if e != nil {
-		return nil, nil, e
+		return
 	}
 
 	if !(coltype == TInteger || coltype == TReal) {
-		return nil, nil, ErrInvalidColType
+		return splitLess, splitGreater, ErrInvalidColType
 	}
 
 	// should we convert the data mode back?
@@ -350,8 +365,8 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 		dataset.TransposeToRows()
 	}
 
-	splitLess = NewDataset(DatasetModeRows)
-	splitGreater = NewDataset(DatasetModeRows)
+	splitLess.Init(DatasetModeRows, dataset.ColumnType)
+	splitGreater.Init(DatasetModeRows, dataset.ColumnType)
 
 	for _, row := range dataset.Rows {
 		if row[colidx].Float() < splitVal {
@@ -391,18 +406,18 @@ and the right set, excluded set, will contain all rows which is not A or C,
 	Y'': [2,4,6,8]
 */
 func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
-	splitIn *Dataset,
-	splitEx *Dataset,
+	splitIn Dataset,
+	splitEx Dataset,
 	e error,
 ) {
 	// check type of column
-	coltype, e := dataset.GetColumnType(colidx)
+	coltype, e := dataset.GetColumnTypeAt(colidx)
 	if e != nil {
-		return nil, nil, e
+		return
 	}
 
 	if coltype != TString {
-		return nil, nil, ErrInvalidColType
+		return splitIn, splitEx, ErrInvalidColType
 	}
 
 	// should we convert the data mode back?
@@ -413,8 +428,9 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 		dataset.TransposeToRows()
 	}
 
-	splitIn = NewDataset(DatasetModeRows)
-	splitEx = NewDataset(DatasetModeRows)
+	splitIn.Init(DatasetModeRows, dataset.ColumnType)
+	splitEx.Init(DatasetModeRows, dataset.ColumnType)
+
 	found := false
 
 	for _, row := range dataset.Rows {
@@ -434,6 +450,44 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 	// transpose original dataset back to columns
 	if modeIsColumns {
 		dataset.TransposeToColumns()
+	}
+
+	return
+}
+
+func (dataset *Dataset) SplitRowsByValue(colidx int, value interface{}) (
+	splitL Dataset,
+	splitR Dataset,
+	e error,
+) {
+	coltype, e := dataset.GetColumnTypeAt(colidx)
+	if e != nil {
+		return
+	}
+
+	if coltype == TString {
+		splitL, splitR, e = dataset.SplitRowsByCategorical(colidx,
+							value.([]string))
+	} else {
+		var splitval float64
+
+		switch value.(type) {
+		case int:
+			splitval = float64(value.(int))
+		case int64:
+			splitval = float64(value.(int64))
+		case float32:
+			splitval = float64(value.(float32))
+		case float64:
+			splitval = value.(float64)
+		}
+
+		splitL, splitR, e = dataset.SplitRowsByNumeric(colidx,
+								splitval)
+	}
+
+	if e != nil {
+		return Dataset{}, Dataset{}, e
 	}
 
 	return

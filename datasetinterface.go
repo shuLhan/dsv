@@ -15,6 +15,8 @@ type DatasetInterface interface {
 	SetNColumn(n int)
 	GetNRow() int
 	SetNRow(n int)
+	SetColumnType(types []int)
+	GetColumnTypeAt(colidx int) (int, error)
 
 	GetData() interface{}
 	GetDataAsRows() Rows
