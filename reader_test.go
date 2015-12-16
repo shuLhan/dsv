@@ -7,7 +7,6 @@ package dsv_test
 import (
 	"fmt"
 	"io"
-	"log"
 	"strings"
 	"testing"
 
@@ -132,10 +131,6 @@ func TestReaderNoInput (t *testing.T) {
 	if nil == e {
 		t.Fatal ("TestReaderNoInput: failed, should return non nil!")
 	}
-
-	if DEBUG {
-		log.Print (e)
-	}
 }
 
 /*
@@ -170,10 +165,6 @@ func TestConfigParse (t *testing.T) {
 		}
 		if ! dsvReader.IsEqual (c.out) {
 			t.Fatal ("Test failed on ", c.in);
-		} else {
-			if DEBUG {
-				log.Print (dsvReader)
-			}
 		}
 	}
 }
@@ -256,10 +247,6 @@ func TestReaderRead (t *testing.T) {
 
 	if nil != e {
 		t.Fatal (e)
-	}
-
-	if DEBUG {
-		log.Println (dsvReader)
 	}
 
 	doRead (t, dsvReader, expectation)
@@ -433,6 +420,49 @@ func TestSortColumnsByIndex(t *testing.T) {
 
 	exp = "["+ strings.Join(exp_skip_columns_all_rev, " ") +"]"
 	got = fmt.Sprint(reader.GetDataAsColumns())
+
+	assert.Equal(t, exp, got)
+}
+
+func TestSplitRowsByValue(t *testing.T) {
+	reader, e := dsv.NewReader("testdata/config.dsv")
+	if nil != e {
+		t.Fatal (e)
+	}
+
+	defer reader.Close()
+
+	reader.SetMaxRows(256)
+
+	_, e = dsv.Read(reader)
+
+	if e != nil && e != io.EOF {
+		t.Fatal(e)
+	}
+
+	splitL, splitR, e := reader.SplitRowsByValue(0, 6)
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	// test left split
+	exp := ""
+	for x := 0; x < 3; x++ {
+		exp += expectation[x]
+	}
+
+	got := fmt.Sprint(splitL.GetDataAsRows())
+
+	assert.Equal(t, exp, got)
+
+	// test right split
+	exp = ""
+	for x := 3; x < len(expectation); x++ {
+		exp += expectation[x]
+	}
+
+	got = fmt.Sprint(splitR.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
 }
