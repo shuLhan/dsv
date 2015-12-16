@@ -455,6 +455,12 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 	return
 }
 
+/*
+SplitRowsByValue generic function to split data by value. This function will
+split data using value in column `colidx`. If value is numeric it will return
+any rows that have column value less than `value` in `splitL`, and any column
+value greater or equal to `value` in `splitR`.
+*/
 func (dataset *Dataset) SplitRowsByValue(colidx int, value interface{}) (
 	splitL Dataset,
 	splitR Dataset,
