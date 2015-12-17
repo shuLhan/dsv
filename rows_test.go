@@ -123,11 +123,12 @@ func TestRandomPick(t *testing.T) {
 
 	// random pick with duplicate
 	for i := 0; i < 5; i++ {
-		unpicked, shuffled,idx := rows.RandomPick(6, true)
+		picked, unpicked, pickedIdx, unpickedIdx := rows.RandomPick(6,
+			true)
 
-		// check if unpicked item exist in shuffled items.
+		// check if unpicked item exist in picked items.
 		for _, un := range unpicked {
-			for _, pick := range shuffled {
+			for _, pick := range picked {
 				if reflect.DeepEqual(un, pick) {
 					t.Fatal("random pick: unpicked is false")
 				}
@@ -135,24 +136,26 @@ func TestRandomPick(t *testing.T) {
 		}
 
 		fmt.Println("Random pick with duplicate rows")
-		fmt.Println("==> shuffled rows :", shuffled)
-		fmt.Println("==> shuffled idx  :", idx)
+		fmt.Println("==> picked rows   :", picked)
+		fmt.Println("==> picked idx    :", pickedIdx)
 		fmt.Println("==> unpicked rows :", unpicked)
+		fmt.Println("==> unpicked idx  :", unpickedIdx)
 		fmt.Println("==> original rows :", rows)
 	}
 
 	// random pick without duplication
 	for i := 0; i < 5; i++ {
-		unpicked, shuffled,idx := rows.RandomPick(3, false)
+		picked, unpicked, pickedIdx, unpickedIdx := rows.RandomPick(3,
+			false)
 
 		// check if picked rows is duplicate
-		if reflect.DeepEqual(shuffled[0], shuffled[1]) {
+		if reflect.DeepEqual(picked[0], picked[1]) {
 			t.Fatal("random pick: duplicate rows found.")
 		}
 
-		// check if unpicked item exist in shuffled items.
+		// check if unpicked item exist in picked items.
 		for _, un := range unpicked {
-			for _, pick := range shuffled {
+			for _, pick := range picked {
 				if reflect.DeepEqual(un, pick) {
 					t.Fatal("random pick: unpicked is false")
 				}
@@ -160,9 +163,10 @@ func TestRandomPick(t *testing.T) {
 		}
 
 		fmt.Println("Random pick with no duplicate rows")
-		fmt.Println("==> shuffled rows :", shuffled)
-		fmt.Println("==> shuffled idx  :", idx)
+		fmt.Println("==> picked rows   :", picked)
+		fmt.Println("==> picked idx    :", pickedIdx)
 		fmt.Println("==> unpicked rows :", unpicked)
+		fmt.Println("==> unpicked idx  :", unpickedIdx)
 		fmt.Println("==> original rows :", rows)
 
 	}

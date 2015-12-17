@@ -292,18 +292,19 @@ func (dataset *Dataset) PushRowToColumns(row Row) (e error) {
 
 /*
 RandomPickRows return `n` item of row that has been selected randomly from
-dataset.Rows. The ids of rows that has been picked is saved id `rowsIdx`.
+dataset.Rows. The ids of rows that has been picked is saved id `pickedIdx`.
 
 If duplicate is true, the row that has been picked can be picked up again,
 otherwise it only allow one pick. This is also called as random selection with
-or without replacement in some machine learning domain.
+or without replacement in machine learning domain.
 
 If output mode is columns, it will be transposed to rows.
 */
 func (dataset *Dataset) RandomPickRows(n int, duplicate bool) (
+	picked Rows,
 	unpicked Rows,
-	shuffled Rows,
 	pickedIdx []int,
+	unpickedIdx []int,
 ) {
 	if dataset.GetMode() == DatasetModeColumns {
 		dataset.TransposeToRows()

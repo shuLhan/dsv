@@ -93,10 +93,15 @@ func (rows *Rows) GroupByValue(GroupIdx int) (mapRows MapRows) {
 RandomPick row in rows until n item and return it like its has been shuffled.
 If duplicate is true, row that has been picked can be picked up again,
 otherwise it will only picked up once.
+
+This function return picked and unpicked data and index of them.
 */
-func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked Rows,
-							shuffled Rows,
-							pickedIdx []int) {
+func (rows *Rows) RandomPick(n int, duplicate bool) (
+	picked Rows,
+	unpicked Rows,
+	pickedIdx []int,
+	unpickedIdx []int,
+) {
 	rowsLen := len(*rows)
 
 	// since duplication is not allowed, we can only select as many as rows
@@ -138,7 +143,7 @@ func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked Rows,
 
 		row := (*rows)[idx]
 
-		shuffled.PushBack(row)
+		picked.PushBack(row)
 	}
 
 	// select unpicked rows using picked index.
@@ -153,6 +158,7 @@ func (rows *Rows) RandomPick(n int, duplicate bool) (unpicked Rows,
 		}
 		if !isPicked {
 			unpicked.PushBack((*rows)[rid])
+			unpickedIdx = append(unpickedIdx, rid)
 		}
 	}
 	return
