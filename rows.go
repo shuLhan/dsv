@@ -94,7 +94,7 @@ RandomPick row in rows until n item and return it like its has been shuffled.
 If duplicate is true, row that has been picked can be picked up again,
 otherwise it will only picked up once.
 
-This function return picked and unpicked data and index of them.
+This function return picked and unpicked rows and index of them.
 */
 func (rows *Rows) RandomPick(n int, duplicate bool) (
 	picked Rows,
@@ -104,7 +104,7 @@ func (rows *Rows) RandomPick(n int, duplicate bool) (
 ) {
 	rowsLen := len(*rows)
 
-	// since duplication is not allowed, we can only select as many as rows
+	// if duplication is not allowed, we can only select as many as rows
 	// that we have.
 	if n > rowsLen && !duplicate {
 		n = rowsLen
