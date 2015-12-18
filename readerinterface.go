@@ -78,17 +78,13 @@ func InitReader(reader ReaderInterface) (e error) {
 		// Count number of output columns.
 		if ! md[i].GetSkip() {
 			nColOut++
+			// add type of metadata to list of type
+			types = append(types, md[i].GetType())
 		}
-
-		// add type of metadata to list of type
-		types = append(types, md[i].GetType())
 	}
 
 	// Set column type in dataset
 	reader.SetColumnType(types)
-
-	// Set number of output columns.
-	reader.SetNColumn(nColOut)
 
 	// Set default value
 	reader.SetDefault()
