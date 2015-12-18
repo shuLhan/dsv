@@ -148,6 +148,7 @@ SetColumnType of data in all columns.
 */
 func (dataset *Dataset) SetColumnType(types []int) {
 	dataset.ColumnType = types
+	dataset.NColumn = len(types)
 }
 
 /*
@@ -210,12 +211,16 @@ func (dataset *Dataset) TransposeToColumns() {
 	if toutmode == DatasetModeColumns || toutmode == DatasetModeMatrix {
 		return
 	}
+	if dataset.NRow <= 0 {
+		// do nothing ...
+		return
+	}
 
-	// set number of column if its not set
-	if dataset.NColumn <= 0 {
-		if len(dataset.Rows) > 0 {
-			dataset.NColumn = len(dataset.Rows[0])
-		}
+	// double check column length
+	collen := len(dataset.Rows[0])
+
+	if collen > dataset.NColumn {
+		dataset.NColumn = collen
 	}
 
 	dataset.SetMode(DatasetModeColumns)
@@ -301,15 +306,55 @@ or without replacement in machine learning domain.
 If output mode is columns, it will be transposed to rows.
 */
 func (dataset *Dataset) RandomPickRows(n int, duplicate bool) (
-	picked Rows,
-	unpicked Rows,
+	picked Dataset,
+	unpicked Dataset,
 	pickedIdx []int,
 	unpickedIdx []int,
 ) {
 	if dataset.GetMode() == DatasetModeColumns {
 		dataset.TransposeToRows()
 	}
-	return dataset.Rows.RandomPick(n, duplicate)
+
+	picked.Init(dataset.Mode, dataset.ColumnType)
+	unpicked.Init(dataset.Mode, dataset.ColumnType)
+
+	picked.Rows, unpicked.Rows, pickedIdx, unpickedIdx =
+		dataset.Rows.RandomPick(n, duplicate)
+
+	picked.NRow = len(picked.Rows)
+	unpicked.NRow = len(unpicked.Rows)
+
+	return
+}
+
+/*
+RandomPickColumns will select `n` column randomly from dataset and return
+new dataset with picked and unpicked columns, and their column index.
+
+If duplicate is true, column that has been pick up can be pick up again.
+
+If dataset output mode is rows, it will transposed to columns.
+*/
+func (dataset *Dataset) RandomPickColumns(n int, dup bool, excludeIdx []int) (
+	picked Dataset,
+	unpicked Dataset,
+	pickedIdx []int,
+	unpickedIdx []int,
+) {
+	if dataset.GetMode() == DatasetModeRows {
+		dataset.TransposeToColumns()
+	}
+
+	picked.Init(dataset.Mode, dataset.ColumnType)
+	unpicked.Init(dataset.Mode, dataset.ColumnType)
+
+	picked.Columns, unpicked.Columns, pickedIdx, unpickedIdx =
+		dataset.Columns.RandomPick(n, dup, excludeIdx)
+
+	picked.NRow = dataset.NRow
+	unpicked.NRow = dataset.NRow
+
+	return
 }
 
 /*
