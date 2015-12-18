@@ -1,35 +1,74 @@
+// Copyright 2015 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package dsv_test
 
 import (
-	_ "fmt"
-	"testing"
+	"fmt"
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/dsv/util/assert"
+	"testing"
 )
 
-var data = []string{"9.987654321", "8.8", "7.7", "6.6", "5.5", "4.4", "3.3"}
-var exp_float = []float64{9.987654321, 8.8, 7.7, 6.6, 5.5, 4.4, 3.3}
+func TestRandomPickColumns(t *testing.T) {
+	var dataset dsv.Dataset
+	var e error
 
-func TestToFloatSlice(t *testing.T) {
-	col := make(dsv.Column, len(data))
+	dataset.Init(dsv.DatasetModeRows, testColTypes)
 
-	for x := range data {
-		col[x], _ = dsv.NewRecord([]byte(data[x]), dsv.TReal)
+	dataset.Rows, e = initRows()
+	if e != nil {
+		t.Fatal(e)
 	}
 
-	got := col.ToFloatSlice()
+	dataset.NRow = len(dataset.Rows)
 
-	assert.Equal(t, exp_float, got)
-}
+	dataset.TransposeToColumns()
 
-func TestToStringSlice(t *testing.T) {
-	col := make(dsv.Column, len(data))
+	fmt.Println("dataset:", dataset)
 
-	for x := range data {
-		col[x], _ = dsv.NewRecord([]byte(data[x]), dsv.TString)
+	// random pick with duplicate
+	ncols := 6
+	dup := true
+	excludeIdx := []int{3}
+
+	for i := 0; i < 5; i++ {
+		picked, unpicked, pickedIdx, unpickedIdx :=
+			dataset.Columns.RandomPick(ncols, dup, excludeIdx)
+
+		// check if unpicked item exist in picked items.
+		for _, un := range unpicked {
+			for _, pick := range picked {
+				assert.NotEqual(t, un, pick)
+			}
+		}
+
+		fmt.Println("Random pick with duplicate columns")
+		fmt.Println("==> picked columns   :", picked)
+		fmt.Println("==> picked idx       :", pickedIdx)
+		fmt.Println("==> unpicked columns :", unpicked)
+		fmt.Println("==> unpicked idx     :", unpickedIdx)
 	}
 
-	got := col.ToStringSlice()
+	// random pick without duplicate
+	dup = false
+	for i := 0; i < 5; i++ {
+		picked, unpicked, pickedIdx, unpickedIdx :=
+			dataset.Columns.RandomPick(ncols, dup, excludeIdx)
 
-	assert.Equal(t, data, got)
+		// check if unpicked item exist in picked items.
+		for _, un := range unpicked {
+			for _, pick := range picked {
+				assert.NotEqual(t, un, pick)
+			}
+		}
+
+		fmt.Println("Random pick without duplicate columns")
+		fmt.Println("==> picked columns   :", picked)
+		fmt.Println("==> picked idx       :", pickedIdx)
+		fmt.Println("==> unpicked columns :", unpicked)
+		fmt.Println("==> unpicked idx     :", unpickedIdx)
+	}
+
 }

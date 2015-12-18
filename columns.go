@@ -4,10 +4,10 @@
 
 package dsv
 
-/*
-Column represent slice of record. A vertical representation of data.
-*/
-type Column []*Record
+import (
+	"math/rand"
+	"time"
+)
 
 /*
 Columns represent slice of Column.
@@ -15,52 +15,89 @@ Columns represent slice of Column.
 type Columns []Column
 
 /*
-ToFloatSlice convert slice of record to slice of float64.
+RandomPick column in columns until n item and return it like its has been
+shuffled.  If duplicate is true, column that has been picked can be picked up
+again, otherwise it will only picked up once.
+
+This function return picked and unpicked column and index of them.
 */
-func (column *Column) ToFloatSlice() (newcol []float64) {
-	newcol = make([]float64, len(*column))
+func (cols *Columns) RandomPick(n int, dup bool, excludeIdx []int) (
+	picked Columns,
+	unpicked Columns,
+	pickedIdx []int,
+	unpickedIdx []int,
+) {
+	excLen := len(excludeIdx)
+	colsLen := len(*cols)
+	allowedLen := colsLen - excLen
 
-	for i := range *column {
-		newcol[i] = (*column)[i].Float()
+	// if duplication is not allowed, limit the number of selected
+	// column.
+	if n > allowedLen && !dup {
+		n = allowedLen
 	}
 
-	return newcol
-}
+	rand.Seed(time.Now().UnixNano())
 
-/*
-ToStringSlice convert slice of record to slice of string.
-*/
-func (column *Column)ToStringSlice() (newcol []string) {
-	newcol = make([]string, len(*column))
+	for ; n >= 1; n-- {
+		idx := 0
+		for {
+			idx = rand.Intn(colsLen)
 
-	for i := range *column {
-		newcol[i] = (*column)[i].String()
+			// check if its must not be selected
+			excluded := false
+			for _, excIdx := range excludeIdx {
+				if idx == excIdx {
+					excluded = true
+					break
+				}
+			}
+			if excluded {
+				continue
+			}
+
+			if dup {
+				// allow duplicate idx
+				pickedIdx = append(pickedIdx, idx)
+				break
+			}
+
+			// check if its already picked
+			isPicked := false
+			for _, pastIdx := range pickedIdx {
+				if idx == pastIdx {
+					isPicked = true
+					break
+				}
+			}
+			// get another random idx again
+			if isPicked {
+				continue
+			}
+
+			// bingo, we found unique idx that has not been picked.
+			pickedIdx = append(pickedIdx, idx)
+			break
+		}
+
+		picked = append(picked, (*cols)[idx])
 	}
 
-	return newcol
-}
-
-/*
-ClearValues set all value in column to empty string or zero if column type is
-numeric.
-*/
-func (column *Column) ClearValues() {
-	if len(*column) <= 0 {
-		return
+	// select unpicked columns using picked index.
+	for cid := range *cols {
+		// check if column index has been picked up
+		isPicked := false
+		for _, idx := range pickedIdx {
+			if cid == idx {
+				isPicked = true
+				break
+			}
+		}
+		if !isPicked {
+			unpicked = append(unpicked, (*cols)[cid])
+			unpickedIdx = append(unpickedIdx, cid)
+		}
 	}
 
-	var v interface{}
-
-	switch (*column)[0].V.(type) {
-	case string:
-		v = ""
-	case int64:
-		v = 0
-	case float64:
-		v = 0.0
-	}
-
-	for i := range *column {
-		(*column)[i].V = v
-	}
+	return
 }
