@@ -5,9 +5,8 @@
 package dsv_test
 
 import (
-	"os"
-
 	"github.com/shuLhan/dsv"
+	"os"
 )
 
 var DEBUG = bool(os.Getenv("DEBUG") != "")
@@ -58,37 +57,39 @@ var exp_skip_columns_all_rev = []string{
 
 // Testing data and function for Rows and MapRows
 var rowsData = [][]byte{
-	{'1', dsv.TInteger, '+', dsv.TString},
-	{'2', dsv.TInteger, '-', dsv.TString},
-	{'3', dsv.TInteger, '-', dsv.TString},
-	{'4', dsv.TInteger, '+', dsv.TString},
+	{'1', '5', '9', '+'},
+	{'2', '6', '0', '-'},
+	{'3', '7', '1', '-'},
+	{'4', '8', '2', '+'},
 }
+
+var testColTypes = []int{dsv.TInteger, dsv.TInteger, dsv.TInteger, dsv.TString}
 
 var rowsExpect = []string{
-	"[1 +]",
-	"[2 -]",
-	"[3 -]",
-	"[4 +]",
+	"[1 5 9 +]",
+	"[2 6 0 -]",
+	"[3 7 1 -]",
+	"[4 8 2 +]",
 }
 
-var groupByExpect = "[{+ [1 +][4 +]} {- [2 -][3 -]}]"
+var testClassIdx = 3
+
+var groupByExpect = "[{+ [1 5 9 +][4 8 2 +]} {- [2 6 0 -][3 7 1 -]}]"
 
 func initRows() (rows dsv.Rows, e error) {
 	for i := range rowsData {
 		l := len(rowsData[i])
 		row := make(dsv.Row, 0)
 
-		z := 0
-		for j := 0; j < l; j += 2 {
-			rec, e := dsv.NewRecord([]byte{rowsData[i][j]}, int(rowsData[i][j+1]))
+		for j := 0; j < l; j++ {
+			rec, e := dsv.NewRecord([]byte{rowsData[i][j]},
+				testColTypes[j])
 
 			if nil != e {
 				return nil, e
 			}
 
 			row = append(row, rec)
-
-			z++
 		}
 
 		rows.PushBack(row)

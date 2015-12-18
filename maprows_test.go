@@ -6,10 +6,9 @@ package dsv_test
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/dsv/util/assert"
+	"testing"
 )
 
 func TestAddRow(t *testing.T) {
@@ -21,7 +20,7 @@ func TestAddRow(t *testing.T) {
 	}
 
 	for r := range rows {
-		key := fmt.Sprint(rows[r][1].Value())
+		key := fmt.Sprint(rows[r][testClassIdx].Value())
 		mapRows.AddRow(key, rows[r])
 	}
 
@@ -39,7 +38,7 @@ func TestGetMinority(t *testing.T) {
 	}
 
 	for r := range rows {
-		key := fmt.Sprint(rows[r][1].Value())
+		key := fmt.Sprint(rows[r][testClassIdx].Value())
 		mapRows.AddRow(key, rows[r])
 	}
 
@@ -48,7 +47,7 @@ func TestGetMinority(t *testing.T) {
 
 	_, minRows := mapRows.GetMinority()
 
-	exp := "[4 +]"
+	exp := rowsExpect[3]
 	got := fmt.Sprint(minRows)
 
 	assert.Equal(t, exp, got)

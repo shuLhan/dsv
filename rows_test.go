@@ -107,7 +107,7 @@ func TestGroupByValue(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	mapRows := rows.GroupByValue(1)
+	mapRows := rows.GroupByValue(testClassIdx)
 
 	got := fmt.Sprint(mapRows)
 
@@ -119,7 +119,6 @@ func TestRandomPick(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-
 
 	// random pick with duplicate
 	for i := 0; i < 5; i++ {
@@ -140,7 +139,6 @@ func TestRandomPick(t *testing.T) {
 		fmt.Println("==> picked idx    :", pickedIdx)
 		fmt.Println("==> unpicked rows :", unpicked)
 		fmt.Println("==> unpicked idx  :", unpickedIdx)
-		fmt.Println("==> original rows :", rows)
 	}
 
 	// random pick without duplication
@@ -167,7 +165,5 @@ func TestRandomPick(t *testing.T) {
 		fmt.Println("==> picked idx    :", pickedIdx)
 		fmt.Println("==> unpicked rows :", unpicked)
 		fmt.Println("==> unpicked idx  :", unpickedIdx)
-		fmt.Println("==> original rows :", rows)
-
 	}
 }
