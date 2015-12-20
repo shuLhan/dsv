@@ -23,6 +23,6 @@ type DatasetInterface interface {
 	TransposeToColumns() error
 	TransposeToRows()
 
-	PushRow(r Row)
+	PushRow(r Row) error
 	PushRowToColumns(r Row) error
 }

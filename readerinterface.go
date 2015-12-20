@@ -131,6 +131,7 @@ func InitReader(reader ReaderInterface) (e error) {
 Read row from input file.
 */
 func Read (reader ReaderInterface) (n int, e error) {
+	maxrows := reader.GetMaxRows()
 	n = 0
 	reader.Reset ()
 
@@ -159,19 +160,10 @@ func Read (reader ReaderInterface) (n int, e error) {
 		row, e := ParseLine(reader, &line)
 
 		if nil == e {
-			switch reader.GetMode() {
-			case DatasetModeRows:
-				reader.PushRow(row)
-			case DatasetModeColumns:
-				e = reader.PushRowToColumns(row)
-			case DatasetModeMatrix:
-				reader.PushRow(row)
-				e = reader.PushRowToColumns(row)
-			}
+			e = reader.PushRow(row)
 		}
 		if nil == e {
 			n++
-			maxrows := reader.GetMaxRows()
 			if maxrows > 0 && n >= maxrows {
 				break
 			}
