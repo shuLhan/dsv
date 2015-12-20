@@ -22,11 +22,7 @@ func TestRandomPickColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	dataset.NRow = len(dataset.Rows)
-
 	dataset.TransposeToColumns()
-
-	fmt.Println("dataset:", dataset)
 
 	// random pick with duplicate
 	ncols := 6

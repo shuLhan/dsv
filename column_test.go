@@ -14,10 +14,15 @@ var data = []string{"9.987654321", "8.8", "7.7", "6.6", "5.5", "4.4", "3.3"}
 var exp_float = []float64{9.987654321, 8.8, 7.7, 6.6, 5.5, 4.4, 3.3}
 
 func TestToFloatSlice(t *testing.T) {
-	col := make(dsv.Column, len(data))
+	var col dsv.Column
 
 	for x := range data {
-		col[x], _ = dsv.NewRecord([]byte(data[x]), dsv.TReal)
+		rec, e := dsv.NewRecord([]byte(data[x]), dsv.TReal)
+		if e != nil {
+			t.Fatal(e)
+		}
+
+		col.PushBack(rec)
 	}
 
 	got := col.ToFloatSlice()
@@ -26,10 +31,15 @@ func TestToFloatSlice(t *testing.T) {
 }
 
 func TestToStringSlice(t *testing.T) {
-	col := make(dsv.Column, len(data))
+	var col dsv.Column
 
 	for x := range data {
-		col[x], _ = dsv.NewRecord([]byte(data[x]), dsv.TString)
+		rec, e := dsv.NewRecord([]byte(data[x]), dsv.TString)
+		if e != nil {
+			t.Fatal(e)
+		}
+
+		col.PushBack(rec)
 	}
 
 	got := col.ToStringSlice()

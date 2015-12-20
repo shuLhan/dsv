@@ -83,11 +83,14 @@ func InitReader(reader ReaderInterface) (e error) {
 		}
 	}
 
-	// Set column type in dataset
-	reader.SetColumnType(types)
-
 	// Set default value
 	reader.SetDefault()
+
+	// Set column type in dataset
+	e = reader.SetColumnsType(types)
+	if e != nil {
+		return
+	}
 
 	// Check if output mode is valid and initialize it if valid.
 	e = reader.SetDatasetMode(reader.GetDatasetMode())
@@ -143,7 +146,6 @@ func Read (reader ReaderInterface) (n int, e error) {
 			if e != io.EOF {
 				log.Print ("dsv: ", e)
 			}
-			reader.SetNRow(n)
 			return n, e
 		}
 

@@ -12,16 +12,15 @@ type DatasetInterface interface {
 	GetMode() int
 	SetMode(mode int) error
 	GetNColumn() int
-	SetNColumn(n int)
 	GetNRow() int
-	SetNRow(n int)
-	SetColumnType(types []int)
+	SetColumnsType(types []int) error
+	GetColumnsType() []int
 	GetColumnTypeAt(colidx int) (int, error)
 
 	GetData() interface{}
 	GetDataAsRows() Rows
-	GetDataAsColumns() Columns
-	TransposeToColumns()
+	GetDataAsColumns() (Columns, error)
+	TransposeToColumns() error
 	TransposeToRows()
 
 	PushRow(r Row)

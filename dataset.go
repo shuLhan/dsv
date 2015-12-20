@@ -34,12 +34,6 @@ data.
 type Dataset struct {
 	// Mode define the numeric value of output mode.
 	Mode int
-	// ColumnType define the type of data in column
-	ColumnType []int
-	// NRow define number of rows.
-	NRow int
-	// NColumn define number of columns.
-	NColumn int
 	// Columns is input data that has been parsed.
 	Columns Columns
 	// Rows is input data that has been parsed.
@@ -49,17 +43,10 @@ type Dataset struct {
 /*
 NewDataset create new dataset, use the mode to initialize the dataset.
 */
-func NewDataset(mode int, types []int) (dataset *Dataset) {
-	dataset = &Dataset{
-		Mode:    mode,
-		ColumnType: types,
-		NRow:    0,
-		NColumn: len(types),
-		Columns: nil,
-		Rows:    nil,
-	}
+func NewDataset(mode int, types []int) (dataset *Dataset, e error) {
+	dataset = &Dataset{}
 
-	dataset.SetMode(mode)
+	e = dataset.Init(mode, types)
 
 	return
 }
@@ -67,20 +54,21 @@ func NewDataset(mode int, types []int) (dataset *Dataset) {
 /*
 Init will set the dataset using mode and types.
 */
-func (dataset *Dataset) Init(mode int, types []int) {
+func (dataset *Dataset) Init(mode int, types []int) (e error) {
+	dataset.Columns = make(Columns, len(types))
 	dataset.SetMode(mode)
-	dataset.NColumn = len(types)
-	dataset.ColumnType = types
-	dataset.NRow = 0
+
+	e = dataset.Columns.SetType(types)
+
+	return
 }
 
 /*
 Reset all data and attributes.
 */
 func (dataset *Dataset) Reset() {
-	dataset.NRow = 0
 	dataset.Rows = Rows{}
-	dataset.Columns = make(Columns, dataset.NColumn)
+	dataset.Columns.Reset()
 }
 
 /*
@@ -96,16 +84,15 @@ SetMode of saved data to `mode`.
 func (dataset *Dataset) SetMode(mode int) error {
 	switch mode {
 	case DatasetModeRows:
-		dataset.NRow = 0
 		dataset.Mode = DatasetModeRows
 		dataset.Rows = Rows{}
 	case DatasetModeColumns:
 		dataset.Mode = DatasetModeColumns
-		dataset.Columns = make(Columns, dataset.NColumn)
+		dataset.Columns.Reset()
 	case DatasetModeMatrix:
 		dataset.Mode = DatasetModeMatrix
 		dataset.Rows = Rows{}
-		dataset.Columns = make(Columns, dataset.NColumn)
+		dataset.Columns.Reset()
 	default:
 		return ErrUnknownDatasetMode
 	}
@@ -115,40 +102,48 @@ func (dataset *Dataset) SetMode(mode int) error {
 }
 
 /*
-GetNColumn return number of column that will be used in output, excluding
-the column with Skip=true.
+GetNColumn return the number of column in dataset.
 */
 func (dataset *Dataset) GetNColumn() int {
-	return dataset.NColumn
-}
-
-/*
-SetNColumn set number of output columns.
-*/
-func (dataset *Dataset) SetNColumn(n int) {
-	dataset.NColumn = n
+	return len(dataset.Columns)
 }
 
 /*
 GetNRow return number of rows in dataset.
 */
-func (dataset *Dataset) GetNRow() int {
-	return dataset.NRow
+func (dataset *Dataset) GetNRow() (nrow int) {
+	switch dataset.Mode {
+	case DatasetModeRows, DatasetModeMatrix:
+		nrow = len(dataset.Rows)
+	case DatasetModeColumns:
+		if len(dataset.Columns) <= 0 {
+			nrow = 0
+		} else {
+			// get length of record in the first column
+			nrow = dataset.Columns[0].GetLength()
+		}
+	}
+	return
 }
 
 /*
-SetNRow will set the number of rows in dataset.
+SetColumnsType of data in all columns.
 */
-func (dataset *Dataset) SetNRow(n int) {
-	dataset.NRow = n
+func (dataset *Dataset) SetColumnsType(types []int) (e error) {
+	dataset.Columns = make(Columns, len(types))
+	e = dataset.Columns.SetType(types)
+	return
 }
 
 /*
-SetColumnType of data in all columns.
+GetColumnsType return the type of all columns.
 */
-func (dataset *Dataset) SetColumnType(types []int) {
-	dataset.ColumnType = types
-	dataset.NColumn = len(types)
+func (dataset *Dataset) GetColumnsType() (types []int) {
+	for x := range dataset.Columns {
+		types = append(types, dataset.Columns[x].Type)
+	}
+
+	return
 }
 
 /*
@@ -160,7 +155,7 @@ func (dataset *Dataset) GetColumnTypeAt(colidx int) (int, error) {
 		return TUndefined, ErrColIdxOutOfRange
 	}
 
-	return dataset.ColumnType[colidx], nil
+	return dataset.Columns[colidx].Type, nil
 }
 
 /*
@@ -195,23 +190,26 @@ func (dataset *Dataset) GetDataAsRows() Rows {
 /*
 GetDataAsColumns return data in columns mode.
 */
-func (dataset *Dataset) GetDataAsColumns() Columns {
+func (dataset *Dataset) GetDataAsColumns() (columns Columns, e error) {
 	if dataset.Mode == DatasetModeRows {
-		dataset.TransposeToColumns()
+		e = dataset.TransposeToColumns()
+		if e != nil {
+			return
+		}
 	}
-	return dataset.Columns
+	return dataset.Columns, nil
 }
 
 /*
 TransposeToColumns move all data from rows (horizontal) to columns
 (vertical) mode.
 */
-func (dataset *Dataset) TransposeToColumns() {
+func (dataset *Dataset) TransposeToColumns() (e error) {
 	toutmode := dataset.GetMode()
 	if toutmode == DatasetModeColumns || toutmode == DatasetModeMatrix {
 		return
 	}
-	if dataset.NRow <= 0 {
+	if dataset.GetNRow() <= 0 {
 		// do nothing ...
 		return
 	}
@@ -219,8 +217,8 @@ func (dataset *Dataset) TransposeToColumns() {
 	// double check column length
 	collen := len(dataset.Rows[0])
 
-	if collen > dataset.NColumn {
-		dataset.NColumn = collen
+	if collen > dataset.GetNColumn() {
+		return ErrMisColLength
 	}
 
 	dataset.SetMode(DatasetModeColumns)
@@ -231,6 +229,8 @@ func (dataset *Dataset) TransposeToColumns() {
 
 	// reset the rows
 	dataset.Rows = nil
+
+	return
 }
 
 /*
@@ -250,7 +250,7 @@ func (dataset *Dataset) TransposeToRows() {
 
 	// Get the least length of columns.
 	for f := 0; f < flen; f++ {
-		l := len(dataset.Columns[f])
+		l := dataset.Columns[f].GetLength()
 
 		if l < rowlen {
 			rowlen = l
@@ -261,14 +261,14 @@ func (dataset *Dataset) TransposeToRows() {
 		row := make(Row, flen)
 
 		for f := 0; f < flen; f++ {
-			row[f] = dataset.Columns[f][r]
+			row[f] = dataset.Columns[f].Records[r]
 		}
 
 		dataset.PushRow(row)
 	}
 
 	// reset the columns
-	dataset.Columns = nil
+	dataset.Columns.Reset()
 }
 
 /*
@@ -276,7 +276,6 @@ PushRow save the data, which is already in row object, to Rows.
 */
 func (dataset *Dataset) PushRow(r Row) {
 	dataset.Rows = append(dataset.Rows, r)
-	dataset.NRow++
 }
 
 /*
@@ -289,8 +288,24 @@ func (dataset *Dataset) PushRowToColumns(row Row) (e error) {
 	}
 
 	for i := range row {
-		dataset.Columns[i] = append(dataset.Columns[i], row[i])
+		dataset.Columns[i].PushBack(row[i])
 	}
+
+	return
+}
+
+/*
+PushColumn will append new column to the end of slice.
+*/
+func (dataset *Dataset) PushColumn(col Column) (e error) {
+	if dataset.Mode == DatasetModeRows {
+		e = dataset.TransposeToColumns()
+		if e != nil {
+			return
+		}
+	}
+
+	dataset.Columns = append(dataset.Columns, col)
 
 	return
 }
@@ -315,14 +330,11 @@ func (dataset *Dataset) RandomPickRows(n int, duplicate bool) (
 		dataset.TransposeToRows()
 	}
 
-	picked.Init(dataset.Mode, dataset.ColumnType)
-	unpicked.Init(dataset.Mode, dataset.ColumnType)
+	picked.Init(dataset.Mode, dataset.GetColumnsType())
+	unpicked.Init(dataset.Mode, dataset.GetColumnsType())
 
 	picked.Rows, unpicked.Rows, pickedIdx, unpickedIdx =
 		dataset.Rows.RandomPick(n, duplicate)
-
-	picked.NRow = len(picked.Rows)
-	unpicked.NRow = len(unpicked.Rows)
 
 	return
 }
@@ -340,19 +352,20 @@ func (dataset *Dataset) RandomPickColumns(n int, dup bool, excludeIdx []int) (
 	unpicked Dataset,
 	pickedIdx []int,
 	unpickedIdx []int,
+	e error,
 ) {
 	if dataset.GetMode() == DatasetModeRows {
-		dataset.TransposeToColumns()
+		e = dataset.TransposeToColumns()
+		if e != nil {
+			return
+		}
 	}
 
-	picked.Init(dataset.Mode, dataset.ColumnType)
-	unpicked.Init(dataset.Mode, dataset.ColumnType)
+	picked.Init(dataset.Mode, nil)
+	unpicked.Init(dataset.Mode, nil)
 
 	picked.Columns, unpicked.Columns, pickedIdx, unpickedIdx =
 		dataset.Columns.RandomPick(n, dup, excludeIdx)
-
-	picked.NRow = dataset.NRow
-	unpicked.NRow = dataset.NRow
 
 	return
 }
@@ -360,14 +373,20 @@ func (dataset *Dataset) RandomPickColumns(n int, dup bool, excludeIdx []int) (
 /*
 SortColumnsByIndex will sort all columns using sorted index.
 */
-func (dataset *Dataset) SortColumnsByIndex(sortedIdx []int) {
+func (dataset *Dataset) SortColumnsByIndex(sortedIdx []int) (e error) {
 	if dataset.Mode == DatasetModeRows {
-		dataset.TransposeToColumns()
+		e = dataset.TransposeToColumns()
+		if e != nil {
+			return
+		}
 	}
 
 	for i, col := range (*dataset).Columns {
-		(*dataset).Columns[i] = SortRecordsByIndex(col, sortedIdx)
+		(*dataset).Columns[i].Records = SortRecordsByIndex(col.Records,
+			sortedIdx)
 	}
+
+	return
 }
 
 /*
@@ -411,8 +430,8 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 		dataset.TransposeToRows()
 	}
 
-	splitLess.Init(DatasetModeRows, dataset.ColumnType)
-	splitGreater.Init(DatasetModeRows, dataset.ColumnType)
+	splitLess.Init(DatasetModeRows, dataset.GetColumnsType())
+	splitGreater.Init(DatasetModeRows, dataset.GetColumnsType())
 
 	for _, row := range dataset.Rows {
 		if row[colidx].Float() < splitVal {
@@ -423,9 +442,18 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 	}
 
 	if modeIsColumns {
-		dataset.TransposeToColumns()
-		splitLess.TransposeToColumns()
-		splitGreater.TransposeToColumns()
+		e = dataset.TransposeToColumns()
+		if e != nil {
+			return
+		}
+		e = splitLess.TransposeToColumns()
+		if e != nil {
+			return
+		}
+		e = splitGreater.TransposeToColumns()
+		if e != nil {
+			return
+		}
 	}
 
 	return
@@ -474,8 +502,8 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 		dataset.TransposeToRows()
 	}
 
-	splitIn.Init(DatasetModeRows, dataset.ColumnType)
-	splitEx.Init(DatasetModeRows, dataset.ColumnType)
+	splitIn.Init(DatasetModeRows, dataset.GetColumnsType())
+	splitEx.Init(DatasetModeRows, dataset.GetColumnsType())
 
 	found := false
 
@@ -495,7 +523,10 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 
 	// transpose original dataset back to columns
 	if modeIsColumns {
-		dataset.TransposeToColumns()
+		e = dataset.TransposeToColumns()
+		if e != nil {
+			return
+		}
 	}
 
 	return

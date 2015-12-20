@@ -27,7 +27,10 @@ var dataset_type = []int{
 }
 
 func CreateDataset(t *testing.T) (dataset *dsv.Dataset) {
-	dataset = dsv.NewDataset(dsv.DatasetModeRows, dataset_type)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, dataset_type)
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	for _, rowin := range dataset_test {
 		row := make(dsv.Row, len(rowin))

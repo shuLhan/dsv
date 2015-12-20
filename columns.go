@@ -5,14 +5,44 @@
 package dsv
 
 import (
+	"errors"
 	"math/rand"
 	"time"
+)
+
+var (
+	// ErrMisColLength returned when operation on columns does not match
+	// between parameter and their length
+	ErrMisColLength = errors.New ("dsv: mismatch on column length")
 )
 
 /*
 Columns represent slice of Column.
 */
 type Columns []Column
+
+/*
+Reset each data and attribute in all columns.
+*/
+func (cols *Columns) Reset() {
+	for x := range *cols {
+		(*cols)[x].Reset()
+	}
+}
+
+/*
+SetType of each column. The length of type must be equal with the number of
+column, otherwise it will return error.
+*/
+func (cols *Columns) SetType(types []int) error {
+	if len(types) != len(*cols) {
+		return ErrMisColLength
+	}
+	for x := range *cols {
+		(*cols)[x].Type = types[x]
+	}
+	return nil
+}
 
 /*
 RandomPick column in columns until n item and return it like its has been

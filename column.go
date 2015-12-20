@@ -7,32 +7,62 @@ package dsv
 /*
 Column represent slice of record. A vertical representation of data.
 */
-type Column []*Record
+type Column struct {
+	// Type of column. All record in column have the same type.
+	Type int
+	// Flag additional attribute that can be set to mark some value on this
+	// column
+	Flag int
+	// Records contain column data.
+	Records []*Record
+}
+
+/*
+Reset column data and flag.
+*/
+func (column *Column) Reset() {
+	column.Flag = 0
+	column.Records = make([]*Record, 0)
+}
+
+/*
+GetLength return number of record.
+*/
+func (column *Column) GetLength() int {
+	return len(column.Records)
+}
+
+/*
+PushBack push record the end of column.
+*/
+func (column *Column) PushBack(r *Record) {
+	column.Records = append(column.Records, r)
+}
 
 /*
 ToFloatSlice convert slice of record to slice of float64.
 */
 func (column *Column) ToFloatSlice() (newcol []float64) {
-	newcol = make([]float64, len(*column))
+	newcol = make([]float64, column.GetLength())
 
-	for i := range *column {
-		newcol[i] = (*column)[i].Float()
+	for i := range column.Records {
+		newcol[i] = column.Records[i].Float()
 	}
 
-	return newcol
+	return
 }
 
 /*
 ToStringSlice convert slice of record to slice of string.
 */
 func (column *Column)ToStringSlice() (newcol []string) {
-	newcol = make([]string, len(*column))
+	newcol = make([]string, column.GetLength())
 
-	for i := range *column {
-		newcol[i] = (*column)[i].String()
+	for i := range column.Records {
+		newcol[i] = column.Records[i].String()
 	}
 
-	return newcol
+	return
 }
 
 /*
@@ -40,22 +70,22 @@ ClearValues set all value in column to empty string or zero if column type is
 numeric.
 */
 func (column *Column) ClearValues() {
-	if len(*column) <= 0 {
+	if column.GetLength() <= 0 {
 		return
 	}
 
 	var v interface{}
 
-	switch (*column)[0].V.(type) {
-	case string:
+	switch column.Type {
+	case TString:
 		v = ""
-	case int64:
+	case TInteger:
 		v = 0
-	case float64:
+	case TReal:
 		v = 0.0
 	}
 
-	for i := range *column {
-		(*column)[i].V = v
+	for i := range column.Records {
+		column.Records[i].V = v
 	}
 }

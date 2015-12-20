@@ -382,7 +382,12 @@ func TestTransposeToColumns(t *testing.T) {
 	reader.TransposeToColumns()
 
 	exp := fmt.Sprint(exp_skip_columns_all)
-	got := fmt.Sprint(reader.Columns)
+
+	columns, e := reader.GetDataAsColumns()
+	if e != nil {
+		t.Fatal(e)
+	}
+	got := fmt.Sprint(columns)
 
 	assert.Equal(t, exp, got)
 }
@@ -419,7 +424,12 @@ func TestSortColumnsByIndex(t *testing.T) {
 	assert.Equal(t, exp, got)
 
 	exp = "["+ strings.Join(exp_skip_columns_all_rev, " ") +"]"
-	got = fmt.Sprint(reader.GetDataAsColumns())
+
+	columns, e := reader.GetDataAsColumns()
+	if e != nil {
+		t.Fatal(e)
+	}
+	got = fmt.Sprint(columns)
 
 	assert.Equal(t, exp, got)
 }
