@@ -57,5 +57,5 @@ func TestWriterWithColumns(t *testing.T) {
 	doReadWrite(t, &rw.Reader, &rw.Writer, exp_skip_columns, true)
 	rw.Close()
 
-	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected_skip.dat")
+	assert.EqualFileContent(t, "testdata/expected_skip.dat", rw.GetOutput())
 }
