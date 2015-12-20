@@ -527,6 +527,14 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 		if e != nil {
 			return
 		}
+		e = splitIn.TransposeToColumns()
+		if e != nil {
+			return
+		}
+		e = splitEx.TransposeToColumns()
+		if e != nil {
+			return
+		}
 	}
 
 	return
