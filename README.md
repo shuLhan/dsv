@@ -60,7 +60,7 @@ First, create file metadata for input and output, name it `config.dsv`,
             "Name"      :"process_name"
         ,   "LeftQuote" :"\""
         ,   "Separator" :"_"
-        ],{
+        },{
             "Name"      :"process_id"
         ,   "RightQuote":"\""
         ,   "Separator" :","
@@ -164,8 +164,8 @@ separate the current record with the next record.
 start at the beginning of record.
 * `RightQuote`: optional, default is empty `""`. RightQuote is a string at the
 end of record.
-* `Skip`: optional, boolean. If true the column will be saved in dataset when
-reading input file, otherwise it will be ignored.
+* `Skip`: optional, boolean, default is `false`. If true the column will be
+saved in dataset when reading input file, otherwise it will be ignored.
 
 
 ### Input
@@ -176,17 +176,20 @@ Input configuration contain information about input file.
 path. If no path is given then it assumed that the input file is in the same
 directory with configuration file.
 * `InputMetadata`: mandatory, list of metadata.
-* `Skip`: optional, number, default 0. Skip define the number of rows that will
+* `Skip`: optional, number, default 0. Skip define the number of line that will
 be skipped when first input file is opened.
 * `Rejected`: optional, default to `rejected.dat`. Rejected is file where
 data that does not match with metadata will be saved. One can inspect the
 rejected file fix it for re-process or ignore it.
-* `MaxRows`: optional, maximum number of rows for one read operation that will
-be saved in memory.
+* `MaxRows`: optional, default to `256`. Maximum number of rows for one read
+operation that will be saved in memory. If its negative, i.e. `-1`, all data
+in input file will be processed.
 * `DatasetMode`: optional, default to "rows". Mode of dataset in memory.
 Valid values are "rows", "columns", or "matrix". Matrix mode is combination of
 rows and columns, it give more flexibility when processing the dataset but
 will require additional memory.
+
+#### `DatasetMode` explained
 
 For example, given input data file,
 
@@ -204,7 +207,7 @@ For example, given input data file,
     Columns[1]: [b 2]
     Columns[1]: [c 3]
 
-"matrix" mode is where each record saved in their own row and column.
+"matrix" mode is where each record saved both in row and column.
 
 ### Output
 
@@ -253,6 +256,7 @@ for {
 For more information see `dataset.go`.
 
 * Random pick rows with or without replacement
+* Random pick columns with or without replacement
 * Sort all columns using index from indirect-sort
 * Splitting dataset using numeric values
 * Splitting dataset using categorical values
