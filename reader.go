@@ -284,7 +284,7 @@ func (reader *Reader) SetDefault () {
 		reader.MaxRows = DefaultMaxRows
 	}
 	if "" == reader.DatasetMode {
-		reader.SetDatasetMode(DefDatasetMode)
+		reader.DatasetMode = DefDatasetMode
 	}
 }
 
