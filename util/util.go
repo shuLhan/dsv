@@ -142,15 +142,17 @@ func QuickSort(data *[]float64, idx *[]int, l, r int) {
 /*
 IndirectSort will sort the data and return the sorted index.
 */
-func IndirectSort(data *[]float64) *[]int {
-	r := make([]int, len(*data))
-	for i := range r {
-		r[i] = i
+func IndirectSort(data *[]float64) (sortedIdx []int) {
+	datalen := len(*data)
+
+	sortedIdx = make([]int, datalen)
+	for i := 0; i < datalen; i++ {
+		sortedIdx[i] = i
 	}
 
-	QuickSort(data, &r, 0, len(*data)-1)
+	QuickSort(data, &sortedIdx, 0, datalen - 1)
 
-	return &r
+	return
 }
 
 /*

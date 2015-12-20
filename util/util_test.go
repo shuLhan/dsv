@@ -54,7 +54,7 @@ func TestSortFloatSliceByIndex(t *testing.T) {
 
 	fmt.Println("sorted idx:", sortedIdx)
 
-	util.SortFloatSliceByIndex(&in2, sortedIdx)
+	util.SortFloatSliceByIndex(&in2, &sortedIdx)
 
 	fmt.Println("input 1:", in1)
 	fmt.Println("input 2:", in2)
