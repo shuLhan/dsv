@@ -11,11 +11,6 @@ import (
 )
 
 /*
-Row represent slice of record.
-*/
-type Row []*Record
-
-/*
 Rows represent slice of Row.
 */
 type Rows []Row
