@@ -6,7 +6,6 @@ package dsv
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -434,17 +433,4 @@ func (reader *Reader) IsEqual (other *Reader) bool {
 	}
 
 	return true
-}
-
-/*
-String yes, it will print it in JSON like format.
-*/
-func (reader *Reader) String() string {
-	r, e := json.MarshalIndent (reader, "", "\t")
-
-	if nil != e {
-		log.Print (e)
-	}
-
-	return string (r)
 }
