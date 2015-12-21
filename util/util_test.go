@@ -28,17 +28,25 @@ var output = [][]float64{
 	{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0},
 }
 
-func TestIndirectSort(t *testing.T) {
+func TestIndirectSortFloat64(t *testing.T) {
 	var res, exp string
 
 	for i := range input {
-		util.IndirectSort(&input[i])
+		util.IndirectSortFloat64(input[i])
 
 		res = fmt.Sprint(input[i])
 		exp = fmt.Sprint(output[i])
 
 		assert.Equal(t, exp, res)
 	}
+}
+
+func TestIndirectSortFloat642(t *testing.T) {
+	in := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+	got := util.IndirectSortFloat64(in)
+
+	fmt.Println("sorted index:", got)
 }
 
 func TestSortFloatSliceByIndex(t *testing.T) {
@@ -50,7 +58,7 @@ func TestSortFloatSliceByIndex(t *testing.T) {
 	fmt.Println("input 1:", in1)
 	fmt.Println("input 2:", in2)
 
-	sortedIdx := util.IndirectSort(&in1)
+	sortedIdx := util.IndirectSortFloat64(in1)
 
 	fmt.Println("sorted idx:", sortedIdx)
 

@@ -8,149 +8,115 @@ Package util contain common function to work with data.
 package util
 
 const (
-	// Threshold for insertion sort. When the data less than Threshold,
-	// insertion sort will be used in IndirectSort instead of QuickSort.
-	Threshold = 7
+	// SortThreshold for sort. When the data less than SortThreshold,
+	// insertion sort will be used to replace the sort.
+	SortThreshold = 7
 )
 
 /*
-InsertionSort will sort the data using insertion algorithm.
+InsertionSortFloat64 will sort the data using insertion algorithm.
 */
-func InsertionSort(data *[]float64, idx *[]int, l, r int) {
-	var tmpIdx int
-	var tmpData float64
-	var i, j int
-
-	for i = l + 1; i <= r; i++ {
-		tmpIdx = (*idx)[i]
-		tmpData = (*data)[i]
-
-		for j = i; j > l && tmpData < (*data)[j-1]; j-- {
-			(*idx)[j] = (*idx)[j-1]
-			(*data)[j] = (*data)[j-1]
+func InsertionSortFloat64(data []float64, idx []int, l, r int) {
+	for x := l; x <= r; x++ {
+		for y := x + 1; y <= r; y++ {
+			if data[x] > data[y] {
+				SwapInt(idx, x, y)
+				SwapFloat64(data, x, y)
+			}
 		}
-
-		(*idx)[j] = tmpIdx
-		(*data)[j] = tmpData
 	}
 }
 
 /*
 SwapInt swap two indices value of integer.
 */
-func SwapInt(data *[]int, i, j int) {
+func SwapInt(data []int, i, j int) {
 	if i == j {
 		return
 	}
 
-	tmp := (*data)[i]
-	(*data)[i] = (*data)[j]
-	(*data)[j] = tmp
+	tmp := data[i]
+	data[i] = data[j]
+	data[j] = tmp
 }
 
 /*
 SwapFloat64 swap two indices value of 64bit float.
 */
-func SwapFloat64(data *[]float64, i, j int) {
+func SwapFloat64(data []float64, i, j int) {
 	if i == j {
 		return
 	}
 
-	tmp := (*data)[i]
-	(*data)[i] = (*data)[j]
-	(*data)[j] = tmp
+	tmp := data[i]
+	data[i] = data[j]
+	data[j] = tmp
 }
 
 /*
 SwapString swap two indices value of string.
 */
-func SwapString(data *[]string, i, j int) {
+func SwapString(data []string, i, j int) {
 	if i == j {
 		return
 	}
 
-	tmp := (*data)[i]
-	(*data)[i] = (*data)[j]
-	(*data)[j] = tmp
+	tmp := data[i]
+	data[i] = data[j]
+	data[j] = tmp
 }
 
-/*
-Median3 sort the left, center, and right data.
-Return pivot.
-*/
-func Median3(data *[]float64, idx *[]int, l, r int) float64 {
-	c := (l + r) / 2
-
-	if (*data)[l] > (*data)[c] {
-		SwapInt(idx, l, c)
-		SwapFloat64(data, l, c)
-	}
-	if (*data)[l] > (*data)[r] {
-		SwapInt(idx, l, r)
-		SwapFloat64(data, l, r)
-	}
-	if (*data)[c] > (*data)[r] {
-		SwapInt(idx, c, r)
-		SwapFloat64(data, c, r)
+func MergeSortSliceFloat64(data []float64, sortedIdx []int, l, r int) {
+	if l + SortThreshold >= r {
+		InsertionSortFloat64(data, sortedIdx, l, r)
+		return
 	}
 
-	SwapInt(idx, c, r-1)
-	SwapFloat64(data, c, r-1)
+	res := (r + l) % 2
+	c := (r + l) / 2
+	if res == 0 {
+		c--
+	}
 
-	return (*data)[r-1]
-}
+	MergeSortSliceFloat64(data, sortedIdx, l, c)
+	MergeSortSliceFloat64(data, sortedIdx, c + 1, r)
 
-/*
-QuickSort will sort the data from left index `l` to right index `r` and save
-the sorted index in idx.
-*/
-func QuickSort(data *[]float64, idx *[]int, l, r int) {
-	var pivot float64
-	var i, j int
-
-	if l+Threshold >= r {
-		InsertionSort(data, idx, l, r)
-	} else {
-		pivot = Median3(data, idx, l, r)
-
-		i = l
-		j = r - 1
-		for {
-			i++
-			for (*data)[i] < pivot {
-				i++
-			}
-			j--
-			for (*data)[j] > pivot {
-				j--
-			}
-			if i < j {
-				SwapInt(idx, i, j)
-				SwapFloat64(data, i, j)
-			} else {
-				break
-			}
+	// merging
+	x := l
+	y := c + 1
+	for x <= c && y <= r {
+		if data[x] <= data[y] {
+			x++
+		} else {
+			SwapInt(sortedIdx, x, y)
+			SwapFloat64(data, x, y)
+			y++
 		}
-		SwapInt(idx, i, r-1)
-		SwapFloat64(data, i, r-1)
+	}
 
-		QuickSort(data, idx, l, i-1)
-		QuickSort(data, idx, i+1, r)
+	for x < y && y <= r {
+		if data[x] > data[y] {
+			SwapInt(sortedIdx, x, y)
+			SwapFloat64(data, x, y)
+			x++
+		} else {
+			y++
+		}
 	}
 }
 
 /*
-IndirectSort will sort the data and return the sorted index.
+IndirectSortFloat64 will sort the data and return the sorted index.
 */
-func IndirectSort(data *[]float64) (sortedIdx []int) {
-	datalen := len(*data)
+func IndirectSortFloat64(data []float64) (sortedIdx []int) {
+	datalen := len(data)
 
 	sortedIdx = make([]int, datalen)
 	for i := 0; i < datalen; i++ {
 		sortedIdx[i] = i
 	}
 
-	QuickSort(data, &sortedIdx, 0, datalen - 1)
+	MergeSortSliceFloat64(data, sortedIdx, 0, datalen - 1)
 
 	return
 }
