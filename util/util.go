@@ -66,6 +66,10 @@ func SwapString(data []string, i, j int) {
 	data[j] = tmp
 }
 
+/*
+MergeSortSliceFloat64 sort the slice of float from `l` to `r` using mergesort
+algorithm, return the sorted index.
+*/
 func MergeSortSliceFloat64(data []float64, sortedIdx []int, l, r int) {
 	if l + SortThreshold >= r {
 		InsertionSortFloat64(data, sortedIdx, l, r)
