@@ -17,6 +17,7 @@ type DatasetInterface interface {
 	GetColumnsType() []int
 	GetColumnTypeAt(colidx int) (int, error)
 
+	GetColumn(idx int) (col *Column, e error)
 	GetData() interface{}
 	GetDataAsRows() Rows
 	GetDataAsColumns() (Columns, error)
@@ -25,4 +26,5 @@ type DatasetInterface interface {
 
 	PushRow(r Row) error
 	PushRowToColumns(r Row) error
+	PushColumn(col Column) error
 }

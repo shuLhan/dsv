@@ -6,6 +6,8 @@ package dsv
 
 import (
 	"errors"
+	"fmt"
+	"github.com/golang/glog"
 	"math"
 )
 
@@ -60,6 +62,9 @@ func (dataset *Dataset) Init(mode int, types []int) (e error) {
 	} else {
 		dataset.Columns = make(Columns, len(types))
 		e = dataset.Columns.SetType(types)
+		if e != nil {
+			return
+		}
 	}
 
 	dataset.SetMode(mode)
@@ -89,13 +94,13 @@ func (dataset *Dataset) SetMode(mode int) error {
 	switch mode {
 	case DatasetModeRows:
 		dataset.Mode = DatasetModeRows
-		dataset.Rows = Rows{}
+		dataset.Rows = make(Rows, 0)
 	case DatasetModeColumns:
 		dataset.Mode = DatasetModeColumns
 		dataset.Columns.Reset()
 	case DatasetModeMatrix:
 		dataset.Mode = DatasetModeMatrix
-		dataset.Rows = Rows{}
+		dataset.Rows = make(Rows, 0)
 		dataset.Columns.Reset()
 	default:
 		return ErrUnknownDatasetMode
@@ -129,15 +134,6 @@ func (dataset *Dataset) GetNRow() (nrow int) {
 	case DatasetModeMatrix:
 		// matrix mode could have empty either in rows or column.
 		nrow = len(dataset.Rows)
-
-		if nrow <= 0 {
-			if len(dataset.Columns) <= 0 {
-				nrow = 0
-			} else {
-				// get length of record in the first column
-				nrow = dataset.Columns[0].GetLength()
-			}
-		}
 	}
 	return
 }
@@ -163,6 +159,26 @@ func (dataset *Dataset) GetColumnsType() (types []int) {
 }
 
 /*
+GetColumnsTypeByIdx get column type filtered by column index `colsIdx`.
+*/
+func (dataset *Dataset) GetColumnsTypeByIdx(colsIdx []int) (
+	types []int,
+	e error,
+) {
+	colslen := dataset.GetNColumn()
+
+	for _, v := range colsIdx {
+		if v >= colslen {
+			return types, ErrMisColLength
+		}
+
+		types = append(types, dataset.Columns[v].GetType())
+	}
+
+	return
+}
+
+/*
 GetColumnTypeAt return type of column in index `colidx` in
 dataset.
 */
@@ -172,6 +188,29 @@ func (dataset *Dataset) GetColumnTypeAt(colidx int) (int, error) {
 	}
 
 	return dataset.Columns[colidx].Type, nil
+}
+
+/*
+GetColumn return pointer to column object at index `idx`.
+*/
+func (dataset *Dataset) GetColumn(idx int) (col *Column, e error) {
+	if idx > dataset.GetNColumn() {
+		return
+	}
+
+	switch dataset.Mode {
+	case DatasetModeRows:
+		e = dataset.TransposeToColumns()
+		if e != nil {
+			return
+		}
+	case DatasetModeColumns:
+		// do nothing
+	case DatasetModeMatrix:
+		// do nothing
+	}
+
+	return &dataset.Columns[idx], nil
 }
 
 /*
@@ -272,24 +311,11 @@ TransposeToRows will move all data from columns (vertical) to rows (horizontal)
 mode.
 */
 func (dataset *Dataset) TransposeToRows() {
-	if dataset.GetNRow() <= 0 {
-		// nothing to transpose
-		return
-	}
-
 	orgmode := dataset.GetMode()
 
 	if orgmode == DatasetModeRows {
 		// already transposed
 		return
-	}
-
-	if orgmode == DatasetModeMatrix {
-		// only transpose if rows is empty.
-		nrow := len(dataset.Rows)
-		if nrow > 0 {
-			return
-		}
 	}
 
 	if orgmode == DatasetModeColumns {
@@ -309,6 +335,8 @@ func (dataset *Dataset) TransposeToRows() {
 		}
 	}
 
+	dataset.Rows = make(Rows, 0)
+
 	// transpose record from row to column
 	for r := 0; r < rowlen; r++ {
 		row := make(Row, flen)
@@ -320,8 +348,8 @@ func (dataset *Dataset) TransposeToRows() {
 		dataset.Rows = append(dataset.Rows, row)
 	}
 
-	// only reset the columns if original dataset is rows
-	// this to prevent empty data when mode is matrix.
+	// Only reset the columns if original dataset mode is "columns".
+	// This to prevent empty data when mode is matrix.
 	if orgmode == DatasetModeColumns {
 		dataset.Columns.Reset()
 	}
@@ -347,13 +375,27 @@ func (dataset *Dataset) PushRow(row Row) (e error) {
 PushRowToColumns push each data in Row to Columns.
 */
 func (dataset *Dataset) PushRowToColumns(row Row) (e error) {
-	// check if row length equal with columns length
-	if len(row) != len(dataset.Columns) {
-		return ErrMissRecordsLen
+	rowlen := len(row)
+	if rowlen <= 0 {
+		// return immediately if no data in row.
+		return
 	}
 
-	for i := range row {
-		dataset.Columns[i].PushBack(row[i])
+	// check if columns is initialize.
+	collen := len(dataset.Columns)
+	if collen <= 0 {
+		dataset.Columns = make(Columns, rowlen)
+		collen = rowlen
+	}
+
+	// pick the minimum length.
+	min := rowlen
+	if collen < rowlen {
+		min = collen
+	}
+
+	for x := 0; x < min; x++ {
+		dataset.Columns[x].PushBack(row[x])
 	}
 
 	return
@@ -375,20 +417,42 @@ func (dataset *Dataset) PushColumn(col Column) (e error) {
 	return
 }
 
+/*
+PushColumnToRows add each record in column to each rows, from top to bottom.
+*/
 func (dataset *Dataset) PushColumnToRows(col Column) (e error) {
 	colsize := col.GetLength()
 	if colsize <= 0 {
+		// Do nothing if column is empty.
 		return
 	}
 
-	// check the lengh of column with the length of row
 	nrow := dataset.GetNRow()
-	if nrow != colsize {
-		return ErrMissRecordsLen
+	if nrow <= 0 {
+		// If no existing rows in dataset, initialize the rows slice.
+		dataset.Rows = make(Rows, colsize)
+
+		for nrow = 0; nrow < colsize; nrow++ {
+			dataset.Rows[nrow] = make(Row, 0)
+		}
 	}
 
-	for x := 0; x < nrow; x++ {
-		dataset.Rows[x].PushBack(col.Records[x])
+	// Pick the minimum length between column or current row length.
+	minrow := nrow
+
+	if colsize < nrow {
+		minrow = colsize
+	}
+
+	// Push each record in column to each rows
+	var row *Row
+	var rec *Record
+
+	for x := 0; x < minrow; x++ {
+		row = &dataset.Rows[x]
+		rec = col.Records[x]
+
+		row.PushBack(rec)
 	}
 
 	return
@@ -558,6 +622,8 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 		dataset.TransposeToRows()
 	}
 
+	glog.V(2).Infoln("dataset:", dataset)
+
 	splitLess.Init(dataset.GetMode(), dataset.GetColumnsType())
 	splitGreater.Init(dataset.GetMode(), dataset.GetColumnsType())
 
@@ -568,6 +634,9 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 			splitGreater.PushRow(row)
 		}
 	}
+
+	glog.V(2).Infoln(">>> split less:", splitLess)
+	glog.V(2).Infoln(">>> split greater:", splitGreater)
 
 	switch orgmode {
 	case DatasetModeColumns:
@@ -584,14 +653,7 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 			return
 		}
 	case DatasetModeMatrix:
-		e = splitLess.TransposeToColumns()
-		if e != nil {
-			return
-		}
-		e = splitGreater.TransposeToColumns()
-		if e != nil {
-			return
-		}
+		// do nothing, since its already filled when pushing new row.
 	}
 
 	return
@@ -728,5 +790,63 @@ func (dataset *Dataset) SplitRowsByValue(colidx int, value interface{}) (
 		return Dataset{}, Dataset{}, e
 	}
 
+	return
+}
+
+/*
+SelectColumnsByIdx return new dataset with selected column index.
+*/
+func (dataset *Dataset) SelectColumnsByIdx(colsIdx []int) (
+	newset Dataset,
+	e error,
+) {
+	var col *Column
+
+	orgmode := dataset.GetMode()
+
+	if orgmode == DatasetModeRows {
+		e = dataset.TransposeToColumns()
+		if e != nil {
+			return
+		}
+	}
+
+	newset.Init(dataset.GetMode(), nil)
+
+	for _, idx := range colsIdx {
+		col, e = dataset.GetColumn(idx)
+		if e != nil {
+			return
+		}
+
+		e = newset.PushColumn(*col)
+		if e != nil {
+			return
+		}
+	}
+
+	// revert the mode back
+	switch orgmode {
+	case DatasetModeRows:
+		dataset.TransposeToRows()
+		newset.TransposeToRows()
+	case DatasetModeColumns:
+		// do nothing
+	case DatasetModeMatrix:
+		// do nothing
+	}
+
+	return
+}
+
+/*
+String pretty print the data.
+*/
+func (dataset Dataset) String() (s string) {
+	s = fmt.Sprintf("{\n"+
+		"\tMode   : %v\n"+
+		"\tRows   : %v\n"+
+		"\tColumns: %v\n"+
+	"}", dataset.Mode, dataset.Rows, dataset.Columns)
 	return
 }
