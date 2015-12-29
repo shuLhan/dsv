@@ -148,6 +148,37 @@ func (dataset *Dataset) SetColumnsType(types []int) (e error) {
 }
 
 /*
+SetColumnsName set column name.
+*/
+func (dataset *Dataset) SetColumnsName(names []string) {
+	nameslen := len(names)
+
+	if nameslen <= 0 {
+		// empty names, return immediately.
+		return
+	}
+
+	collen := dataset.GetNColumn()
+
+	if collen <= 0 {
+		dataset.Columns = make(Columns, nameslen)
+		collen = nameslen
+	}
+
+	// find minimum length
+	minlen := collen
+	if nameslen < collen {
+		minlen = nameslen
+	}
+
+	for x := 0; x < minlen; x++ {
+		dataset.Columns[x].Name = names[x]
+	}
+
+	return
+}
+
+/*
 GetColumnsType return the type of all columns.
 */
 func (dataset *Dataset) GetColumnsType() (types []int) {

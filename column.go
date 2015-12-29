@@ -8,6 +8,8 @@ package dsv
 Column represent slice of record. A vertical representation of data.
 */
 type Column struct {
+	// Name of column. String identifier for the column.
+	Name string
 	// Type of column. All record in column have the same type.
 	Type int
 	// Flag additional attribute that can be set to mark some value on this
@@ -20,9 +22,13 @@ type Column struct {
 /*
 NewColumn initialize column with type and set all attributes.
 */
-func NewColumn(data []string, colType int) (column *Column, e error) {
+func NewColumn(data []string, colType int, name string) (
+	column *Column,
+	e error,
+) {
 	column = &Column{
 			Type: colType,
+			Name: name,
 			Flag: 0,
 		}
 
@@ -59,6 +65,13 @@ GetType return column type.
 */
 func (column *Column) GetType() int {
 	return column.Type
+}
+
+/*
+GetName return column name in string.
+*/
+func (column *Column) GetName() string {
+	return column.Name
 }
 
 /*

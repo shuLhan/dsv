@@ -32,6 +32,8 @@ var dataset_type = []int{
 	dsv.TString,
 }
 
+var dataset_names = []string{"int", "real", "string"}
+
 func PopulateWithRows(t *testing.T, dataset *dsv.Dataset) {
 	for _, rowin := range dataset_rows {
 		row := make(dsv.Row, len(rowin))
@@ -153,7 +155,8 @@ func TestModeColumnsPushColumn(t *testing.T) {
 	exp := ""
 	got := ""
 	for x := range dataset_cols {
-		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x])
+		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x],
+			dataset_names[x])
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -180,7 +183,8 @@ func TestModeRowsPushColumn(t *testing.T) {
 	}
 
 	for x := range dataset_cols {
-		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x])
+		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x],
+			dataset_names[x])
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -211,7 +215,8 @@ func TestModeMatrixPushColumn(t *testing.T) {
 	exp := ""
 	got := ""
 	for x := range dataset_cols {
-		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x])
+		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x],
+			dataset_names[x])
 		if e != nil {
 			t.Fatal(e)
 		}

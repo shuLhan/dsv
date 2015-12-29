@@ -16,6 +16,7 @@ type DatasetInterface interface {
 	SetColumnsType(types []int) error
 	GetColumnsType() []int
 	GetColumnTypeAt(colidx int) (int, error)
+	SetColumnsName(names []string)
 
 	GetColumn(idx int) (col *Column, e error)
 	GetData() interface{}

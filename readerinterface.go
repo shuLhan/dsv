@@ -66,6 +66,7 @@ func InitReader(reader ReaderInterface) (e error) {
 	md := reader.GetInputMetadata()
 	nColOut := 0
 	var types []int
+	var names []string
 
 	// Check and initialize metadata.
 	for i := range md {
@@ -80,6 +81,7 @@ func InitReader(reader ReaderInterface) (e error) {
 			nColOut++
 			// add type of metadata to list of type
 			types = append(types, md[i].GetType())
+			names = append(names, md[i].GetName())
 		}
 	}
 
@@ -91,6 +93,8 @@ func InitReader(reader ReaderInterface) (e error) {
 	if e != nil {
 		return
 	}
+
+	reader.SetColumnsName(names)
 
 	// Check if output mode is valid and initialize it if valid.
 	e = reader.SetDatasetMode(reader.GetDatasetMode())
