@@ -164,6 +164,19 @@ func NewReader(config string) (reader *Reader, e error) {
 }
 
 /*
+CopyConfig copy configuration from other reader object not including data
+and metadata.
+*/
+func (reader *Reader) CopyConfig(src *Reader) {
+	reader.ConfigPath = src.GetConfigPath()
+	reader.Input = src.GetInput()
+	reader.Skip = src.GetSkip()
+	reader.Rejected = src.GetRejected()
+	reader.MaxRows = src.GetMaxRows()
+	reader.DatasetMode = src.GetDatasetMode()
+}
+
+/*
 GetInput return the input file.
 */
 func (reader *Reader) GetInput () string {
