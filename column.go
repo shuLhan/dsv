@@ -18,11 +18,47 @@ type Column struct {
 }
 
 /*
+NewColumn initialize column with type and set all attributes.
+*/
+func NewColumn(data []string, colType int) (column *Column, e error) {
+	column = &Column{
+			Type: colType,
+			Flag: 0,
+		}
+
+	datalen := len(data)
+
+	column.Records = make([]*Record, datalen)
+
+	if datalen <= 0 {
+		return
+	}
+
+	var rec *Record
+	for x := 0; x < datalen; x++ {
+		rec, e = NewRecord([]byte(data[x]), colType)
+		if e != nil {
+			return
+		}
+		column.Records[x] = rec
+	}
+
+	return
+}
+
+/*
 Reset column data and flag.
 */
 func (column *Column) Reset() {
 	column.Flag = 0
 	column.Records = make([]*Record, 0)
+}
+
+/*
+GetType return column type.
+*/
+func (column *Column) GetType() int {
+	return column.Type
 }
 
 /*
