@@ -1,4 +1,6 @@
-testdata/output.dat
-testdata/rejected.dat
-testdata/output_skip.dat
 rejected.dat
+testdata/output.dat
+testdata/output_skip.dat
+testdata/rejected.dat
+testdata/writerawcolumns.out
+testdata/writerawrows.out

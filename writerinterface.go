@@ -11,7 +11,7 @@ type WriterInterface interface {
 	ConfigInterface
 	GetOutput() string
 	SetOutput(path string)
-	OpenOutput() error
+	OpenOutput(file string) error
 	Flush()
 	Close()
 }
@@ -41,7 +41,5 @@ func InitWriter(writer WriterInterface) error {
 
 	writer.SetOutput(ConfigCheckPath(writer, out))
 
-	return writer.OpenOutput()
+	return writer.OpenOutput("")
 }
-
-

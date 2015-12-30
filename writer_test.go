@@ -59,3 +59,59 @@ func TestWriterWithColumns(t *testing.T) {
 
 	assert.EqualFileContent(t, "testdata/expected_skip.dat", rw.GetOutput())
 }
+
+func TestWriteRawRows(t *testing.T) {
+	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	PopulateWithRows(t, dataset)
+
+	writer, e := dsv.NewWriter("")
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	outfile := "testdata/writerawrows.out"
+	expfile := "testdata/writeraw.exp"
+
+	e = writer.OpenOutput(outfile)
+
+	_, e = writer.WriteDataset(dataset, nil)
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	assert.EqualFileContent(t, outfile, expfile)
+}
+
+func TestWriteRawColumns(t *testing.T) {
+	dataset, e := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	PopulateWithColumns(t, dataset)
+
+	writer, e := dsv.NewWriter("")
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	outfile := "testdata/writerawcolumns.out"
+	expfile := "testdata/writeraw.exp"
+
+	e = writer.OpenOutput(outfile)
+
+	_, e = writer.WriteDataset(dataset, nil)
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	assert.EqualFileContent(t, outfile, expfile)
+}

@@ -11,12 +11,20 @@ import (
 	"os"
 )
 
+const (
+	// DefSeparator default separator that will be used if its not given
+	// in config file.
+	DefSeparator = ","
+	// DefOutput file.
+	DefOutput = "output.dat"
+)
+
 /*
 Writer write records from reader or slice using format configuration in
 metadata.
 */
 type Writer struct {
-	Config				`json:"="`
+	Config `json:"-"`
 	// Output file where the records will be written.
 	Output		string		`json:"Output"`
 	// OutputMetadata define format for each column.
@@ -68,8 +76,16 @@ func (writer *Writer) SetOutput(path string) {
 /*
 OpenOutput file and buffered writer.
 */
-func (writer *Writer) OpenOutput() (e error) {
-	writer.fWriter, e = os.OpenFile (writer.Output,
+func (writer *Writer) OpenOutput(file string) (e error) {
+	if file == "" {
+		if writer.Output == "" {
+			file = DefOutput
+		} else {
+			file = writer.Output
+		}
+	}
+
+	writer.fWriter, e = os.OpenFile(file,
 					os.O_CREATE | os.O_TRUNC | os.O_WRONLY,
 					0600)
 	if nil != e {
@@ -230,6 +246,111 @@ func (writer *Writer) WriteColumns(columns *Columns, md []MetadataInterface) (
 	}
 
 	return n,e
+}
+
+/*
+WriteRawRows write rows data using separator `sep` for each record.
+*/
+func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
+	nrow = len(*rows)
+
+	if nrow <= 0 {
+		return
+	}
+
+	var v []byte
+
+	for x := 0; x < nrow; x++ {
+		v = []byte{}
+		for y, rec := range (*rows)[x] {
+			if y > 0 {
+				v = append(v, []byte(sep)...)
+			}
+			v = append(v, rec.ToByte()...)
+		}
+
+		v = append(v, '\n')
+
+		_, e = writer.BufWriter.Write(v)
+
+		if nil != e {
+			return 0, e
+		}
+	}
+
+	writer.Flush()
+	return
+}
+
+/*
+WriteRawColumns write raw columns using separator `sep` for each record to
+file.
+*/
+func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
+	nrow int,
+	e error,
+) {
+	ncol := len(*cols)
+	if ncol <= 0 {
+		return
+	}
+
+	nrow = (*cols)[0].GetLength()
+	if nrow <= 0 {
+		return
+	}
+
+	var v []byte
+
+	for x := 0; x < nrow; x++ {
+		v = []byte{}
+		for y := 0; y < ncol; y++ {
+			if y > 0 {
+				v = append(v, []byte(sep)...)
+			}
+			v = append(v, (*cols)[y].Records[x].ToByte()...)
+		}
+
+		v = append(v, '\n')
+
+		_, e = writer.BufWriter.Write(v)
+
+		if nil != e {
+			return 0, e
+		}
+	}
+
+	writer.Flush()
+	return
+}
+
+/*
+WriteDataset will write content of dataset to file without metadata but using
+separator `sep` for each record.
+
+We use pointer in separator parameter, so we can use empty string as separator.
+*/
+func (writer *Writer) WriteDataset(dataset *Dataset, sep *string) (int, error) {
+	if nil == writer.fWriter {
+		return 0, ErrNotOpen
+	}
+	if nil == dataset {
+		return 0, nil
+	}
+	if sep == nil {
+		sep = new(string)
+		*sep = DefSeparator
+	}
+
+	switch dataset.GetMode() {
+	case DatasetModeRows, DatasetModeMatrix:
+		return writer.WriteRawRows(&dataset.Rows, *sep)
+
+	case DatasetModeColumns:
+		return writer.WriteRawColumns(&dataset.Columns, *sep)
+	}
+
+	return 0, ErrUnknownDatasetMode
 }
 
 /*
