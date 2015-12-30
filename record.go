@@ -49,6 +49,15 @@ func NewRecord(v []byte, t int) (r *Record, e error) {
 }
 
 /*
+NewRecordReal create new record from float value.
+*/
+func NewRecordReal(v float64) (r *Record) {
+	return &Record{
+		V: v,
+	}
+}
+
+/*
 GetType of record.
 */
 func (r *Record) GetType() (int, error) {
