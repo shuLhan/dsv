@@ -15,7 +15,7 @@ func TestRandomPickColumns(t *testing.T) {
 	var dataset dsv.Dataset
 	var e error
 
-	dataset.Init(dsv.DatasetModeRows, testColTypes)
+	dataset.Init(dsv.DatasetModeRows, testColTypes, testColNames)
 
 	dataset.Rows, e = initRows()
 	if e != nil {

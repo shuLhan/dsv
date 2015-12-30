@@ -64,6 +64,7 @@ var rowsData = [][]byte{
 }
 
 var testColTypes = []int{dsv.TInteger, dsv.TInteger, dsv.TInteger, dsv.TString}
+var testColNames = []string{"int01", "int02", "int03", "class"}
 
 var rowsExpect = []string{
 	"[1 5 9 +]",

@@ -51,8 +51,21 @@ func PopulateWithRows(t *testing.T, dataset *dsv.Dataset) {
 	}
 }
 
+func PopulateWithColumns(t *testing.T, dataset *dsv.Dataset) {
+	for x := range dataset_cols {
+		col, e := dsv.NewColumnString(dataset_cols[x], dataset_type[x],
+			dataset_names[x])
+		if e != nil {
+			t.Fatal(e)
+		}
+
+		dataset.PushColumn(*col)
+	}
+}
+
 func CreateDataset(t *testing.T) (dataset *dsv.Dataset) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, dataset_type)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, dataset_type,
+		dataset_names)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -146,7 +159,7 @@ func TestSplitRowsByCategorical(t *testing.T) {
 }
 
 func TestModeColumnsPushColumn(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeColumns, nil)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
 
 	if e != nil {
 		t.Fatal(e)
@@ -155,7 +168,7 @@ func TestModeColumnsPushColumn(t *testing.T) {
 	exp := ""
 	got := ""
 	for x := range dataset_cols {
-		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x],
+		col, e := dsv.NewColumnString(dataset_cols[x], dataset_type[x],
 			dataset_names[x])
 		if e != nil {
 			t.Fatal(e)
@@ -176,21 +189,13 @@ func TestModeColumnsPushColumn(t *testing.T) {
 }
 
 func TestModeRowsPushColumn(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, nil)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
 
 	if e != nil {
 		t.Fatal(e)
 	}
 
-	for x := range dataset_cols {
-		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x],
-			dataset_names[x])
-		if e != nil {
-			t.Fatal(e)
-		}
-
-		dataset.PushColumn(*col)
-	}
+	PopulateWithColumns(t, dataset)
 
 	// Check rows
 	exp := DatasetRowsJoin(t)
@@ -206,7 +211,7 @@ func TestModeRowsPushColumn(t *testing.T) {
 }
 
 func TestModeMatrixPushColumn(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeMatrix, nil)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeMatrix, nil, nil)
 
 	if e != nil {
 		t.Fatal(e)
@@ -215,7 +220,7 @@ func TestModeMatrixPushColumn(t *testing.T) {
 	exp := ""
 	got := ""
 	for x := range dataset_cols {
-		col, e := dsv.NewColumn(dataset_cols[x], dataset_type[x],
+		col, e := dsv.NewColumnString(dataset_cols[x], dataset_type[x],
 			dataset_names[x])
 		if e != nil {
 			t.Fatal(e)
@@ -237,7 +242,7 @@ func TestModeMatrixPushColumn(t *testing.T) {
 }
 
 func TestModeRowsPushRows(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, nil)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
 
 	if e != nil {
 		t.Fatal(e)
@@ -252,7 +257,7 @@ func TestModeRowsPushRows(t *testing.T) {
 }
 
 func TestModeColumnsPushRows(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeColumns, nil)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
 
 	if e != nil {
 		t.Fatal(e)
@@ -277,7 +282,7 @@ func TestModeColumnsPushRows(t *testing.T) {
 }
 
 func TestModeMatrixPushRows(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeMatrix, nil)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeMatrix, nil, nil)
 
 	if e != nil {
 		t.Fatal(e)

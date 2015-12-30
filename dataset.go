@@ -45,10 +45,13 @@ type Dataset struct {
 /*
 NewDataset create new dataset, use the mode to initialize the dataset.
 */
-func NewDataset(mode int, types []int) (dataset *Dataset, e error) {
+func NewDataset(mode int, types []int, names []string) (
+	dataset *Dataset,
+	e error,
+) {
 	dataset = &Dataset{}
 
-	e = dataset.Init(mode, types)
+	e = dataset.Init(mode, types, names)
 
 	return
 }
@@ -56,7 +59,7 @@ func NewDataset(mode int, types []int) (dataset *Dataset, e error) {
 /*
 Init will set the dataset using mode and types.
 */
-func (dataset *Dataset) Init(mode int, types []int) (e error) {
+func (dataset *Dataset) Init(mode int, types []int, names []string) (e error) {
 	if types == nil {
 		dataset.Columns = make(Columns, 0)
 	} else {
@@ -67,6 +70,7 @@ func (dataset *Dataset) Init(mode int, types []int) (e error) {
 		}
 	}
 
+	dataset.SetColumnsName(names)
 	dataset.SetMode(mode)
 
 	return
@@ -113,8 +117,21 @@ func (dataset *Dataset) SetMode(mode int) error {
 /*
 GetNColumn return the number of column in dataset.
 */
-func (dataset *Dataset) GetNColumn() int {
-	return len(dataset.Columns)
+func (dataset *Dataset) GetNColumn() (ncol int) {
+	ncol = len(dataset.Columns)
+
+	if ncol > 0 {
+		return
+	}
+
+	if dataset.GetMode() == DatasetModeRows {
+		if len(dataset.Rows) <= 0 {
+			return 0
+		}
+		return len(dataset.Rows[0])
+	}
+
+	return
 }
 
 /*
@@ -173,6 +190,17 @@ func (dataset *Dataset) SetColumnsName(names []string) {
 
 	for x := 0; x < minlen; x++ {
 		dataset.Columns[x].Name = names[x]
+	}
+
+	return
+}
+
+/*
+GetColumnsName return name of all columns.
+*/
+func (dataset *Dataset) GetColumnsName() (names []string) {
+	for x := range dataset.Columns {
+		names = append(names, dataset.Columns[x].GetName())
 	}
 
 	return
@@ -512,8 +540,10 @@ func (dataset *Dataset) RandomPickRows(n int, duplicate bool) (
 		dataset.TransposeToRows()
 	}
 
-	picked.Init(dataset.Mode, dataset.GetColumnsType())
-	unpicked.Init(dataset.Mode, dataset.GetColumnsType())
+	picked.Init(dataset.Mode, dataset.GetColumnsType(),
+		dataset.GetColumnsName())
+	unpicked.Init(dataset.Mode, dataset.GetColumnsType(),
+		dataset.GetColumnsName())
 
 	picked.Rows, unpicked.Rows, pickedIdx, unpickedIdx =
 		dataset.Rows.RandomPick(n, duplicate)
@@ -574,8 +604,8 @@ func (dataset *Dataset) RandomPickColumns(n int, dup bool, excludeIdx []int) (
 		}
 	}
 
-	picked.Init(dataset.GetMode(), nil)
-	unpicked.Init(dataset.GetMode(), nil)
+	picked.Init(dataset.GetMode(), nil, nil)
+	unpicked.Init(dataset.GetMode(), nil, nil)
 
 	picked.Columns, unpicked.Columns, pickedIdx, unpickedIdx =
 		dataset.Columns.RandomPick(n, dup, excludeIdx)
@@ -655,8 +685,10 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 
 	glog.V(2).Infoln("dataset:", dataset)
 
-	splitLess.Init(dataset.GetMode(), dataset.GetColumnsType())
-	splitGreater.Init(dataset.GetMode(), dataset.GetColumnsType())
+	splitLess.Init(dataset.GetMode(), dataset.GetColumnsType(),
+		dataset.GetColumnsName())
+	splitGreater.Init(dataset.GetMode(), dataset.GetColumnsType(),
+		dataset.GetColumnsName())
 
 	for _, row := range dataset.Rows {
 		if row[colidx].Float() < splitVal {
@@ -732,8 +764,10 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 		dataset.TransposeToRows()
 	}
 
-	splitIn.Init(dataset.GetMode(), dataset.GetColumnsType())
-	splitEx.Init(dataset.GetMode(), dataset.GetColumnsType())
+	splitIn.Init(dataset.GetMode(), dataset.GetColumnsType(),
+		dataset.GetColumnsName())
+	splitEx.Init(dataset.GetMode(), dataset.GetColumnsType(),
+		dataset.GetColumnsName())
 
 	found := false
 
@@ -842,7 +876,7 @@ func (dataset *Dataset) SelectColumnsByIdx(colsIdx []int) (
 		}
 	}
 
-	newset.Init(dataset.GetMode(), nil)
+	newset.Init(dataset.GetMode(), nil, nil)
 
 	for _, idx := range colsIdx {
 		col, e = dataset.GetColumn(idx)
