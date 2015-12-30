@@ -20,33 +20,65 @@ type Column struct {
 }
 
 /*
-NewColumn initialize column with type and set all attributes.
+NewColumn return new column with type and name.
 */
-func NewColumn(data []string, colType int, name string) (
-	column *Column,
+func NewColumn(colType int, colName string) (col *Column) {
+	col = &Column{
+		Type: colType,
+		Name: colName,
+		Flag: 0,
+	}
+
+	col.Records = make([]*Record, 0)
+
+	return
+}
+
+/*
+NewColumnString initialize column with type anda data as string.
+*/
+func NewColumnString(data []string, colType int, colName string) (
+	col *Column,
 	e error,
 ) {
-	column = &Column{
-			Type: colType,
-			Name: name,
-			Flag: 0,
-		}
+	col = NewColumn(colType, colName)
 
 	datalen := len(data)
-
-	column.Records = make([]*Record, datalen)
 
 	if datalen <= 0 {
 		return
 	}
 
-	var rec *Record
+	col.Records = make([]*Record, datalen)
+
 	for x := 0; x < datalen; x++ {
-		rec, e = NewRecord([]byte(data[x]), colType)
+		rec, e := NewRecord([]byte(data[x]), colType)
 		if e != nil {
-			return
+			return nil, e
 		}
-		column.Records[x] = rec
+		col.Records[x] = rec
+	}
+
+	return col, nil
+}
+
+/*
+NewColumnReal create new column with record type is real.
+*/
+func NewColumnReal(data []float64, colName string) (col *Column) {
+	col = NewColumn(TReal, colName)
+
+	datalen := len(data)
+
+	if datalen <= 0 {
+		return
+	}
+
+	col.Records = make([]*Record, datalen)
+
+	for x := 0; x < datalen; x++ {
+		rec := NewRecordReal(data[x])
+		col.Records[x] = rec
 	}
 
 	return
@@ -136,5 +168,29 @@ func (column *Column) ClearValues() {
 
 	for i := range column.Records {
 		column.Records[i].V = v
+	}
+}
+
+/*
+SetValues of all column record.
+*/
+func (column *Column) SetValues(values []string) {
+	vallen := len(values)
+	reclen := column.GetLength()
+
+	// initialize column record if its empty.
+	if reclen <= 0 {
+		column.Records = make([]*Record, vallen)
+		reclen = vallen
+	}
+
+	// pick the least length
+	minlen := reclen
+	if vallen < reclen {
+		minlen = vallen
+	}
+
+	for x := 0; x < minlen; x++ {
+		column.Records[x].SetValue([]byte(values[x]), column.Type)
 	}
 }
