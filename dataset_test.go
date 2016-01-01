@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var dataset_rows = [][]string{
+var datasetRows = [][]string{
 	{"0", "1", "A"},
 	{"1", "1.1", "B"},
 	{"2", "1.2", "A"},
@@ -20,26 +20,26 @@ var dataset_rows = [][]string{
 	{"9", "1.9", "F"},
 }
 
-var dataset_cols = [][]string{
+var datasetCols = [][]string{
 	{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
 	{"1", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9"},
 	{"A", "B", "A", "B", "C", "D", "C", "D", "E", "F"},
 }
 
-var dataset_type = []int{
+var datasetTypes = []int{
 	dsv.TInteger,
 	dsv.TReal,
 	dsv.TString,
 }
 
-var dataset_names = []string{"int", "real", "string"}
+var datasetNames = []string{"int", "real", "string"}
 
 func PopulateWithRows(t *testing.T, dataset *dsv.Dataset) {
-	for _, rowin := range dataset_rows {
+	for _, rowin := range datasetRows {
 		row := make(dsv.Row, len(rowin))
 
 		for x, recin := range rowin {
-			rec, e := dsv.NewRecord([]byte(recin), dataset_type[x])
+			rec, e := dsv.NewRecord([]byte(recin), datasetTypes[x])
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -52,9 +52,9 @@ func PopulateWithRows(t *testing.T, dataset *dsv.Dataset) {
 }
 
 func PopulateWithColumns(t *testing.T, dataset *dsv.Dataset) {
-	for x := range dataset_cols {
-		col, e := dsv.NewColumnString(dataset_cols[x], dataset_type[x],
-			dataset_names[x])
+	for x := range datasetCols {
+		col, e := dsv.NewColumnString(datasetCols[x], datasetTypes[x],
+			datasetNames[x])
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -64,8 +64,8 @@ func PopulateWithColumns(t *testing.T, dataset *dsv.Dataset) {
 }
 
 func CreateDataset(t *testing.T) (dataset *dsv.Dataset) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, dataset_type,
-		dataset_names)
+	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, datasetTypes,
+		datasetNames)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -83,15 +83,15 @@ func DatasetStringJoinByIndex(t *testing.T, dataset [][]string, indis []int) (re
 }
 
 func DatasetRowsJoin(t *testing.T) (s string) {
-	for x := range dataset_rows {
-		s += fmt.Sprint(dataset_rows[x])
+	for x := range datasetRows {
+		s += fmt.Sprint(datasetRows[x])
 	}
 	return
 }
 
 func DatasetColumnsJoin(t *testing.T) (s string) {
-	for x := range dataset_cols {
-		s += fmt.Sprint(dataset_cols[x])
+	for x := range datasetCols {
+		s += fmt.Sprint(datasetCols[x])
 	}
 	return
 }
@@ -105,14 +105,14 @@ func TestSplitRowsByNumeric(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	exp_idx := []int{0, 1, 2, 3, 4}
-	exp := DatasetStringJoinByIndex(t, dataset_rows, exp_idx)
+	expIdx := []int{0, 1, 2, 3, 4}
+	exp := DatasetStringJoinByIndex(t, datasetRows, expIdx)
 	got := fmt.Sprint(splitL.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
 
-	exp_idx = []int{5, 6, 7, 8, 9}
-	exp = DatasetStringJoinByIndex(t, dataset_rows, exp_idx)
+	expIdx = []int{5, 6, 7, 8, 9}
+	exp = DatasetStringJoinByIndex(t, datasetRows, expIdx)
 	got = fmt.Sprint(splitR.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
@@ -123,14 +123,14 @@ func TestSplitRowsByNumeric(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	exp_idx = []int{0, 1, 2, 3, 4, 5, 6, 7}
-	exp = DatasetStringJoinByIndex(t, dataset_rows, exp_idx)
+	expIdx = []int{0, 1, 2, 3, 4, 5, 6, 7}
+	exp = DatasetStringJoinByIndex(t, datasetRows, expIdx)
 	got = fmt.Sprint(splitL.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
 
-	exp_idx = []int{8, 9}
-	exp = DatasetStringJoinByIndex(t, dataset_rows, exp_idx)
+	expIdx = []int{8, 9}
+	exp = DatasetStringJoinByIndex(t, datasetRows, expIdx)
 	got = fmt.Sprint(splitR.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
@@ -145,14 +145,14 @@ func TestSplitRowsByCategorical(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	exp_idx := []int{0, 2, 5, 7}
-	exp := DatasetStringJoinByIndex(t, dataset_rows, exp_idx)
+	expIdx := []int{0, 2, 5, 7}
+	exp := DatasetStringJoinByIndex(t, datasetRows, expIdx)
 	got := fmt.Sprint(splitL.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
 
-	exp_idx = []int{1, 3, 4, 6, 8, 9}
-	exp = DatasetStringJoinByIndex(t, dataset_rows, exp_idx)
+	expIdx = []int{1, 3, 4, 6, 8, 9}
+	exp = DatasetStringJoinByIndex(t, datasetRows, expIdx)
 	got = fmt.Sprint(splitR.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
@@ -167,16 +167,16 @@ func TestModeColumnsPushColumn(t *testing.T) {
 
 	exp := ""
 	got := ""
-	for x := range dataset_cols {
-		col, e := dsv.NewColumnString(dataset_cols[x], dataset_type[x],
-			dataset_names[x])
+	for x := range datasetCols {
+		col, e := dsv.NewColumnString(datasetCols[x], datasetTypes[x],
+			datasetNames[x])
 		if e != nil {
 			t.Fatal(e)
 		}
 
 		dataset.PushColumn(*col)
 
-		exp += fmt.Sprint(dataset_cols[x])
+		exp += fmt.Sprint(datasetCols[x])
 		got += fmt.Sprint(dataset.Columns[x].Records)
 	}
 
@@ -219,16 +219,16 @@ func TestModeMatrixPushColumn(t *testing.T) {
 
 	exp := ""
 	got := ""
-	for x := range dataset_cols {
-		col, e := dsv.NewColumnString(dataset_cols[x], dataset_type[x],
-			dataset_names[x])
+	for x := range datasetCols {
+		col, e := dsv.NewColumnString(datasetCols[x], datasetTypes[x],
+			datasetNames[x])
 		if e != nil {
 			t.Fatal(e)
 		}
 
 		dataset.PushColumn(*col)
 
-		exp += fmt.Sprint(dataset_cols[x])
+		exp += fmt.Sprint(datasetCols[x])
 		got += fmt.Sprint(dataset.Columns[x].Records)
 	}
 

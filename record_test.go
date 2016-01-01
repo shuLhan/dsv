@@ -16,12 +16,12 @@ TestRecord simply check how the stringer work.
 */
 func TestRecord(t *testing.T) {
 	expec := []string{"test", "1", "2"}
-	expec_type := []int{dsv.TString, dsv.TInteger, dsv.TInteger}
+	expType := []int{dsv.TString, dsv.TInteger, dsv.TInteger}
 
 	row := make(dsv.Row, 0)
 
 	for i := range expec {
-		r, e := dsv.NewRecord([]byte(expec[i]), expec_type[i])
+		r, e := dsv.NewRecord([]byte(expec[i]), expType[i])
 		if nil != e {
 			t.Error(e)
 		}

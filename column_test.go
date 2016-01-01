@@ -11,7 +11,7 @@ import (
 )
 
 var data = []string{"9.987654321", "8.8", "7.7", "6.6", "5.5", "4.4", "3.3"}
-var exp_float = []float64{9.987654321, 8.8, 7.7, 6.6, 5.5, 4.4, 3.3}
+var expFloat = []float64{9.987654321, 8.8, 7.7, 6.6, 5.5, 4.4, 3.3}
 
 func TestToFloatSlice(t *testing.T) {
 	var col dsv.Column
@@ -27,7 +27,7 @@ func TestToFloatSlice(t *testing.T) {
 
 	got := col.ToFloatSlice()
 
-	assert.Equal(t, exp_float, got)
+	assert.Equal(t, expFloat, got)
 }
 
 func TestToStringSlice(t *testing.T) {

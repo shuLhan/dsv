@@ -36,7 +36,7 @@ func TestWriterWithSkip(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	doReadWrite(t, &rw.Reader, &rw.Writer, exp_skip, true)
+	doReadWrite(t, &rw.Reader, &rw.Writer, expSkip, true)
 	rw.Close()
 
 	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected_skip.dat")
@@ -54,7 +54,7 @@ func TestWriterWithColumns(t *testing.T) {
 
 	rw.SetDatasetMode(dsv.DatasetModeCOLUMNS)
 
-	doReadWrite(t, &rw.Reader, &rw.Writer, exp_skip_columns, true)
+	doReadWrite(t, &rw.Reader, &rw.Writer, expSkipColumns, true)
 	rw.Close()
 
 	assert.EqualFileContent(t, "testdata/expected_skip.dat", rw.GetOutput())

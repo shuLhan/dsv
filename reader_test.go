@@ -359,7 +359,7 @@ func TestReaderSkip(t *testing.T) {
 
 	defer dsvReader.Close()
 
-	doRead(t, dsvReader, exp_skip)
+	doRead(t, dsvReader, expSkip)
 }
 
 func TestTransposeToColumns(t *testing.T) {
@@ -378,7 +378,7 @@ func TestTransposeToColumns(t *testing.T) {
 
 	reader.TransposeToColumns()
 
-	exp := fmt.Sprint(exp_skip_columns_all)
+	exp := fmt.Sprint(expSkipColumnsAll)
 
 	columns, e := reader.GetDataAsColumns()
 	if e != nil {
@@ -408,9 +408,9 @@ func TestSortColumnsByIndex(t *testing.T) {
 	var idxReverse []int
 	var expReverse []string
 
-	for x := len(exp_skip) - 1; x >= 0; x-- {
+	for x := len(expSkip) - 1; x >= 0; x-- {
 		idxReverse = append(idxReverse, x)
-		expReverse = append(expReverse, exp_skip[x])
+		expReverse = append(expReverse, expSkip[x])
 	}
 
 	reader.SortColumnsByIndex(idxReverse)
@@ -420,7 +420,7 @@ func TestSortColumnsByIndex(t *testing.T) {
 
 	assert.Equal(t, exp, got)
 
-	exp = "[" + strings.Join(exp_skip_columns_all_rev, " ") + "]"
+	exp = "[" + strings.Join(expSkipColumnsAllRev, " ") + "]"
 
 	columns, e := reader.GetDataAsColumns()
 	if e != nil {
