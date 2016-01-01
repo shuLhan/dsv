@@ -35,10 +35,10 @@ type ReaderInterface interface {
 	OpenRejected() error
 	SkipLines() error
 
-	Flush ()
-	ReadLine () ([]byte, error)
-	Reject (line []byte)
-	Close ()
+	Flush()
+	ReadLine() ([]byte, error)
+	Reject(line []byte)
+	Close()
 }
 
 /*
@@ -77,7 +77,7 @@ func InitReader(reader ReaderInterface) (e error) {
 		}
 
 		// Count number of output columns.
-		if ! md[i].GetSkip() {
+		if !md[i].GetSkip() {
 			nColOut++
 			// add type of metadata to list of type
 			types = append(types, md[i].GetType())
@@ -134,13 +134,12 @@ func InitReader(reader ReaderInterface) (e error) {
 /*
 Read row from input file.
 */
-func Read (reader ReaderInterface) (n int, e error) {
+func Read(reader ReaderInterface) (n int, e error) {
 	maxrows := reader.GetMaxRows()
-	n = 0
-	reader.Reset ()
+	reader.Reset()
 
 	// remember to flush if we have rejected rows.
-	defer reader.Flush ()
+	defer reader.Flush()
 
 	// Loop until we reached MaxRows (> 0) or when all rows has been
 	// read (= -1)
@@ -149,15 +148,15 @@ func Read (reader ReaderInterface) (n int, e error) {
 
 		if nil != e {
 			if e != io.EOF {
-				log.Print ("dsv: ", e)
+				log.Print("dsv: ", e)
 			}
 			return n, e
 		}
 
 		// check for empty line
-		line = bytes.TrimSpace (line)
+		line = bytes.TrimSpace(line)
 
-		if len (line) <= 0 {
+		if len(line) <= 0 {
 			continue
 		}
 
@@ -175,8 +174,8 @@ func Read (reader ReaderInterface) (n int, e error) {
 			// If error, save the rejected line.
 			log.Println(e)
 
-			reader.Reject (line)
-			reader.Reject ([]byte ("\n"))
+			reader.Reject(line)
+			reader.Reject([]byte("\n"))
 		}
 	}
 
@@ -198,13 +197,14 @@ This is how the algorithm works
 	(2.4) else append all byte to buffer.
 (3) save buffer to record
 */
-func ParseLine (reader ReaderInterface, line *[]byte) (
-					row Row, e error) {
+func ParseLine(reader ReaderInterface, line *[]byte) (
+	row Row, e error,
+) {
 	var md MetadataInterface
 	var p = 0
-	var l = len (*line)
+	var l = len(*line)
 	var rIdx = 0
-	var inputMd []MetadataInterface;
+	var inputMd []MetadataInterface
 
 	inputMd = reader.GetInputMetadata()
 
@@ -221,26 +221,26 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 
 		// (2.1)
 		if "" != md.GetLeftQuote() {
-			lq := []byte (md.GetLeftQuote())
+			lq := []byte(md.GetLeftQuote())
 
 			if DEBUG {
-				fmt.Println (md.GetLeftQuote())
+				fmt.Println(md.GetLeftQuote())
 			}
 
 			for i := range lq {
 				if p >= l {
-					return nil, &ErrReader {
+					return nil, &ErrReader{
 						"Premature end-of-line",
 						(*line),
 					}
 				}
 
 				if DEBUG {
-					fmt.Printf ("%c:%c\n", (*line)[p], lq[i])
+					fmt.Printf("%c:%c\n", (*line)[p], lq[i])
 				}
 
 				if (*line)[p] != lq[i] {
-					return nil, &ErrReader {
+					return nil, &ErrReader{
 						"Invalid left-quote",
 						(*line),
 					}
@@ -250,16 +250,16 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 		}
 
 		if "" != md.GetRightQuote() {
-			rq := []byte (md.GetRightQuote())
+			rq := []byte(md.GetRightQuote())
 
 			// (2.2)
 			for p < l && (*line)[p] != rq[0] {
-				v = append (v, (*line)[p])
+				v = append(v, (*line)[p])
 				p++
 			}
 
 			if p >= l {
-				return nil, &ErrReader {
+				return nil, &ErrReader{
 					"Missing right-quote, premature end-of-line",
 					(*line),
 				}
@@ -268,14 +268,14 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 			// (2.2.1)
 			for i := range rq {
 				if p >= l {
-					return nil, &ErrReader {
+					return nil, &ErrReader{
 						"Missing right-quote, premature end-of-line",
 						(*line),
 					}
 				}
 
 				if (*line)[p] != rq[i] {
-					return nil, &ErrReader {
+					return nil, &ErrReader{
 						"Invalid right-quote",
 						(*line),
 					}
@@ -285,14 +285,14 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 
 			// (2.2.2)
 			if "" != md.GetSeparator() {
-				sep := []byte (md.GetSeparator())
+				sep := []byte(md.GetSeparator())
 
 				for p < l && (*line)[p] != sep[0] {
 					p++
 				}
 
 				if p >= l {
-					return nil, &ErrReader {
+					return nil, &ErrReader{
 						"Missing separator, premature end-of-line",
 						(*line),
 					}
@@ -300,13 +300,13 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 
 				for i := range sep {
 					if p >= l {
-						return nil, &ErrReader {
+						return nil, &ErrReader{
 							"Missing separator, premature end-of-line",
 							(*line),
 						}
 					}
 					if (*line)[p] != sep[i] {
-						return nil, &ErrReader {
+						return nil, &ErrReader{
 							"Invalid separator",
 							(*line),
 						}
@@ -316,15 +316,15 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 			}
 		} else if "" != md.GetSeparator() {
 			// (2.3)
-			sep := []byte (md.GetSeparator())
+			sep := []byte(md.GetSeparator())
 
 			for p < l && (*line)[p] != sep[0] {
-				v = append (v, (*line)[p])
+				v = append(v, (*line)[p])
 				p++
 			}
 
 			if p >= l {
-				return nil, &ErrReader {
+				return nil, &ErrReader{
 					"Missing separator, premature end-of-line",
 					(*line),
 				}
@@ -332,14 +332,14 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 
 			for i := range sep {
 				if p >= l {
-					return nil, &ErrReader {
+					return nil, &ErrReader{
 						"Missing separator, premature end-of-line",
 						(*line),
 					}
 				}
 
 				if (*line)[p] != sep[i] {
-					return nil, &ErrReader {
+					return nil, &ErrReader{
 						"Invalid separator",
 						(*line),
 					}
@@ -347,22 +347,22 @@ func ParseLine (reader ReaderInterface, line *[]byte) (
 				p++
 			}
 		} else {
-			v = append (v, (*line)[p:]...)
+			v = append(v, (*line)[p:]...)
 		}
 
 		if DEBUG {
-			fmt.Println (string (v))
+			fmt.Println(string(v))
 		}
 
 		if md.GetSkip() {
 			continue
 		}
 
-		v = bytes.TrimSpace (v)
+		v = bytes.TrimSpace(v)
 		r, e := NewRecord(v, md.GetType())
 
 		if nil != e {
-			return nil, &ErrReader {
+			return nil, &ErrReader{
 				"Error or invalid type convertion",
 				v,
 			}

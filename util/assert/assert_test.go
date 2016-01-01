@@ -4,9 +4,9 @@
 
 package assert_test
 
-import(
-	"testing"
+import (
 	"github.com/shuLhan/dsv/util/assert"
+	"testing"
 )
 
 type Map struct {
@@ -15,9 +15,9 @@ type Map struct {
 }
 
 var data = []Map{
-	Map{1, "1"},
-	Map{2, "2"},
-	Map{3, "3"},
+	{1, "1"},
+	{2, "2"},
+	{3, "3"},
 }
 
 func TestEqual(t *testing.T) {
@@ -44,7 +44,6 @@ func TestNotEqual(t *testing.T) {
 	datacmp[0].K = 0
 	assert.NotEqual(t, data, datacmp)
 }
-
 
 func TestEqualFileContent(t *testing.T) {
 	assert.EqualFileContent(t, "assert.go", "assert.go")

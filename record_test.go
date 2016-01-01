@@ -6,18 +6,17 @@ package dsv_test
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/dsv/util/assert"
+	"testing"
 )
 
 /*
 TestRecord simply check how the stringer work.
 */
 func TestRecord(t *testing.T) {
-	expec := []string{ "test", "1", "2", }
-	expec_type := []int{ dsv.TString, dsv.TInteger, dsv.TInteger, }
+	expec := []string{"test", "1", "2"}
+	expec_type := []int{dsv.TString, dsv.TInteger, dsv.TInteger}
 
 	row := make(dsv.Row, 0)
 

@@ -61,6 +61,7 @@ func EqualFileContent(t *testing.T, a, b string) {
 
 	if 0 != r {
 		debug.PrintStack()
-		t.Fatal("Comparing", a, "with", b,": result is different (", r ,")")
+		t.Fatal("Comparing", a, "with", b, ": result is different (",
+			r, ")")
 	}
 }

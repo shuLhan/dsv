@@ -13,7 +13,7 @@ import (
 var (
 	// ErrMisColLength returned when operation on columns does not match
 	// between parameter and their length
-	ErrMisColLength = errors.New ("dsv: mismatch on column length")
+	ErrMisColLength = errors.New("dsv: mismatch on column length")
 )
 
 /*

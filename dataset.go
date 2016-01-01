@@ -832,7 +832,7 @@ func (dataset *Dataset) SplitRowsByValue(colidx int, value interface{}) (
 
 	if coltype == TString {
 		splitL, splitR, e = dataset.SplitRowsByCategorical(colidx,
-							value.([]string))
+			value.([]string))
 	} else {
 		var splitval float64
 
@@ -848,7 +848,7 @@ func (dataset *Dataset) SplitRowsByValue(colidx int, value interface{}) (
 		}
 
 		splitL, splitR, e = dataset.SplitRowsByNumeric(colidx,
-								splitval)
+			splitval)
 	}
 
 	if e != nil {
@@ -912,6 +912,6 @@ func (dataset Dataset) String() (s string) {
 		"\tMode   : %v\n"+
 		"\tRows   : %v\n"+
 		"\tColumns: %v\n"+
-	"}", dataset.Mode, dataset.Rows, dataset.Columns)
+		"}", dataset.Mode, dataset.Rows, dataset.Columns)
 	return
 }

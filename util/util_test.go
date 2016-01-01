@@ -74,8 +74,8 @@ func TestSortFloatSliceByIndex(t *testing.T) {
 
 func TestStringCountBy(t *testing.T) {
 	data := []string{"A", "B", "A", "C"}
-	class := []string{"A","B"}
-	exp := []int{2,1}
+	class := []string{"A", "B"}
+	exp := []int{2, 1}
 
 	got := util.StringCountBy(data, class)
 

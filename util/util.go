@@ -71,7 +71,7 @@ MergeSortSliceFloat64 sort the slice of float from `l` to `r` using mergesort
 algorithm, return the sorted index.
 */
 func MergeSortSliceFloat64(data []float64, sortedIdx []int, l, r int) {
-	if l + SortThreshold >= r {
+	if l+SortThreshold >= r {
 		InsertionSortFloat64(data, sortedIdx, l, r)
 		return
 	}
@@ -83,7 +83,7 @@ func MergeSortSliceFloat64(data []float64, sortedIdx []int, l, r int) {
 	}
 
 	MergeSortSliceFloat64(data, sortedIdx, l, c)
-	MergeSortSliceFloat64(data, sortedIdx, c + 1, r)
+	MergeSortSliceFloat64(data, sortedIdx, c+1, r)
 
 	// merging
 	x := l
@@ -120,7 +120,7 @@ func IndirectSortFloat64(data []float64) (sortedIdx []int) {
 		sortedIdx[i] = i
 	}
 
-	MergeSortSliceFloat64(data, sortedIdx, 0, datalen - 1)
+	MergeSortSliceFloat64(data, sortedIdx, 0, datalen-1)
 
 	return
 }
@@ -132,7 +132,7 @@ SortFloatSliceByIndex will sort the slice of float `data` using sorted index
 func SortFloatSliceByIndex(data *[]float64, sortedIdx *[]int) {
 	newdata := make([]float64, len(*data))
 
-	for i := range (*sortedIdx) {
+	for i := range *sortedIdx {
 		newdata[i] = (*data)[(*sortedIdx)[i]]
 	}
 
@@ -146,7 +146,7 @@ SortStringSliceByIndex will sort the slice of string `data` using sorted index
 func SortStringSliceByIndex(data *[]string, sortedIdx *[]int) {
 	newdata := make([]string, len(*data))
 
-	for i := range (*sortedIdx) {
+	for i := range *sortedIdx {
 		newdata[i] = (*data)[(*sortedIdx)[i]]
 	}
 

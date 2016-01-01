@@ -9,42 +9,41 @@ import (
 	"testing"
 )
 
-func TestMetadataIsEqual (t *testing.T) {
+func TestMetadataIsEqual(t *testing.T) {
 	cases := []struct {
-		in	dsv.Metadata
-		out	dsv.Metadata
-		result	bool
+		in     dsv.Metadata
+		out    dsv.Metadata
+		result bool
 	}{
 		{
-			dsv.Metadata {
-				Name		:"A",
-				Separator	:",",
+			dsv.Metadata{
+				Name:      "A",
+				Separator: ",",
 			},
-			dsv.Metadata {
-				Name		:"A",
-				Separator	:",",
+			dsv.Metadata{
+				Name:      "A",
+				Separator: ",",
 			},
 			true,
 		},
 		{
-			dsv.Metadata {
-				Name		:"A",
-				Separator	:",",
+			dsv.Metadata{
+				Name:      "A",
+				Separator: ",",
 			},
-			dsv.Metadata {
-				Name		:"A",
-				Separator	:";",
+			dsv.Metadata{
+				Name:      "A",
+				Separator: ";",
 			},
 			false,
 		},
 	}
 
 	for _, c := range cases {
-		r := c.in.IsEqual (&c.out)
+		r := c.in.IsEqual(&c.out)
 
 		if r != c.result {
-			t.Error ("Test failed on ", c.in, c.out);
+			t.Error("Test failed on ", c.in, c.out)
 		}
 	}
-
 }

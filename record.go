@@ -14,11 +14,11 @@ const (
 	// TUndefined for undefined type
 	TUndefined = -1
 	// TString string type.
-	TString		= 0
+	TString = 0
 	// TInteger integer type (64 bit).
-	TInteger	= 1
+	TInteger = 1
 	// TReal float type (64 bit).
-	TReal		= 2
+	TReal = 2
 )
 
 var (
@@ -75,29 +75,29 @@ func (r *Record) GetType() (int, error) {
 /*
 SetValue set the record values from bytes.
 */
-func (r *Record) SetValue (v []byte, t int) (e error) {
+func (r *Record) SetValue(v []byte, t int) (e error) {
 	var i64 int64
 	var f64 float64
-	s := string (v)
+	s := string(v)
 
 	switch t {
 	case TString:
 		r.V = s
 
 	case TInteger:
-		i64, e = strconv.ParseInt (s, 10, 64)
+		i64, e = strconv.ParseInt(s, 10, 64)
 
 		if nil != e {
-			r.V = int64 (math.MinInt64)
+			r.V = int64(math.MinInt64)
 		} else {
 			r.V = i64
 		}
 
 	case TReal:
-		f64, e = strconv.ParseFloat (s, 64)
+		f64, e = strconv.ParseFloat(s, 64)
 
 		if nil != e {
-			r.V = math.Inf (-1)
+			r.V = math.Inf(-1)
 		} else {
 			r.V = f64
 		}
@@ -111,14 +111,14 @@ func (r *Record) SetValue (v []byte, t int) (e error) {
 /*
 SetFloat will set the record content with float value and type.
 */
-func (r *Record) SetFloat (v float64) {
+func (r *Record) SetFloat(v float64) {
 	r.V = v
 }
 
 /*
 Value return value of record based on their type.
 */
-func (r *Record) Value () interface{} {
+func (r *Record) Value() interface{} {
 	switch r.V.(type) {
 	case int64:
 		return r.V.(int64)
@@ -132,16 +132,16 @@ func (r *Record) Value () interface{} {
 /*
 ToByte convert record value to byte.
 */
-func (r *Record) ToByte () (b []byte) {
+func (r *Record) ToByte() (b []byte) {
 	switch r.V.(type) {
 	case string:
-		b = []byte (r.V.(string))
+		b = []byte(r.V.(string))
 
 	case int64:
-		b = []byte (strconv.FormatInt (r.V.(int64), 10))
+		b = []byte(strconv.FormatInt(r.V.(int64), 10))
 
 	case float64:
-		b = []byte (strconv.FormatFloat (r.V.(float64), 'f', -1, 64))
+		b = []byte(strconv.FormatFloat(r.V.(float64), 'f', -1, 64))
 	}
 
 	return b
@@ -153,7 +153,7 @@ If it string the missing value is indicated by character '?'.
 If it integer the missing value is indicated by minimum negative integer.
 If it real the missing value is indicated by -Inf.
 */
-func (r *Record) IsMissingValue () bool {
+func (r *Record) IsMissingValue() bool {
 	switch r.V.(type) {
 	case string:
 		str := r.V.(string)
@@ -169,7 +169,7 @@ func (r *Record) IsMissingValue () bool {
 
 	case float64:
 		f64 := r.V.(float64)
-		return math.IsInf (f64, -1)
+		return math.IsInf(f64, -1)
 	}
 
 	return false
@@ -178,16 +178,16 @@ func (r *Record) IsMissingValue () bool {
 /*
 String convert record value to string.
 */
-func (r Record) String () (s string) {
+func (r Record) String() (s string) {
 	switch r.V.(type) {
 	case string:
 		s = r.V.(string)
 
 	case int64:
-		s = strconv.FormatInt (r.V.(int64), 10)
+		s = strconv.FormatInt(r.V.(int64), 10)
 
 	case float64:
-		s = strconv.FormatFloat (r.V.(float64), 'f', -1, 64)
+		s = strconv.FormatFloat(r.V.(float64), 'f', -1, 64)
 	}
 	return
 }
@@ -200,10 +200,10 @@ func (r Record) Float() (f64 float64) {
 
 	switch r.V.(type) {
 	case string:
-		f64, e = strconv.ParseFloat (r.V.(string), 64)
+		f64, e = strconv.ParseFloat(r.V.(string), 64)
 
 		if nil != e {
-			f64 = math.Inf (-1)
+			f64 = math.Inf(-1)
 		}
 
 	case int64:

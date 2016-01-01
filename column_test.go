@@ -5,9 +5,9 @@
 package dsv_test
 
 import (
-	"testing"
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/dsv/util/assert"
+	"testing"
 )
 
 var data = []string{"9.987654321", "8.8", "7.7", "6.6", "5.5", "4.4", "3.3"}

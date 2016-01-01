@@ -26,13 +26,13 @@ metadata.
 type Writer struct {
 	Config `json:"-"`
 	// Output file where the records will be written.
-	Output		string		`json:"Output"`
+	Output string `json:"Output"`
 	// OutputMetadata define format for each column.
-	OutputMetadata	[]Metadata	`json:"OutputMetadata"`
+	OutputMetadata []Metadata `json:"OutputMetadata"`
 	// fWriter as write descriptor.
-	fWriter		*os.File
+	fWriter *os.File
 	// BufWriter for buffered writer.
-	BufWriter	*bufio.Writer
+	BufWriter *bufio.Writer
 }
 
 /*
@@ -40,11 +40,11 @@ NewWriter create a writer object.
 User must call Open after that to populate the output and metadata.
 */
 func NewWriter(config string) (writer *Writer, e error) {
-	writer = &Writer {
-		Output		:"",
-		OutputMetadata	:nil,
-		fWriter		:nil,
-		BufWriter	:nil,
+	writer = &Writer{
+		Output:         "",
+		OutputMetadata: nil,
+		fWriter:        nil,
+		BufWriter:      nil,
 	}
 
 	if config == "" {
@@ -86,13 +86,12 @@ func (writer *Writer) OpenOutput(file string) (e error) {
 	}
 
 	writer.fWriter, e = os.OpenFile(file,
-					os.O_CREATE | os.O_TRUNC | os.O_WRONLY,
-					0600)
+		os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if nil != e {
 		return e
 	}
 
-	writer.BufWriter = bufio.NewWriter (writer.fWriter)
+	writer.BufWriter = bufio.NewWriter(writer.fWriter)
 
 	return nil
 }
@@ -107,12 +106,12 @@ func (writer *Writer) Flush() {
 /*
 Close all open descriptor.
 */
-func (writer *Writer) Close () {
+func (writer *Writer) Close() {
 	if nil != writer.BufWriter {
-		writer.BufWriter.Flush ()
+		writer.BufWriter.Flush()
 	}
 	if nil != writer.fWriter {
-		writer.fWriter.Close ()
+		writer.fWriter.Close()
 	}
 }
 
@@ -138,7 +137,7 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 			if inMd.GetName() == md.GetName() {
 				break
 			}
-			if ! inMd.GetSkip() {
+			if !inMd.GetSkip() {
 				rIdx++
 			}
 		}
@@ -159,7 +158,7 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 			v = append(v, []byte(md.GetLeftQuote())...)
 		}
 
-		v = append (v, recV...)
+		v = append(v, recV...)
 
 		if "" != md.GetRightQuote() {
 			v = append(v, []byte(md.GetRightQuote())...)
@@ -170,9 +169,9 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 		}
 	}
 
-	v = append (v, '\n')
+	v = append(v, '\n')
 
-	_, e = writer.BufWriter.Write (v)
+	_, e = writer.BufWriter.Write(v)
 
 	if nil != e {
 		return e
@@ -192,17 +191,17 @@ func (writer *Writer) WriteRows(rows Rows, recordMd []MetadataInterface) (
 ) {
 	n = 0
 
-	for i := range(rows) {
+	for i := range rows {
 		e = writer.WriteRow(rows[i], recordMd)
 		if nil != e {
 			if DEBUG {
-				log.Println (e)
+				log.Println(e)
 			}
 		}
 		n++
 	}
 
-	return n,nil
+	return n, nil
 }
 
 /*
@@ -245,7 +244,7 @@ func (writer *Writer) WriteColumns(columns *Columns, md []MetadataInterface) (
 		writer.WriteRow(row, md)
 	}
 
-	return n,e
+	return n, e
 }
 
 /*
@@ -357,7 +356,7 @@ func (writer *Writer) WriteDataset(dataset *Dataset, sep *string) (int, error) {
 Write rows from Reader to file.
 Return n for number of row written, or e if error happened.
 */
-func (writer *Writer) Write (reader *Reader) (int, error) {
+func (writer *Writer) Write(reader *Reader) (int, error) {
 	if nil == reader {
 		return 0, ErrNilReader
 	}
@@ -370,7 +369,7 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 		return writer.WriteRows(reader.Rows, reader.GetInputMetadata())
 	case DatasetModeColumns:
 		return writer.WriteColumns(&reader.Columns,
-						reader.GetInputMetadata())
+			reader.GetInputMetadata())
 	case DatasetModeMatrix:
 		return writer.WriteRows(reader.Rows, reader.GetInputMetadata())
 	}
@@ -382,11 +381,11 @@ func (writer *Writer) Write (reader *Reader) (int, error) {
 String yes, it will print it in JSON like format.
 */
 func (writer *Writer) String() string {
-	r, e := json.MarshalIndent (writer, "", "\t")
+	r, e := json.MarshalIndent(writer, "", "\t")
 
 	if nil != e {
-		log.Print (e)
+		log.Print(e)
 	}
 
-	return string (r)
+	return string(r)
 }

@@ -10,8 +10,8 @@ import (
 ConfigInterface for reader and writer for initializing the config from JSON.
 */
 type ConfigInterface interface {
-	GetConfigPath () string
-	SetConfigPath (dir string)
+	GetConfigPath() string
+	SetConfigPath(dir string)
 }
 
 /*
@@ -34,7 +34,7 @@ func ConfigOpen(rw ConfigInterface, fcfg string) error {
 ConfigParse from JSON string.
 */
 func ConfigParse(rw ConfigInterface, cfg []byte) error {
-	return json.Unmarshal([]byte (cfg), rw)
+	return json.Unmarshal([]byte(cfg), rw)
 }
 
 /*
@@ -47,7 +47,7 @@ func ConfigCheckPath(comin ConfigInterface, file string) string {
 	if dir == "." {
 		cfgPath := comin.GetConfigPath()
 		if cfgPath != "" && cfgPath != "." {
-			return cfgPath +"/"+ file
+			return cfgPath + "/" + file
 		}
 	}
 

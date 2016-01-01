@@ -136,7 +136,7 @@ func (column *Column) ToFloatSlice() (newcol []float64) {
 /*
 ToStringSlice convert slice of record to slice of string.
 */
-func (column *Column)ToStringSlice() (newcol []string) {
+func (column *Column) ToStringSlice() (newcol []string) {
 	newcol = make([]string, column.GetLength())
 
 	for i := range column.Records {

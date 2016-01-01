@@ -19,7 +19,7 @@ import (
 const (
 	// DefaultRejected define the default file which will contain the
 	// rejected row.
-	DefaultRejected		= "rejected.dsv"
+	DefaultRejected = "rejected.dsv"
 	// DefaultMaxRows define default maximum row that will be saved
 	// in memory for each read if input data is too large and can not be
 	// consumed in one read operation.
@@ -30,24 +30,24 @@ const (
 
 var (
 	// ErrNoInput define an error when no Input file is given to Reader.
-	ErrNoInput	= errors.New ("dsv: No input file is given in config")
+	ErrNoInput = errors.New("dsv: No input file is given in config")
 	// ErrMissRecordsLen define an error when trying to push Row
 	// to Field, when their length is not equal.
 	// See reader.PushRowToColumns().
 	ErrMissRecordsLen = errors.New("dsv: Mismatch between number of record in row and columns length")
 	// ErrNoOutput define an error when no output file is given to Writer.
-	ErrNoOutput	= errors.New ("dsv: No output file is given in config")
+	ErrNoOutput = errors.New("dsv: No output file is given in config")
 	// ErrNotOpen define an error when output file has not been opened
 	// by Writer.
-	ErrNotOpen	= errors.New ("dsv: Output file is not opened")
+	ErrNotOpen = errors.New("dsv: Output file is not opened")
 	// ErrNilReader define an error when Reader object is nil when passed
 	// to Write function.
-	ErrNilReader	= errors.New ("dsv: Reader object is nil")
+	ErrNilReader = errors.New("dsv: Reader object is nil")
 	// ErrUnknownDatasetMode will tell you when dataset mode is unknown.
 	ErrUnknownDatasetMode = errors.New("dsv: Unknown dataset mode")
 
 	// DEBUG exported from environment to debug the library.
-	DEBUG		= bool (os.Getenv ("DEBUG") != "")
+	DEBUG = bool(os.Getenv("DEBUG") != "")
 )
 
 /*
@@ -102,7 +102,7 @@ func (dsv *ReadWriter) Open(fcfg string) (e error) {
 /*
 Close reader and writer.
 */
-func (dsv *ReadWriter) Close () {
-	dsv.Writer.Close ()
-	dsv.Reader.Close ()
+func (dsv *ReadWriter) Close() {
+	dsv.Writer.Close()
+	dsv.Reader.Close()
 }

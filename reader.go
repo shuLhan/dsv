@@ -28,16 +28,16 @@ ErrReader to handle error data and message.
 */
 type ErrReader struct {
 	// What cause the error?
-	What		string
+	What string
 	// InputLine define the line which cause error
-	InputLine	[]byte
+	InputLine []byte
 }
 
 /*
 Error to string.
 */
-func (e *ErrReader) Error () string {
-	return fmt.Sprintf ("dsv: %s '%s'", e.What, e.InputLine)
+func (e *ErrReader) Error() string {
+	return fmt.Sprintf("dsv: %s '%s'", e.What, e.InputLine)
 }
 
 /*
@@ -89,18 +89,18 @@ type Reader struct {
 	// Dataset contains the content of input file after read.
 	Dataset
 	// Input file, mandatory.
-	Input		string		`json:"Input"`
+	Input string `json:"Input"`
 	// Skip n lines from the head.
-	Skip		int		`json:"Skip"`
+	Skip int `json:"Skip"`
 	// Rejected is the file name where row that does not fit
 	// with metadata will be saved.
-	Rejected	string		`json:"Rejected"`
+	Rejected string `json:"Rejected"`
 	// InputMetadata define format for each column in input data.
-	InputMetadata	[]Metadata	`json:"InputMetadata"`
+	InputMetadata []Metadata `json:"InputMetadata"`
 	// MaxRows define maximum row that this reader will read and
 	// saved in the memory at one read operation.
 	// If the value is -1, all rows will read.
-	MaxRows	int		`json:"MaxRows"`
+	MaxRows int `json:"MaxRows"`
 	// DatasetMode define on how do you want the result is saved. There are
 	// three options: either in "rows", "columns", or "matrix" mode.
 	// For example, input data file,
@@ -123,32 +123,32 @@ type Reader struct {
 	//
 	// "matrix" mode is where each record saved in their own row and column.
 	//
-	DatasetMode	string		`json:"DatasetMode"`
+	DatasetMode string `json:"DatasetMode"`
 	// fRead is read descriptor.
-	fRead		*os.File
+	fRead *os.File
 	// fReject is reject descriptor.
-	fReject		*os.File
+	fReject *os.File
 	// bufRead is a buffer for working with input file.
-	bufRead		*bufio.Reader
+	bufRead *bufio.Reader
 	// bufReject is a buffer for working with rejected file.
-	bufReject	*bufio.Writer
+	bufReject *bufio.Writer
 }
 
 /*
 NewReader create and initialize new instance of DSV Reader with default values.
 */
 func NewReader(config string) (reader *Reader, e error) {
-	reader = &Reader {
-		Input		:"",
-		Skip		:0,
-		Rejected	:"rejected.dat",
-		InputMetadata	:nil,
-		MaxRows		:DefaultMaxRows,
-		DatasetMode	:DefDatasetMode,
-		fRead		:nil,
-		fReject		:nil,
-		bufRead		:nil,
-		bufReject	:nil,
+	reader = &Reader{
+		Input:         "",
+		Skip:          0,
+		Rejected:      "rejected.dat",
+		InputMetadata: nil,
+		MaxRows:       DefaultMaxRows,
+		DatasetMode:   DefDatasetMode,
+		fRead:         nil,
+		fReject:       nil,
+		bufRead:       nil,
+		bufReject:     nil,
 	}
 
 	if config == "" {
@@ -179,21 +179,21 @@ func (reader *Reader) CopyConfig(src *Reader) {
 /*
 GetInput return the input file.
 */
-func (reader *Reader) GetInput () string {
+func (reader *Reader) GetInput() string {
 	return reader.Input
 }
 
 /*
 SetInput file.
 */
-func (reader *Reader) SetInput (path string) {
+func (reader *Reader) SetInput(path string) {
 	reader.Input = path
 }
 
 /*
 GetSkip return number of line that will be skipped.
 */
-func (reader *Reader) GetSkip () int {
+func (reader *Reader) GetSkip() int {
 	return reader.Skip
 }
 
@@ -207,14 +207,14 @@ func (reader *Reader) SetSkip(n int) {
 /*
 GetRejected return name of rejected file.
 */
-func (reader *Reader) GetRejected () string {
+func (reader *Reader) GetRejected() string {
 	return reader.Rejected
 }
 
 /*
 SetRejected file.
 */
-func (reader *Reader) SetRejected (path string) {
+func (reader *Reader) SetRejected(path string) {
 	reader.Rejected = path
 }
 
@@ -288,7 +288,7 @@ func (reader *Reader) GetNColumnIn() int {
 /*
 SetDefault options for global config and each metadata.
 */
-func (reader *Reader) SetDefault () {
+func (reader *Reader) SetDefault() {
 	if "" == reader.Rejected {
 		reader.Rejected = DefaultRejected
 	}
@@ -303,13 +303,13 @@ func (reader *Reader) SetDefault () {
 /*
 OpenInput open the input file, metadata must have been initialize.
 */
-func (reader *Reader) OpenInput () (e error) {
-	reader.fRead, e = os.OpenFile (reader.Input, os.O_RDONLY, 0600)
+func (reader *Reader) OpenInput() (e error) {
+	reader.fRead, e = os.OpenFile(reader.Input, os.O_RDONLY, 0600)
 	if nil != e {
 		return e
 	}
 
-	reader.bufRead = bufio.NewReader (reader.fRead)
+	reader.bufRead = bufio.NewReader(reader.fRead)
 
 	return nil
 }
@@ -317,15 +317,14 @@ func (reader *Reader) OpenInput () (e error) {
 /*
 OpenRejected open rejected file, for saving unparseable line.
 */
-func (reader *Reader) OpenRejected () (e error) {
-	reader.fReject, e = os.OpenFile (reader.Rejected,
-					os.O_CREATE | os.O_WRONLY,
-					0600)
+func (reader *Reader) OpenRejected() (e error) {
+	reader.fReject, e = os.OpenFile(reader.Rejected,
+		os.O_CREATE|os.O_WRONLY, 0600)
 	if nil != e {
 		return e
 	}
 
-	reader.bufReject = bufio.NewWriter (reader.fReject)
+	reader.bufReject = bufio.NewWriter(reader.fReject)
 
 	return nil
 }
@@ -351,12 +350,12 @@ func (reader *Reader) Open() (e error) {
 SkipLines skip parsing n lines from input file.
 The n is defined in the attribute "Skip"
 */
-func (reader *Reader) SkipLines () (e error) {
+func (reader *Reader) SkipLines() (e error) {
 	for i := 0; i < reader.Skip; i++ {
-		_, e = reader.ReadLine ()
+		_, e = reader.ReadLine()
 
 		if nil != e {
-			log.Print ("dsv: ", e)
+			log.Print("dsv: ", e)
 			return
 		}
 	}
@@ -375,26 +374,26 @@ func (reader *Reader) Reset() {
 /*
 Flush all output buffer.
 */
-func (reader *Reader) Flush () {
-	reader.bufReject.Flush ()
+func (reader *Reader) Flush() {
+	reader.bufReject.Flush()
 }
 
 /*
 ReadLine will read one line from input file.
 */
-func (reader *Reader) ReadLine () (line []byte, e error) {
+func (reader *Reader) ReadLine() (line []byte, e error) {
 	var read []byte
 	stub := true
 
 	// repeat until one full line is read.
 	for stub {
-		read, stub, e = reader.bufRead.ReadLine ()
+		read, stub, e = reader.bufRead.ReadLine()
 
 		if nil != e {
 			return
 		}
 
-		line = append (line, read...)
+		line = append(line, read...)
 	}
 
 	return
@@ -403,44 +402,44 @@ func (reader *Reader) ReadLine () (line []byte, e error) {
 /*
 Reject the line and save it to the reject file.
 */
-func (reader *Reader) Reject (line []byte) {
-	reader.bufReject.Write (line)
+func (reader *Reader) Reject(line []byte) {
+	reader.bufReject.Write(line)
 }
 
 /*
 Close all open descriptors.
 */
-func (reader *Reader) Close () {
+func (reader *Reader) Close() {
 	if nil != reader.bufReject {
-		reader.bufReject.Flush ()
+		reader.bufReject.Flush()
 	}
 	if nil != reader.fReject {
-		reader.fReject.Close ()
+		reader.fReject.Close()
 	}
 	if nil != reader.fRead {
-		reader.fRead.Close ()
+		reader.fRead.Close()
 	}
 }
 
 /*
 IsEqual compare only the configuration and metadata with other instance.
 */
-func (reader *Reader) IsEqual (other *Reader) bool {
-	if (reader == other) {
+func (reader *Reader) IsEqual(other *Reader) bool {
+	if reader == other {
 		return true
 	}
-	if (reader.Input != other.Input) {
+	if reader.Input != other.Input {
 		return false
 	}
 
-	l,r := len (reader.InputMetadata), len (other.InputMetadata)
+	l, r := len(reader.InputMetadata), len(other.InputMetadata)
 
-	if (l != r) {
+	if l != r {
 		return false
 	}
 
 	for a := 0; a < l; a++ {
-		if ! reader.InputMetadata[a].IsEqual(&other.InputMetadata[a]) {
+		if !reader.InputMetadata[a].IsEqual(&other.InputMetadata[a]) {
 			return false
 		}
 	}

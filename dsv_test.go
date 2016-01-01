@@ -5,10 +5,9 @@
 package dsv_test
 
 import (
-	"testing"
-
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/dsv/util/assert"
+	"testing"
 )
 
 /*
@@ -19,7 +18,7 @@ func doInit(t *testing.T, fcfg string) (rw *dsv.ReadWriter, e error) {
 	rw, e = dsv.New(fcfg)
 
 	if nil != e {
-		t.Fatal (e)
+		t.Fatal(e)
 	}
 
 	return
@@ -28,7 +27,7 @@ func doInit(t *testing.T, fcfg string) (rw *dsv.ReadWriter, e error) {
 /*
 TestReadWriter test reading and writing DSV.
 */
-func TestReadWriter (t *testing.T) {
+func TestReadWriter(t *testing.T) {
 	rw, _ := doInit(t, "testdata/config.dsv")
 
 	doReadWrite(t, &rw.Reader, &rw.Writer, expectation, true)
@@ -40,10 +39,10 @@ func TestReadWriter (t *testing.T) {
 /*
 TestReadWriter test reading and writing DSV.
 */
-func TestReadWriterAll (t *testing.T) {
+func TestReadWriterAll(t *testing.T) {
 	rw, _ := doInit(t, "testdata/config.dsv")
 
-	rw.SetMaxRows(-1);
+	rw.SetMaxRows(-1)
 
 	doReadWrite(t, &rw.Reader, &rw.Writer, expectation, false)
 	rw.Close()

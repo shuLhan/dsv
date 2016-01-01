@@ -15,29 +15,30 @@ Metadata represent on how to parse each column in record.
 */
 type Metadata struct {
 	// Name of the column, optional.
-	Name		string	`json:"Name"`
+	Name string `json:"Name"`
 	// Type of the column, default to "string".
 	// Valid value are: "string", "integer", "real"
-	Type		string	`json:"Type"`
-	T		int
+	Type string `json:"Type"`
+	// T type of column in integer.
+	T int
 	// Separator for column in record.
-	Separator	string	`json:"Separator"`
+	Separator string `json:"Separator"`
 	// LeftQuote define the characters that enclosed the column in the left
 	// side.
-	LeftQuote	string	`json:"LeftQuote"`
+	LeftQuote string `json:"LeftQuote"`
 	// RightQuote define the characters that enclosed the column in the
 	// right side.
-	RightQuote	string	`json:"RightQuote"`
+	RightQuote string `json:"RightQuote"`
 	// Skip, if its true this column will be ignored, not saved in reader
 	// object. Default to false.
-	Skip		bool	`json:"Skip"`
+	Skip bool `json:"Skip"`
 }
 
 /*
 Init initalize metadata column, i.e. check and set column type.
 */
 func (md *Metadata) Init() (e error) {
-	switch strings.ToUpper (md.Type) {
+	switch strings.ToUpper(md.Type) {
 	case "STRING":
 		md.T = TString
 	case "INTEGER", "INT":
@@ -47,9 +48,9 @@ func (md *Metadata) Init() (e error) {
 	case "":
 		md.T = TString
 	default:
-		e = &ErrReader {
+		e = &ErrReader{
 			"dsv: Invalid type",
-			[]byte (md.Type),
+			[]byte(md.Type),
 		}
 	}
 
@@ -122,9 +123,9 @@ func (md *Metadata) IsEqual(o MetadataInterface) bool {
 String yes, it will print it JSON like format.
 */
 func (md *Metadata) String() string {
-	r, e := json.MarshalIndent (md, "", "\t")
+	r, e := json.MarshalIndent(md, "", "\t")
 	if nil != e {
-		log.Print (e)
+		log.Print(e)
 	}
-	return string (r)
+	return string(r)
 }
