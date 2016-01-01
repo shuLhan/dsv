@@ -183,6 +183,178 @@ func Read(reader ReaderInterface) (n int, e error) {
 }
 
 /*
+parsingLeftQuote parse the left-quote string from line.
+*/
+func parsingLeftQuote(md MetadataInterface, line *[]byte, p int) (int, error) {
+	if "" == md.GetLeftQuote() {
+		return p, nil
+	}
+
+	linelen := len(*line)
+	lq := []byte(md.GetLeftQuote())
+
+	if DEBUG {
+		fmt.Println(md.GetLeftQuote())
+	}
+
+	for i := range lq {
+		if p >= linelen {
+			return p, &ErrReader{
+				"Premature end-of-line",
+				(*line),
+			}
+		}
+
+		if DEBUG {
+			fmt.Printf("%c:%c\n", (*line)[p], lq[i])
+		}
+
+		if (*line)[p] != lq[i] {
+			return p, &ErrReader{
+				"Invalid left-quote",
+				(*line),
+			}
+		}
+		p++
+	}
+	return p, nil
+}
+
+/*
+parsingSeparator parsing the line until we found the separator.
+
+Return the data and index of last parsed line, or error if separator is not
+found or not match with specification.
+*/
+func parsingSeparator(md MetadataInterface, line *[]byte, p int) (
+	v []byte, pRet int, e error,
+) {
+	if "" == md.GetSeparator() {
+		v = append(v, (*line)[p:]...)
+		return v, p, nil
+	}
+
+	linelen := len(*line)
+	sep := []byte(md.GetSeparator())
+
+	for p < linelen && (*line)[p] != sep[0] {
+		v = append(v, (*line)[p])
+		p++
+	}
+
+	if p >= linelen {
+		return v, p, &ErrReader{
+			"Missing separator, premature end-of-line",
+			(*line),
+		}
+	}
+
+	for i := range sep {
+		if p >= linelen {
+			return v, p, &ErrReader{
+				"Missing separator, premature end-of-line",
+				(*line),
+			}
+		}
+
+		if (*line)[p] != sep[i] {
+			return v, p, &ErrReader{
+				"Invalid separator",
+				(*line),
+			}
+		}
+		p++
+	}
+
+	return v, p, nil
+}
+
+/*
+parsingRightQuote parsing the line until we found the right quote.
+
+Return the data and index of last parsed line, or error if right-quote is not
+found or not match with specification.
+*/
+func parsingRightQuote(md MetadataInterface, line *[]byte, p int) (
+	v []byte, pRet int, e error,
+) {
+	if "" == md.GetRightQuote() {
+		return parsingSeparator(md, line, p)
+	}
+
+	linelen := len(*line)
+	rq := []byte(md.GetRightQuote())
+
+	// (2.2)
+	for p < linelen && (*line)[p] != rq[0] {
+		v = append(v, (*line)[p])
+		p++
+	}
+
+	if p >= linelen {
+		return v, p, &ErrReader{
+			"Missing right-quote, premature end-of-line",
+			(*line),
+		}
+	}
+
+	// (2.2.1)
+	for i := range rq {
+		if p >= linelen {
+			return v, p, &ErrReader{
+				"Missing right-quote, premature end-of-line",
+				(*line),
+			}
+		}
+
+		if (*line)[p] != rq[i] {
+			return v, p, &ErrReader{
+				"Invalid right-quote",
+				(*line),
+			}
+		}
+		p++
+	}
+
+	// (2.2.2)
+	if "" == md.GetSeparator() {
+		return v, p, nil
+	}
+
+	// Skip all character until we found separator.
+	sep := []byte(md.GetSeparator())
+
+	for p < linelen && (*line)[p] != sep[0] {
+		p++
+	}
+
+	if p >= linelen {
+		return v, p, &ErrReader{
+			"Missing separator, premature end-of-line",
+			(*line),
+		}
+	}
+
+	for i := range sep {
+		if p >= linelen {
+			return v, p, &ErrReader{
+				"Missing separator, premature end-of-line",
+				(*line),
+			}
+		}
+		if (*line)[p] != sep[i] {
+			return v, p, &ErrReader{
+				"Invalid separator",
+				(*line),
+			}
+		}
+		p++
+	}
+
+	return v, p, nil
+}
+
+/*
 ParseLine parse a line containing records. The output is array of record
 (or single row).
 
@@ -202,7 +374,6 @@ func ParseLine(reader ReaderInterface, line *[]byte) (
 ) {
 	var md MetadataInterface
 	var p = 0
-	var l = len(*line)
 	var rIdx = 0
 	var inputMd []MetadataInterface
 
@@ -220,134 +391,16 @@ func ParseLine(reader ReaderInterface, line *[]byte) (
 		}
 
 		// (2.1)
-		if "" != md.GetLeftQuote() {
-			lq := []byte(md.GetLeftQuote())
+		p, e = parsingLeftQuote(md, line, p)
 
-			if DEBUG {
-				fmt.Println(md.GetLeftQuote())
-			}
-
-			for i := range lq {
-				if p >= l {
-					return nil, &ErrReader{
-						"Premature end-of-line",
-						(*line),
-					}
-				}
-
-				if DEBUG {
-					fmt.Printf("%c:%c\n", (*line)[p], lq[i])
-				}
-
-				if (*line)[p] != lq[i] {
-					return nil, &ErrReader{
-						"Invalid left-quote",
-						(*line),
-					}
-				}
-				p++
-			}
+		if e != nil {
+			return
 		}
 
-		if "" != md.GetRightQuote() {
-			rq := []byte(md.GetRightQuote())
+		v, p, e = parsingRightQuote(md, line, p)
 
-			// (2.2)
-			for p < l && (*line)[p] != rq[0] {
-				v = append(v, (*line)[p])
-				p++
-			}
-
-			if p >= l {
-				return nil, &ErrReader{
-					"Missing right-quote, premature end-of-line",
-					(*line),
-				}
-			}
-
-			// (2.2.1)
-			for i := range rq {
-				if p >= l {
-					return nil, &ErrReader{
-						"Missing right-quote, premature end-of-line",
-						(*line),
-					}
-				}
-
-				if (*line)[p] != rq[i] {
-					return nil, &ErrReader{
-						"Invalid right-quote",
-						(*line),
-					}
-				}
-				p++
-			}
-
-			// (2.2.2)
-			if "" != md.GetSeparator() {
-				sep := []byte(md.GetSeparator())
-
-				for p < l && (*line)[p] != sep[0] {
-					p++
-				}
-
-				if p >= l {
-					return nil, &ErrReader{
-						"Missing separator, premature end-of-line",
-						(*line),
-					}
-				}
-
-				for i := range sep {
-					if p >= l {
-						return nil, &ErrReader{
-							"Missing separator, premature end-of-line",
-							(*line),
-						}
-					}
-					if (*line)[p] != sep[i] {
-						return nil, &ErrReader{
-							"Invalid separator",
-							(*line),
-						}
-					}
-					p++
-				}
-			}
-		} else if "" != md.GetSeparator() {
-			// (2.3)
-			sep := []byte(md.GetSeparator())
-
-			for p < l && (*line)[p] != sep[0] {
-				v = append(v, (*line)[p])
-				p++
-			}
-
-			if p >= l {
-				return nil, &ErrReader{
-					"Missing separator, premature end-of-line",
-					(*line),
-				}
-			}
-
-			for i := range sep {
-				if p >= l {
-					return nil, &ErrReader{
-						"Missing separator, premature end-of-line",
-						(*line),
-					}
-				}
-
-				if (*line)[p] != sep[i] {
-					return nil, &ErrReader{
-						"Invalid separator",
-						(*line),
-					}
-				}
-				p++
-			}
-		} else {
-			v = append(v, (*line)[p:]...)
+		if e != nil {
+			return
 		}
 
 		if DEBUG {
