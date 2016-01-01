@@ -7,6 +7,11 @@ Package util contain common function to work with data.
 */
 package util
 
+import (
+	"math/rand"
+	"time"
+)
+
 const (
 	// SortThreshold for sort. When the data less than SortThreshold,
 	// insertion sort will be used to replace the sort.
@@ -227,4 +232,55 @@ func IntFindMin(data []int) (min int, minidx int) {
 	}
 
 	return
+}
+
+/*
+GetRandomInteger return random integer value from 0 to maximum value `maxVal`.
+The random value is checked with already picked index, `pickedIdx`.
+If `dup` is true, allow duplicate value in `pickedIdx`, otherwise only single
+unique value allowed in `pickedIdx`.
+If excluding index `excIdx` is not empty, do not pick the integer value listed
+in there.
+*/
+func GetRandomInteger(maxVal int, dup bool, pickedIdx []int, excIdx []int) (
+	idx int,
+) {
+	rand.Seed(time.Now().UnixNano())
+
+	for {
+		idx = rand.Intn(maxVal)
+
+		// check if its must not be selected
+		excluded := false
+		for _, excIdx := range excIdx {
+			if idx == excIdx {
+				excluded = true
+				break
+			}
+		}
+		if excluded {
+			continue
+		}
+
+		if dup {
+			// allow duplicate idx
+			return
+		}
+
+		// check if its already picked
+		isPicked := false
+		for _, pastIdx := range pickedIdx {
+			if idx == pastIdx {
+				isPicked = true
+				break
+			}
+		}
+		// get another random idx again
+		if isPicked {
+			continue
+		}
+
+		// bingo, we found unique idx that has not been picked.
+		return
+	}
 }
