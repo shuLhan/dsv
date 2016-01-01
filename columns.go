@@ -6,8 +6,7 @@ package dsv
 
 import (
 	"errors"
-	"math/rand"
-	"time"
+	"github.com/shuLhan/dsv/util"
 )
 
 var (
@@ -67,49 +66,11 @@ func (cols *Columns) RandomPick(n int, dup bool, excludeIdx []int) (
 		n = allowedLen
 	}
 
-	rand.Seed(time.Now().UnixNano())
-
 	for ; n >= 1; n-- {
-		idx := 0
-		for {
-			idx = rand.Intn(colsLen)
+		idx := util.GetRandomInteger(colsLen, dup, pickedIdx,
+			excludeIdx)
 
-			// check if its must not be selected
-			excluded := false
-			for _, excIdx := range excludeIdx {
-				if idx == excIdx {
-					excluded = true
-					break
-				}
-			}
-			if excluded {
-				continue
-			}
-
-			if dup {
-				// allow duplicate idx
-				pickedIdx = append(pickedIdx, idx)
-				break
-			}
-
-			// check if its already picked
-			isPicked := false
-			for _, pastIdx := range pickedIdx {
-				if idx == pastIdx {
-					isPicked = true
-					break
-				}
-			}
-			// get another random idx again
-			if isPicked {
-				continue
-			}
-
-			// bingo, we found unique idx that has not been picked.
-			pickedIdx = append(pickedIdx, idx)
-			break
-		}
-
+		pickedIdx = append(pickedIdx, idx)
 		picked = append(picked, (*cols)[idx])
 	}
 
