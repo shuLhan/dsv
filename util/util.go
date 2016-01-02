@@ -22,8 +22,8 @@ const (
 InsertionSortFloat64 will sort the data using insertion algorithm.
 */
 func InsertionSortFloat64(data []float64, idx []int, l, r int) {
-	for x := l; x <= r; x++ {
-		for y := x + 1; y <= r; y++ {
+	for x := l; x < r; x++ {
+		for y := x + 1; y < r; y++ {
 			if data[x] > data[y] {
 				SwapInt(idx, x, y)
 				SwapFloat64(data, x, y)
@@ -72,10 +72,10 @@ func SwapString(data []string, i, j int) {
 }
 
 /*
-MergeSortSliceFloat64 sort the slice of float from `l` to `r` using mergesort
+MergesortFloat64 sort the slice of float from `l` to `r` using mergesort
 algorithm, return the sorted index.
 */
-func MergeSortSliceFloat64(data []float64, sortedIdx []int, l, r int) {
+func MergesortFloat64(data []float64, sortedIdx []int, l, r int) {
 	if l+SortThreshold >= r {
 		InsertionSortFloat64(data, sortedIdx, l, r)
 		return
@@ -83,34 +83,55 @@ func MergeSortSliceFloat64(data []float64, sortedIdx []int, l, r int) {
 
 	res := (r + l) % 2
 	c := (r + l) / 2
-	if res == 0 {
-		c--
+	if res == 1 {
+		c++
 	}
 
-	MergeSortSliceFloat64(data, sortedIdx, l, c)
-	MergeSortSliceFloat64(data, sortedIdx, c+1, r)
+	MergesortFloat64(data, sortedIdx, l, c)
+	MergesortFloat64(data, sortedIdx, c, r)
 
 	// merging
+	if data[c-1] < data[c] {
+		// the last element of the left is lower then the first element
+		// of the right, i.e. [1 2] [3 4].
+		return
+	}
+
+	datalen := r - l
+	newdata := make([]float64, datalen)
+	newidx := make([]int, datalen)
+
 	x := l
-	y := c + 1
-	for x <= c && y <= r {
+	y := c
+	z := 0
+	for ; x < c && y < r; z++ {
 		if data[x] <= data[y] {
+			newdata[z] = data[x]
+			newidx[z] = sortedIdx[x]
 			x++
 		} else {
-			SwapInt(sortedIdx, x, y)
-			SwapFloat64(data, x, y)
+			newdata[z] = data[y]
+			newidx[z] = sortedIdx[y]
 			y++
 		}
 	}
+	for ; x < c; x++ {
+		newdata[z] = data[x]
+		newidx[z] = sortedIdx[x]
+		z++
+	}
+	for ; y < r; y++ {
+		newdata[z] = data[y]
+		newidx[z] = sortedIdx[y]
+		z++
+	}
 
-	for x < y && y <= r {
-		if data[x] > data[y] {
-			SwapInt(sortedIdx, x, y)
-			SwapFloat64(data, x, y)
-			x++
-		} else {
-			y++
-		}
+	x = l
+	z = 0
+	for ; z < datalen; z++ {
+		data[x] = newdata[z]
+		sortedIdx[x] = newidx[z]
+		x++
 	}
 }
 
@@ -125,7 +146,7 @@ func IndirectSortFloat64(data []float64) (sortedIdx []int) {
 		sortedIdx[i] = i
 	}
 
-	MergeSortSliceFloat64(data, sortedIdx, 0, datalen-1)
+	MergesortFloat64(data, sortedIdx, 0, datalen)
 
 	return
 }
