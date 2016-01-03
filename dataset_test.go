@@ -204,7 +204,7 @@ func TestModeRowsPushColumn(t *testing.T) {
 	assert.Equal(t, exp, got)
 
 	// Check columns
-	exp = "[]"
+	exp = "[{int 1 0 [] []} {real 2 0 [] []} {string 0 0 [] []}]"
 	got = fmt.Sprint(dataset.Columns)
 
 	assert.Equal(t, exp, got)

@@ -16,6 +16,7 @@ type MetadataInterface interface {
 	GetRightQuote() string
 	GetSeparator() string
 	GetSkip() bool
+	GetValueSpace() []string
 
 	IsEqual(MetadataInterface) bool
 }

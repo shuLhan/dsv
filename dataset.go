@@ -57,6 +57,23 @@ func NewDataset(mode int, types []int, names []string) (
 }
 
 /*
+Clone return a copy of current dataset.
+*/
+func (dataset *Dataset) Clone() (clone Dataset) {
+	clone.SetMode(dataset.GetMode())
+
+	for _, col := range dataset.Columns {
+		newcol := Column{
+			Type:       col.Type,
+			Name:       col.Name,
+			ValueSpace: col.ValueSpace,
+		}
+		clone.PushColumn(newcol)
+	}
+	return
+}
+
+/*
 Init will set the dataset using mode and types.
 */
 func (dataset *Dataset) Init(mode int, types []int, names []string) (e error) {
@@ -466,7 +483,13 @@ PushColumn will append new column to the end of slice.
 func (dataset *Dataset) PushColumn(col Column) (e error) {
 	switch dataset.GetMode() {
 	case DatasetModeRows:
+		dataset.Columns = append(dataset.Columns, col)
 		e = dataset.PushColumnToRows(col)
+		if e != nil {
+			return
+		}
+		// Remove records in column
+		dataset.Columns[dataset.GetNColumn()-1].Reset()
 	case DatasetModeColumns:
 		dataset.Columns = append(dataset.Columns, col)
 	case DatasetModeMatrix:
@@ -540,10 +563,8 @@ func (dataset *Dataset) RandomPickRows(n int, duplicate bool) (
 		dataset.TransposeToRows()
 	}
 
-	picked.Init(dataset.Mode, dataset.GetColumnsType(),
-		dataset.GetColumnsName())
-	unpicked.Init(dataset.Mode, dataset.GetColumnsType(),
-		dataset.GetColumnsName())
+	picked = dataset.Clone()
+	unpicked = dataset.Clone()
 
 	picked.Rows, unpicked.Rows, pickedIdx, unpickedIdx =
 		dataset.Rows.RandomPick(n, duplicate)
@@ -604,8 +625,15 @@ func (dataset *Dataset) RandomPickColumns(n int, dup bool, excludeIdx []int) (
 		}
 	}
 
-	picked.Init(dataset.GetMode(), nil, nil)
-	unpicked.Init(dataset.GetMode(), nil, nil)
+	e = picked.Init(dataset.GetMode(), nil, nil)
+	if e != nil {
+		return
+	}
+
+	e = unpicked.Init(dataset.GetMode(), nil, nil)
+	if e != nil {
+		return
+	}
 
 	picked.Columns, unpicked.Columns, pickedIdx, unpickedIdx =
 		dataset.Columns.RandomPick(n, dup, excludeIdx)
@@ -685,10 +713,8 @@ func (dataset *Dataset) SplitRowsByNumeric(colidx int, splitVal float64) (
 
 	glog.V(2).Infoln("dataset:", dataset)
 
-	splitLess.Init(dataset.GetMode(), dataset.GetColumnsType(),
-		dataset.GetColumnsName())
-	splitGreater.Init(dataset.GetMode(), dataset.GetColumnsType(),
-		dataset.GetColumnsName())
+	splitLess = dataset.Clone()
+	splitGreater = dataset.Clone()
 
 	for _, row := range dataset.Rows {
 		if row[colidx].Float() < splitVal {
@@ -764,10 +790,8 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 		dataset.TransposeToRows()
 	}
 
-	splitIn.Init(dataset.GetMode(), dataset.GetColumnsType(),
-		dataset.GetColumnsName())
-	splitEx.Init(dataset.GetMode(), dataset.GetColumnsType(),
-		dataset.GetColumnsName())
+	splitIn = dataset.Clone()
+	splitEx = dataset.Clone()
 
 	found := false
 
@@ -876,7 +900,10 @@ func (dataset *Dataset) SelectColumnsByIdx(colsIdx []int) (
 		}
 	}
 
-	newset.Init(dataset.GetMode(), nil, nil)
+	e = newset.Init(dataset.GetMode(), nil, nil)
+	if e != nil {
+		return
+	}
 
 	for _, idx := range colsIdx {
 		col, e = dataset.GetColumn(idx)

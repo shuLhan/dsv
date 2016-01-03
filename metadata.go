@@ -32,6 +32,8 @@ type Metadata struct {
 	// Skip, if its true this column will be ignored, not saved in reader
 	// object. Default to false.
 	Skip bool `json:"Skip"`
+	// ValueSpace contain the possible value in records
+	ValueSpace []string `json:"ValueSpace"`
 }
 
 /*
@@ -97,6 +99,13 @@ GetSkip return number of rows that will be skipped when reading data.
 */
 func (md *Metadata) GetSkip() bool {
 	return md.Skip
+}
+
+/*
+GetValueSpace return value space.
+*/
+func (md *Metadata) GetValueSpace() []string {
+	return md.ValueSpace
 }
 
 /*

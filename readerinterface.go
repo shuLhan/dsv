@@ -63,12 +63,17 @@ func InitReader(reader ReaderInterface) (e error) {
 		return ErrNoInput
 	}
 
-	md := reader.GetInputMetadata()
-	nColOut := 0
-	var types []int
-	var names []string
+	// Set default value
+	reader.SetDefault()
 
-	// Check and initialize metadata.
+	// Check if output mode is valid and initialize it if valid.
+	e = reader.SetDatasetMode(reader.GetDatasetMode())
+	if nil != e {
+		return
+	}
+
+	// Check and initialize metadata and columns attributes.
+	md := reader.GetInputMetadata()
 	for i := range md {
 		e = md[i].Init()
 
@@ -78,29 +83,14 @@ func InitReader(reader ReaderInterface) (e error) {
 
 		// Count number of output columns.
 		if !md[i].GetSkip() {
-			nColOut++
 			// add type of metadata to list of type
-			types = append(types, md[i].GetType())
-			names = append(names, md[i].GetName())
+			col := Column{
+				Type:       md[i].GetType(),
+				Name:       md[i].GetName(),
+				ValueSpace: md[i].GetValueSpace(),
+			}
+			reader.PushColumn(col)
 		}
-	}
-
-	// Set default value
-	reader.SetDefault()
-
-	// Set column type in dataset
-	e = reader.SetColumnsType(types)
-	if e != nil {
-		return
-	}
-
-	reader.SetColumnsName(names)
-
-	// Check if output mode is valid and initialize it if valid.
-	e = reader.SetDatasetMode(reader.GetDatasetMode())
-
-	if nil != e {
-		return
 	}
 
 	// Check if Input is name only without path, so we can prefix it with

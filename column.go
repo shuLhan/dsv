@@ -15,6 +15,8 @@ type Column struct {
 	// Flag additional attribute that can be set to mark some value on this
 	// column
 	Flag int
+	// ValueSpace contain the possible value in records
+	ValueSpace []string
 	// Records contain column data.
 	Records []*Record
 }

@@ -166,7 +166,8 @@ start at the beginning of record.
 end of record.
 * `Skip`: optional, boolean, default is `false`. If true the column will be
 saved in dataset when reading input file, otherwise it will be ignored.
-
+* `ValueSpace`: optional, slice of string, default is empty. This contain the
+string representation of all possible value in column.
 
 ### Input
 
