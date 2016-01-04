@@ -206,6 +206,16 @@ func StringCountBy(data []string, class []string) (clsCnt []int) {
 }
 
 /*
+StringsGetMajority return the string that has highest frequency.
+*/
+func StringsGetMajority(data []string, class []string) string {
+	classCount := StringCountBy(data, class)
+	_, maxIdx := IntFindMax(classCount)
+
+	return class[maxIdx]
+}
+
+/*
 IntFindMax given slice of integer, return the maximum value in slice and index
 of maximum value.
 If data is empty, return -1 in value and index.
@@ -304,4 +314,27 @@ func GetRandomInteger(maxVal int, dup bool, pickedIdx []int, excIdx []int) (
 		// bingo, we found unique idx that has not been picked.
 		return
 	}
+}
+
+/*
+CountMissRate given two slice of string, count number of string that is not
+equal with each other, and return the miss rate
+(number of not equal / number of data).
+*/
+func CountMissRate(src []string, target []string) float64 {
+	// find minimum length
+	minlen := len(src)
+	targetlen := len(target)
+	if targetlen < minlen {
+		minlen = targetlen
+	}
+
+	miss := 0
+	for x := 0; x < minlen; x++ {
+		if src[x] != target[x] {
+			miss++
+		}
+	}
+
+	return float64(miss) / float64(minlen)
 }
