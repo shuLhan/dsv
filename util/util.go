@@ -266,6 +266,19 @@ func IntFindMin(data []int) (min int, minidx int) {
 }
 
 /*
+IntIsExist check if integer value exist in list of integer, return true if
+exist, false otherwise.
+*/
+func IntIsExist(data []int, val int) bool {
+	for _, v := range data {
+		if val == v {
+			return true
+		}
+	}
+	return false
+}
+
+/*
 GetRandomInteger return random integer value from 0 to maximum value `maxVal`.
 The random value is checked with already picked index, `pickedIdx`.
 If `dup` is true, allow duplicate value in `pickedIdx`, otherwise only single
