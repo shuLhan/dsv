@@ -20,6 +20,7 @@ type DatasetInterface interface {
 	GetColumnsName() []string
 
 	GetColumn(idx int) (col *Column, e error)
+	GetRow(idx int) Row
 	GetData() interface{}
 	GetDataAsRows() Rows
 	GetDataAsColumns() (Columns, error)

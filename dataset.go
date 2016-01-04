@@ -290,6 +290,13 @@ func (dataset *Dataset) GetColumn(idx int) (col *Column, e error) {
 }
 
 /*
+GetRow return row at index `idx`.
+*/
+func (dataset *Dataset) GetRow(idx int) Row {
+	return dataset.Rows[idx]
+}
+
+/*
 GetData return the data, based on mode (rows, columns, or matrix).
 */
 func (dataset *Dataset) GetData() interface{} {
