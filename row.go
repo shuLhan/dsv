@@ -15,3 +15,13 @@ PushBack will add new record to the end of row.
 func (row *Row) PushBack(r *Record) {
 	*row = append(*row, r)
 }
+
+/*
+GetTypes return type of all records.
+*/
+func (row *Row) GetTypes() (types []int) {
+	for _, r := range *row {
+		types = append(types, r.GetType())
+	}
+	return
+}
