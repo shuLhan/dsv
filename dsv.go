@@ -102,7 +102,10 @@ func (dsv *ReadWriter) Open(fcfg string) (e error) {
 /*
 Close reader and writer.
 */
-func (dsv *ReadWriter) Close() {
-	dsv.Writer.Close()
-	dsv.Reader.Close()
+func (dsv *ReadWriter) Close() (e error) {
+	e = dsv.Writer.Close()
+	if e != nil {
+		return
+	}
+	return dsv.Reader.Close()
 }

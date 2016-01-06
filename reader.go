@@ -334,7 +334,10 @@ Open input and rejected file.
 */
 func (reader *Reader) Open() (e error) {
 	// do not let file descriptor leaked
-	reader.Close()
+	e = reader.Close()
+	if e != nil {
+		return
+	}
 
 	e = reader.OpenInput()
 	if e != nil {
@@ -366,16 +369,20 @@ func (reader *Reader) SkipLines() (e error) {
 Reset all variables for next read operation. Number of rows will be 0, and
 Rows will be empty again.
 */
-func (reader *Reader) Reset() {
-	reader.Flush()
-	reader.Dataset.Reset()
+func (reader *Reader) Reset() (e error) {
+	e = reader.Flush()
+	if e != nil {
+		return
+	}
+	e = reader.Dataset.Reset()
+	return
 }
 
 /*
 Flush all output buffer.
 */
-func (reader *Reader) Flush() {
-	reader.bufReject.Flush()
+func (reader *Reader) Flush() error {
+	return reader.bufReject.Flush()
 }
 
 /*
@@ -402,23 +409,30 @@ func (reader *Reader) ReadLine() (line []byte, e error) {
 /*
 Reject the line and save it to the reject file.
 */
-func (reader *Reader) Reject(line []byte) {
-	reader.bufReject.Write(line)
+func (reader *Reader) Reject(line []byte) (int, error) {
+	return reader.bufReject.Write(line)
 }
 
 /*
 Close all open descriptors.
 */
-func (reader *Reader) Close() {
+func (reader *Reader) Close() (e error) {
 	if nil != reader.bufReject {
-		reader.bufReject.Flush()
+		e = reader.bufReject.Flush()
+		if e != nil {
+			return
+		}
 	}
 	if nil != reader.fReject {
-		reader.fReject.Close()
+		e = reader.fReject.Close()
+		if e != nil {
+			return
+		}
 	}
 	if nil != reader.fRead {
-		reader.fRead.Close()
+		e = reader.fRead.Close()
 	}
+	return
 }
 
 /*

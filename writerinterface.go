@@ -12,8 +12,8 @@ type WriterInterface interface {
 	GetOutput() string
 	SetOutput(path string)
 	OpenOutput(file string) error
-	Flush()
-	Close()
+	Flush() error
+	Close() error
 }
 
 /*

@@ -8,9 +8,9 @@ package dsv
 DatasetInterface is the interface for working with DSV data.
 */
 type DatasetInterface interface {
-	Reset()
+	Reset() error
 	GetMode() int
-	SetMode(mode int) error
+	SetMode(mode int)
 	GetNColumn() int
 	GetNRow() int
 	SetColumnsType(types []int) error
@@ -27,7 +27,7 @@ type DatasetInterface interface {
 	TransposeToColumns() error
 	TransposeToRows()
 
-	PushRow(r Row) error
-	PushRowToColumns(r Row) error
-	PushColumn(col Column) error
+	PushRow(r Row)
+	PushRowToColumns(r Row)
+	PushColumn(col Column)
 }

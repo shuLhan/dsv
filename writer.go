@@ -99,20 +99,24 @@ func (writer *Writer) OpenOutput(file string) (e error) {
 /*
 Flush output buffer to disk.
 */
-func (writer *Writer) Flush() {
-	writer.BufWriter.Flush()
+func (writer *Writer) Flush() error {
+	return writer.BufWriter.Flush()
 }
 
 /*
 Close all open descriptor.
 */
-func (writer *Writer) Close() {
+func (writer *Writer) Close() (e error) {
 	if nil != writer.BufWriter {
-		writer.BufWriter.Flush()
+		e = writer.BufWriter.Flush()
+		if e != nil {
+			return
+		}
 	}
 	if nil != writer.fWriter {
-		writer.fWriter.Close()
+		e = writer.fWriter.Close()
 	}
+	return
 }
 
 /*
@@ -173,11 +177,7 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 
 	_, e = writer.BufWriter.Write(v)
 
-	if nil != e {
-		return e
-	}
-
-	return nil
+	return e
 }
 
 /*
@@ -241,7 +241,10 @@ func (writer *Writer) WriteColumns(columns *Columns, md []MetadataInterface) (
 			row[f] = (*columns)[f].Records[r]
 		}
 
-		writer.WriteRow(row, md)
+		e = writer.WriteRow(row, md)
+		if e != nil {
+			break
+		}
 	}
 
 	return n, e
@@ -277,7 +280,7 @@ func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
 		}
 	}
 
-	writer.Flush()
+	e = writer.Flush()
 	return
 }
 
@@ -319,7 +322,7 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 		}
 	}
 
-	writer.Flush()
+	e = writer.Flush()
 	return
 }
 

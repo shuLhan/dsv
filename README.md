@@ -85,9 +85,6 @@ Second, we create a reader to read the input file.
         t.Fatal(e)
     }
 
-    // we will make sure all open descriptor is closed.
-    defer dsvReader.Close()
-
 Third, we create a writer to write our output data,
 
     dsvWriter, e := dsv.NewWriter("config.dsv")
@@ -109,6 +106,9 @@ Last action, we process them: read input records and pass them to writer.
             break
         }
     }
+
+    // we will make sure all open descriptor is closed.
+    _ = dsvReader.Close()
 
 Easy enough? We can combine the reader and writer using `dsv.New()`, which will
 create reader and writer,

@@ -35,10 +35,10 @@ type ReaderInterface interface {
 	OpenRejected() error
 	SkipLines() error
 
-	Flush()
+	Flush() error
 	ReadLine() ([]byte, error)
-	Reject(line []byte)
-	Close()
+	Reject(line []byte) (int, error)
+	Close() error
 }
 
 /*
@@ -126,10 +126,11 @@ Read row from input file.
 */
 func Read(reader ReaderInterface) (n int, e error) {
 	maxrows := reader.GetMaxRows()
-	reader.Reset()
 
-	// remember to flush if we have rejected rows.
-	defer reader.Flush()
+	e = reader.Reset()
+	if e != nil {
+		return
+	}
 
 	// Loop until we reached MaxRows (> 0) or when all rows has been
 	// read (= -1)
@@ -153,21 +154,25 @@ func Read(reader ReaderInterface) (n int, e error) {
 		row, e := ParseLine(reader, &line)
 
 		if nil == e {
-			e = reader.PushRow(row)
-		}
-		if nil == e {
+			reader.PushRow(row)
+
 			n++
 			if maxrows > 0 && n >= maxrows {
 				break
 			}
 		} else {
 			// If error, save the rejected line.
-			log.Println(e)
+			line = append(line, "\n"...)
 
-			reader.Reject(line)
-			reader.Reject([]byte("\n"))
+			_, e = reader.Reject(line)
+			if e != nil {
+				break
+			}
 		}
 	}
+
+	// remember to flush if we have rejected rows.
+	e = reader.Flush()
 
 	return n, e
 }

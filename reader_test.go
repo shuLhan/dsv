@@ -232,8 +232,6 @@ func TestReaderRead(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	defer dsvReader.Close()
-
 	e = dsv.ConfigParse(dsvReader, []byte(jsonSample[4]))
 
 	if nil != e {
@@ -247,6 +245,11 @@ func TestReaderRead(t *testing.T) {
 	}
 
 	doRead(t, dsvReader, expectation)
+
+	e = dsvReader.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 }
 
 /*
@@ -258,9 +261,12 @@ func TestReaderOpen(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	defer dsvReader.Close()
-
 	doRead(t, dsvReader, expectation)
+
+	e = dsvReader.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 }
 
 func TestDatasetMode(t *testing.T) {
@@ -321,7 +327,10 @@ func TestReaderToColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	reader.SetDatasetMode(dsv.DatasetModeCOLUMNS)
+	e = reader.SetDatasetMode(dsv.DatasetModeCOLUMNS)
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	e = dsv.InitReader(reader)
 
@@ -357,9 +366,12 @@ func TestReaderSkip(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	defer dsvReader.Close()
-
 	doRead(t, dsvReader, expSkip)
+
+	e = dsvReader.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 }
 
 func TestTransposeToColumns(t *testing.T) {
@@ -367,7 +379,6 @@ func TestTransposeToColumns(t *testing.T) {
 	if nil != e {
 		t.Fatal(e)
 	}
-	defer reader.Close()
 
 	reader.SetMaxRows(-1)
 
@@ -376,7 +387,10 @@ func TestTransposeToColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	reader.TransposeToColumns()
+	e = reader.TransposeToColumns()
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	exp := fmt.Sprint(expSkipColumnsAll)
 
@@ -387,6 +401,11 @@ func TestTransposeToColumns(t *testing.T) {
 	got := fmt.Sprint(columns)
 
 	assert.Equal(t, exp, got)
+
+	e = reader.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 }
 
 func TestSortColumnsByIndex(t *testing.T) {
@@ -395,7 +414,6 @@ func TestSortColumnsByIndex(t *testing.T) {
 	if nil != e {
 		t.Fatal(e)
 	}
-	defer reader.Close()
 
 	reader.SetMaxRows(-1)
 
@@ -413,7 +431,10 @@ func TestSortColumnsByIndex(t *testing.T) {
 		expReverse = append(expReverse, expSkip[x])
 	}
 
-	reader.SortColumnsByIndex(idxReverse)
+	e = reader.SortColumnsByIndex(idxReverse)
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	exp := strings.Join(expReverse, "")
 	got := fmt.Sprint(reader.GetDataAsRows())
@@ -429,6 +450,11 @@ func TestSortColumnsByIndex(t *testing.T) {
 	got = fmt.Sprint(columns)
 
 	assert.Equal(t, exp, got)
+
+	e = reader.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 }
 
 func TestSplitRowsByValue(t *testing.T) {
@@ -436,8 +462,6 @@ func TestSplitRowsByValue(t *testing.T) {
 	if nil != e {
 		t.Fatal(e)
 	}
-
-	defer reader.Close()
 
 	reader.SetMaxRows(256)
 
@@ -472,4 +496,9 @@ func TestSplitRowsByValue(t *testing.T) {
 	got = fmt.Sprint(splitR.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
+
+	e = reader.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 }

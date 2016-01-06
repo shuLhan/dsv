@@ -193,6 +193,6 @@ func (column *Column) SetValues(values []string) {
 	}
 
 	for x := 0; x < minlen; x++ {
-		column.Records[x].SetValue([]byte(values[x]), column.Type)
+		_ = column.Records[x].SetValue([]byte(values[x]), column.Type)
 	}
 }

@@ -31,7 +31,11 @@ func TestReadWriter(t *testing.T) {
 	rw, _ := doInit(t, "testdata/config.dsv")
 
 	doReadWrite(t, &rw.Reader, &rw.Writer, expectation, true)
-	rw.Close()
+
+	e := rw.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected.dat")
 }
@@ -45,7 +49,11 @@ func TestReadWriterAll(t *testing.T) {
 	rw.SetMaxRows(-1)
 
 	doReadWrite(t, &rw.Reader, &rw.Writer, expectation, false)
-	rw.Close()
+
+	e := rw.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected.dat")
 }

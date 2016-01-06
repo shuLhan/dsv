@@ -13,16 +13,21 @@ import (
 
 func TestRandomPickColumns(t *testing.T) {
 	var dataset dsv.Dataset
-	var e error
 
-	dataset.Init(dsv.DatasetModeRows, testColTypes, testColNames)
+	e := dataset.Init(dsv.DatasetModeRows, testColTypes, testColNames)
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	dataset.Rows, e = initRows()
 	if e != nil {
 		t.Fatal(e)
 	}
 
-	dataset.TransposeToColumns()
+	e = dataset.TransposeToColumns()
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	// random pick with duplicate
 	ncols := 6
@@ -66,5 +71,4 @@ func TestRandomPickColumns(t *testing.T) {
 		fmt.Println("==> unpicked columns :", unpicked)
 		fmt.Println("==> unpicked idx     :", unpickedIdx)
 	}
-
 }

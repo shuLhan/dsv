@@ -96,9 +96,10 @@ func (dataset *Dataset) Init(mode int, types []int, names []string) (e error) {
 /*
 Reset all data and attributes.
 */
-func (dataset *Dataset) Reset() {
+func (dataset *Dataset) Reset() error {
 	dataset.Rows = Rows{}
 	dataset.Columns.Reset()
+	return nil
 }
 
 /*
@@ -111,7 +112,7 @@ func (dataset *Dataset) GetMode() int {
 /*
 SetMode of saved data to `mode`.
 */
-func (dataset *Dataset) SetMode(mode int) error {
+func (dataset *Dataset) SetMode(mode int) {
 	switch mode {
 	case DatasetModeRows:
 		dataset.Mode = DatasetModeRows
@@ -123,12 +124,8 @@ func (dataset *Dataset) SetMode(mode int) error {
 		dataset.Mode = DatasetModeMatrix
 		dataset.Rows = make(Rows, 0)
 		dataset.Columns.Reset()
-	default:
-		return ErrUnknownDatasetMode
 	}
 	dataset.Mode = mode
-
-	return nil
 }
 
 /*
@@ -441,23 +438,22 @@ func (dataset *Dataset) TransposeToRows() {
 /*
 PushRow save the data, which is already in row object, to Rows.
 */
-func (dataset *Dataset) PushRow(row Row) (e error) {
+func (dataset *Dataset) PushRow(row Row) {
 	switch dataset.GetMode() {
 	case DatasetModeRows:
 		dataset.Rows = append(dataset.Rows, row)
 	case DatasetModeColumns:
-		e = dataset.PushRowToColumns(row)
+		dataset.PushRowToColumns(row)
 	case DatasetModeMatrix:
 		dataset.Rows = append(dataset.Rows, row)
-		e = dataset.PushRowToColumns(row)
+		dataset.PushRowToColumns(row)
 	}
-	return
 }
 
 /*
 PushRowToColumns push each data in Row to Columns.
 */
-func (dataset *Dataset) PushRowToColumns(row Row) (e error) {
+func (dataset *Dataset) PushRowToColumns(row Row) {
 	rowlen := len(row)
 	if rowlen <= 0 {
 		// return immediately if no data in row.
@@ -480,36 +476,30 @@ func (dataset *Dataset) PushRowToColumns(row Row) (e error) {
 	for x := 0; x < min; x++ {
 		dataset.Columns[x].PushBack(row[x])
 	}
-
-	return
 }
 
 /*
 PushColumn will append new column to the end of slice.
 */
-func (dataset *Dataset) PushColumn(col Column) (e error) {
+func (dataset *Dataset) PushColumn(col Column) {
 	switch dataset.GetMode() {
 	case DatasetModeRows:
 		dataset.Columns = append(dataset.Columns, col)
-		e = dataset.PushColumnToRows(col)
-		if e != nil {
-			return
-		}
+		dataset.PushColumnToRows(col)
 		// Remove records in column
 		dataset.Columns[dataset.GetNColumn()-1].Reset()
 	case DatasetModeColumns:
 		dataset.Columns = append(dataset.Columns, col)
 	case DatasetModeMatrix:
 		dataset.Columns = append(dataset.Columns, col)
-		e = dataset.PushColumnToRows(col)
+		dataset.PushColumnToRows(col)
 	}
-	return
 }
 
 /*
 PushColumnToRows add each record in column to each rows, from top to bottom.
 */
-func (dataset *Dataset) PushColumnToRows(col Column) (e error) {
+func (dataset *Dataset) PushColumnToRows(col Column) {
 	colsize := col.GetLength()
 	if colsize <= 0 {
 		// Do nothing if column is empty.
@@ -543,8 +533,6 @@ func (dataset *Dataset) PushColumnToRows(col Column) (e error) {
 
 		row.PushBack(rec)
 	}
-
-	return
 }
 
 /*
@@ -918,10 +906,7 @@ func (dataset *Dataset) SelectColumnsByIdx(colsIdx []int) (
 			return
 		}
 
-		e = newset.PushColumn(*col)
-		if e != nil {
-			return
-		}
+		newset.PushColumn(*col)
 	}
 
 	// revert the mode back

@@ -49,5 +49,8 @@ func doReadWrite(t *testing.T, dsvReader *dsv.Reader, dsvWriter *dsv.Writer,
 		}
 	}
 
-	dsvWriter.Flush()
+	e := dsvWriter.Flush()
+	if e != nil {
+		t.Fatal(e)
+	}
 }
