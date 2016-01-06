@@ -39,7 +39,7 @@ func PopulateWithRows(t *testing.T, dataset *dsv.Dataset) {
 		row := make(dsv.Row, len(rowin))
 
 		for x, recin := range rowin {
-			rec, e := dsv.NewRecord([]byte(recin), datasetTypes[x])
+			rec, e := dsv.NewRecord(recin, datasetTypes[x])
 			if e != nil {
 				t.Fatal(e)
 			}

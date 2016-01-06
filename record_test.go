@@ -21,7 +21,7 @@ func TestRecord(t *testing.T) {
 	row := make(dsv.Row, 0)
 
 	for i := range expec {
-		r, e := dsv.NewRecord([]byte(expec[i]), expType[i])
+		r, e := dsv.NewRecord(expec[i], expType[i])
 		if nil != e {
 			t.Error(e)
 		}

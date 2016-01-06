@@ -54,7 +54,7 @@ func NewColumnString(data []string, colType int, colName string) (
 	col.Records = make([]*Record, datalen)
 
 	for x := 0; x < datalen; x++ {
-		rec, e := NewRecord([]byte(data[x]), colType)
+		rec, e := NewRecord(data[x], colType)
 		if e != nil {
 			return nil, e
 		}
@@ -193,6 +193,6 @@ func (column *Column) SetValues(values []string) {
 	}
 
 	for x := 0; x < minlen; x++ {
-		_ = column.Records[x].SetValue([]byte(values[x]), column.Type)
+		_ = column.Records[x].SetValue(values[x], column.Type)
 	}
 }

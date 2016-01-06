@@ -34,10 +34,10 @@ type Record struct {
 }
 
 /*
-NewRecord create new record from byte with specific type.
+NewRecord create new record from string with specific type.
 Return record object or error when fail to convert the byte to type.
 */
-func NewRecord(v []byte, t int) (r *Record, e error) {
+func NewRecord(v string, t int) (r *Record, e error) {
 	r = &Record{}
 
 	e = r.SetValue(v, t)
@@ -60,52 +60,42 @@ func NewRecordReal(v float64) (r *Record) {
 /*
 GetType of record.
 */
-func (r *Record) GetType() (int, error) {
+func (r *Record) GetType() int {
 	switch r.V.(type) {
 	case int64:
-		return TInteger, nil
+		return TInteger
 	case float64:
-		return TReal, nil
-	case string:
-		return TString, nil
+		return TReal
 	}
-	return TUndefined, ErrRecTypeUndefined
+	return TString
 }
 
 /*
-SetValue set the record values from bytes.
+SetValue set the record values from string. If value can not be converted
+to type, it will return an error.
 */
-func (r *Record) SetValue(v []byte, t int) (e error) {
-	var i64 int64
-	var f64 float64
-	s := string(v)
-
+func (r *Record) SetValue(v string, t int) error {
 	switch t {
 	case TString:
-		r.V = s
+		r.V = v
 
 	case TInteger:
-		i64, e = strconv.ParseInt(s, 10, 64)
-
+		i64, e := strconv.ParseInt(v, 10, 64)
 		if nil != e {
-			r.V = int64(math.MinInt64)
-		} else {
-			r.V = i64
+			return e
 		}
+
+		r.V = i64
 
 	case TReal:
-		f64, e = strconv.ParseFloat(s, 64)
-
+		f64, e := strconv.ParseFloat(v, 64)
 		if nil != e {
-			r.V = math.Inf(-1)
-		} else {
-			r.V = f64
+			return e
 		}
-	}
 
-	// keep returning error in case convert is failed and missing value
-	// is set.
-	return
+		r.V = f64
+	}
+	return nil
 }
 
 /*

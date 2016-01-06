@@ -407,7 +407,7 @@ func ParseLine(reader ReaderInterface, line *[]byte) (
 		}
 
 		v = bytes.TrimSpace(v)
-		r, e := NewRecord(v, md.GetType())
+		r, e := NewRecord(string(v), md.GetType())
 
 		if nil != e {
 			return nil, &ErrReader{

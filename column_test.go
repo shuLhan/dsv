@@ -17,7 +17,7 @@ func TestToFloatSlice(t *testing.T) {
 	var col dsv.Column
 
 	for x := range data {
-		rec, e := dsv.NewRecord([]byte(data[x]), dsv.TReal)
+		rec, e := dsv.NewRecord(data[x], dsv.TReal)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -34,7 +34,7 @@ func TestToStringSlice(t *testing.T) {
 	var col dsv.Column
 
 	for x := range data {
-		rec, e := dsv.NewRecord([]byte(data[x]), dsv.TString)
+		rec, e := dsv.NewRecord(data[x], dsv.TString)
 		if e != nil {
 			t.Fatal(e)
 		}

@@ -56,11 +56,11 @@ var expSkipColumnsAllRev = []string{
 }
 
 // Testing data and function for Rows and MapRows
-var rowsData = [][]byte{
-	{'1', '5', '9', '+'},
-	{'2', '6', '0', '-'},
-	{'3', '7', '1', '-'},
-	{'4', '8', '2', '+'},
+var rowsData = [][]string{
+	{"1", "5", "9", "+"},
+	{"2", "6", "0", "-"},
+	{"3", "7", "1", "-"},
+	{"4", "8", "2", "+"},
 }
 
 var testColTypes = []int{dsv.TInteger, dsv.TInteger, dsv.TInteger, dsv.TString}
@@ -83,7 +83,7 @@ func initRows() (rows dsv.Rows, e error) {
 		row := make(dsv.Row, 0)
 
 		for j := 0; j < l; j++ {
-			rec, e := dsv.NewRecord([]byte{rowsData[i][j]},
+			rec, e := dsv.NewRecord(rowsData[i][j],
 				testColTypes[j])
 
 			if nil != e {
