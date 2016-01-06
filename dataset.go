@@ -289,8 +289,8 @@ func (dataset *Dataset) GetColumn(idx int) (col *Column, e error) {
 /*
 GetRow return row at index `idx`.
 */
-func (dataset *Dataset) GetRow(idx int) Row {
-	return dataset.Rows[idx]
+func (dataset *Dataset) GetRow(idx int) *Row {
+	return &dataset.Rows[idx]
 }
 
 /*
@@ -344,9 +344,18 @@ func (dataset *Dataset) TransposeToColumns() (e error) {
 		// nothing to transpose
 		return
 	}
-	if dataset.GetNColumn() <= 0 {
-		// no column defined
-		return ErrMisColLength
+
+	ncol := dataset.GetNColumn()
+	if ncol <= 0 {
+		// if no columns defined, initialize it using record type
+		// in the first row.
+		types := dataset.GetRow(0).GetTypes()
+		e = dataset.SetColumnsType(types)
+		if e != nil {
+			return
+		}
+
+		ncol = len(types)
 	}
 
 	orgmode := dataset.GetMode()
@@ -362,19 +371,21 @@ func (dataset *Dataset) TransposeToColumns() (e error) {
 		}
 	}
 
-	// double check column length
-	collen := len(dataset.Rows[0])
+	// use the least length
+	minlen := len(*dataset.GetRow(0))
 
-	if collen > dataset.GetNColumn() {
-		return ErrMisColLength
+	if minlen > ncol {
+		minlen = ncol
 	}
 
 	if orgmode == DatasetModeRows {
 		dataset.SetMode(DatasetModeColumns)
 	}
 
-	for i := range dataset.Rows {
-		dataset.PushRowToColumns(dataset.Rows[i])
+	for _, row := range dataset.Rows {
+		for y := 0; y < minlen; y++ {
+			dataset.Columns[y].PushBack(row[y])
+		}
 	}
 
 	// reset the rows data only if original mode is rows
