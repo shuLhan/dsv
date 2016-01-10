@@ -332,22 +332,24 @@ func GetRandomInteger(maxVal int, dup bool, pickedIdx []int, excIdx []int) (
 /*
 CountMissRate given two slice of string, count number of string that is not
 equal with each other, and return the miss rate
-(number of not equal / number of data).
+(number of not equal / number of data), miss number, and length of slice.
 */
-func CountMissRate(src []string, target []string) float64 {
+func CountMissRate(src []string, target []string) (
+	missrate float64,
+	nmiss, length int,
+) {
 	// find minimum length
-	minlen := len(src)
+	length = len(src)
 	targetlen := len(target)
-	if targetlen < minlen {
-		minlen = targetlen
+	if targetlen < length {
+		length = targetlen
 	}
 
-	miss := 0
-	for x := 0; x < minlen; x++ {
+	for x := 0; x < length; x++ {
 		if src[x] != target[x] {
-			miss++
+			nmiss++
 		}
 	}
 
-	return float64(miss) / float64(minlen)
+	return float64(nmiss) / float64(length), nmiss, length
 }

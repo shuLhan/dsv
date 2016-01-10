@@ -136,3 +136,19 @@ func TestIntFindMin(t *testing.T) {
 	assert.Equal(t, 1, minv)
 	assert.Equal(t, 0, minid)
 }
+
+func TestCountMissRate(t *testing.T) {
+	data := []string{"A", "B", "C", "D"}
+	test := []string{"A", "B", "C", "D"}
+	repl := []string{"B", "C", "D", "E"}
+	exps := []float64{0.25, 0.5, 0.75, 1.0}
+
+	got, _, _ := util.CountMissRate(data, test)
+	assert.Equal(t, 0.0, got)
+
+	for x, exp := range exps {
+		test[x] = repl[x]
+		got, _, _ = util.CountMissRate(data, test)
+		assert.Equal(t, exp, got)
+	}
+}
