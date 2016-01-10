@@ -76,11 +76,7 @@ func TestWriterWithColumns(t *testing.T) {
 }
 
 func TestWriteRawRows(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
-
-	if e != nil {
-		t.Fatal(e)
-	}
+	dataset := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
 
 	PopulateWithRows(t, dataset)
 
@@ -104,11 +100,7 @@ func TestWriteRawRows(t *testing.T) {
 }
 
 func TestWriteRawColumns(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
-
-	if e != nil {
-		t.Fatal(e)
-	}
+	dataset := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
 
 	PopulateWithColumns(t, dataset)
 

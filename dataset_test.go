@@ -64,11 +64,8 @@ func PopulateWithColumns(t *testing.T, dataset *dsv.Dataset) {
 }
 
 func CreateDataset(t *testing.T) (dataset *dsv.Dataset) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, datasetTypes,
+	dataset = dsv.NewDataset(dsv.DatasetModeRows, datasetTypes,
 		datasetNames)
-	if e != nil {
-		t.Fatal(e)
-	}
 
 	PopulateWithRows(t, dataset)
 
@@ -159,11 +156,7 @@ func TestSplitRowsByCategorical(t *testing.T) {
 }
 
 func TestModeColumnsPushColumn(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
-
-	if e != nil {
-		t.Fatal(e)
-	}
+	dataset := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
 
 	exp := ""
 	got := ""
@@ -189,11 +182,7 @@ func TestModeColumnsPushColumn(t *testing.T) {
 }
 
 func TestModeRowsPushColumn(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
-
-	if e != nil {
-		t.Fatal(e)
-	}
+	dataset := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
 
 	PopulateWithColumns(t, dataset)
 
@@ -211,11 +200,7 @@ func TestModeRowsPushColumn(t *testing.T) {
 }
 
 func TestModeMatrixPushColumn(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeMatrix, nil, nil)
-
-	if e != nil {
-		t.Fatal(e)
-	}
+	dataset := dsv.NewDataset(dsv.DatasetModeMatrix, nil, nil)
 
 	exp := ""
 	got := ""
@@ -242,11 +227,7 @@ func TestModeMatrixPushColumn(t *testing.T) {
 }
 
 func TestModeRowsPushRows(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
-
-	if e != nil {
-		t.Fatal(e)
-	}
+	dataset := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
 
 	PopulateWithRows(t, dataset)
 
@@ -257,11 +238,7 @@ func TestModeRowsPushRows(t *testing.T) {
 }
 
 func TestModeColumnsPushRows(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
-
-	if e != nil {
-		t.Fatal(e)
-	}
+	dataset := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
 
 	PopulateWithRows(t, dataset)
 
@@ -282,11 +259,7 @@ func TestModeColumnsPushRows(t *testing.T) {
 }
 
 func TestModeMatrixPushRows(t *testing.T) {
-	dataset, e := dsv.NewDataset(dsv.DatasetModeMatrix, nil, nil)
-
-	if e != nil {
-		t.Fatal(e)
-	}
+	dataset := dsv.NewDataset(dsv.DatasetModeMatrix, nil, nil)
 
 	PopulateWithRows(t, dataset)
 

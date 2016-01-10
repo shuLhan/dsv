@@ -5,14 +5,7 @@
 package dsv
 
 import (
-	"errors"
 	"github.com/shuLhan/dsv/util"
-)
-
-var (
-	// ErrMisColLength returned when operation on columns does not match
-	// between parameter and their length
-	ErrMisColLength = errors.New("dsv: mismatch on column length")
 )
 
 /*
@@ -31,16 +24,20 @@ func (cols *Columns) Reset() {
 
 /*
 SetType of each column. The length of type must be equal with the number of
-column, otherwise it will return error.
+column, otherwise it will used the minimum length between types or columns.
 */
-func (cols *Columns) SetType(types []int) error {
-	if len(types) != len(*cols) {
-		return ErrMisColLength
+func (cols *Columns) SetType(types []int) {
+	typeslen := len(types)
+	colslen := len(*cols)
+	minlen := typeslen
+
+	if colslen < minlen {
+		minlen = colslen
 	}
-	for x := range *cols {
+
+	for x := 0; x < minlen; x++ {
 		(*cols)[x].Type = types[x]
 	}
-	return nil
 }
 
 /*

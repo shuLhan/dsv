@@ -13,18 +13,18 @@ type DatasetInterface interface {
 	SetMode(mode int)
 	GetNColumn() int
 	GetNRow() int
-	SetColumnsType(types []int) error
+	SetColumnsType(types []int)
 	GetColumnsType() []int
 	GetColumnTypeAt(colidx int) (int, error)
 	SetColumnsName(names []string)
 	GetColumnsName() []string
 
-	GetColumn(idx int) (col *Column, e error)
+	GetColumn(idx int) *Column
 	GetRow(idx int) *Row
 	GetData() interface{}
 	GetDataAsRows() Rows
-	GetDataAsColumns() (Columns, error)
-	TransposeToColumns() error
+	GetDataAsColumns() Columns
+	TransposeToColumns()
 	TransposeToRows()
 
 	PushRow(r Row)
