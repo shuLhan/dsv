@@ -185,7 +185,7 @@ func (r Record) String() (s string) {
 /*
 Float convert given record to float value.
 */
-func (r Record) Float() (f64 float64) {
+func (r *Record) Float() (f64 float64) {
 	var e error
 
 	switch r.V.(type) {
@@ -204,4 +204,15 @@ func (r Record) Float() (f64 float64) {
 	}
 
 	return
+}
+
+/*
+IsEqual compare record value with another. Return true if both value are match,
+otherwise return false.
+*/
+func (r *Record) IsEqual(v string) bool {
+	if r.String() == v {
+		return true
+	}
+	return false
 }
