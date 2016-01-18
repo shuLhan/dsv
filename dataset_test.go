@@ -277,3 +277,16 @@ func TestModeMatrixPushRows(t *testing.T) {
 
 	assert.Equal(t, exp, got)
 }
+
+func TestSelectRowsWhere(t *testing.T) {
+	dataset := dsv.NewDataset(dsv.DatasetModeMatrix, nil, nil)
+
+	PopulateWithRows(t, dataset)
+
+	// select all rows where the first column value is 9.
+	selected := dataset.SelectRowsWhere(0, "9")
+	exp := dataset.GetRow(9)
+	got := selected.GetRow(0)
+
+	assert.Equal(t, exp, got)
+}

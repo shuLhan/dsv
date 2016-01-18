@@ -167,6 +167,13 @@ func (dataset *Dataset) GetNRow() (nrow int) {
 }
 
 /*
+Len return number of row in dataset.
+*/
+func (dataset *Dataset) Len() int {
+	return dataset.GetNRow()
+}
+
+/*
 SetColumnsType of data in all columns.
 */
 func (dataset *Dataset) SetColumnsType(types []int) {
@@ -851,6 +858,34 @@ func (dataset *Dataset) SelectColumnsByIdx(colsIdx []int) (
 		// do nothing
 	case DatasetModeMatrix:
 		// do nothing
+	}
+
+	return
+}
+
+/*
+SelectRowsWhere return all rows which column value in `colidx` is equal
+to `colval`.
+*/
+func (dataset *Dataset) SelectRowsWhere(colidx int, colval string) (
+	selected Dataset,
+) {
+	orgmode := dataset.GetMode()
+
+	if orgmode == DatasetModeColumns {
+		dataset.TransposeToRows()
+	}
+
+	selected.Init(dataset.GetMode(), nil, nil)
+
+	selected.Rows = dataset.Rows.SelectWhere(colidx, colval)
+
+	switch orgmode {
+	case DatasetModeColumns:
+		dataset.TransposeToColumns()
+		selected.TransposeToColumns()
+	case DatasetModeMatrix:
+		selected.TransposeToColumns()
 	}
 
 	return
