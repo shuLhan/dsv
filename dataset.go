@@ -12,12 +12,14 @@ import (
 )
 
 const (
+	// DatasetNoMode default to matrix.
+	DatasetNoMode = 0
 	// DatasetModeRows for output mode in rows.
 	DatasetModeRows = 1
 	// DatasetModeColumns for output mode in columns.
 	DatasetModeColumns = 2
 	// DatasetModeMatrix will save data in rows and columns.
-	DatasetModeMatrix = 3
+	DatasetModeMatrix = 4
 )
 
 var (
@@ -117,7 +119,7 @@ func (dataset *Dataset) SetMode(mode int) {
 	case DatasetModeColumns:
 		dataset.Mode = DatasetModeColumns
 		dataset.Columns.Reset()
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		dataset.Mode = DatasetModeMatrix
 		dataset.Rows = make(Rows, 0)
 		dataset.Columns.Reset()
@@ -135,7 +137,8 @@ func (dataset *Dataset) GetNColumn() (ncol int) {
 		return
 	}
 
-	if dataset.GetMode() == DatasetModeRows {
+	switch dataset.Mode {
+	case DatasetModeRows:
 		if len(dataset.Rows) <= 0 {
 			return 0
 		}
@@ -159,7 +162,7 @@ func (dataset *Dataset) GetNRow() (nrow int) {
 			// get length of record in the first column
 			nrow = dataset.Columns[0].GetLength()
 		}
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		// matrix mode could have empty either in rows or column.
 		nrow = len(dataset.Rows)
 	}
@@ -303,7 +306,7 @@ func (dataset *Dataset) GetData() interface{} {
 		return dataset.Rows
 	case DatasetModeColumns:
 		return dataset.Columns
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		return Matrix{
 			Columns: &dataset.Columns,
 			Rows:    &dataset.Rows,
@@ -354,9 +357,11 @@ func (dataset *Dataset) TransposeToColumns() {
 
 	orgmode := dataset.GetMode()
 
-	// check if column records contain data, if its empty transpose to
-	// column, otherwise return, which means its already transposed
-	if orgmode == DatasetModeColumns || orgmode == DatasetModeMatrix {
+	switch orgmode {
+	case DatasetModeRows:
+		// do nothing.
+	case DatasetModeColumns, DatasetModeMatrix, DatasetNoMode:
+		// check if column records contain data.
 		nrow := dataset.Columns[0].GetLength()
 		if nrow > 0 {
 			// return if column record is not empty, its already
@@ -372,7 +377,8 @@ func (dataset *Dataset) TransposeToColumns() {
 		minlen = ncol
 	}
 
-	if orgmode == DatasetModeRows {
+	switch orgmode {
+	case DatasetModeRows, DatasetNoMode:
 		dataset.SetMode(DatasetModeColumns)
 	}
 
@@ -384,7 +390,8 @@ func (dataset *Dataset) TransposeToColumns() {
 
 	// reset the rows data only if original mode is rows
 	// this to prevent empty data when mode is matrix.
-	if orgmode == DatasetModeRows {
+	switch orgmode {
+	case DatasetModeRows:
 		dataset.Rows = nil
 	}
 }
@@ -447,7 +454,7 @@ func (dataset *Dataset) PushRow(row Row) {
 		dataset.Rows = append(dataset.Rows, row)
 	case DatasetModeColumns:
 		dataset.PushRowToColumns(row)
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		dataset.Rows = append(dataset.Rows, row)
 		dataset.PushRowToColumns(row)
 	}
@@ -493,7 +500,7 @@ func (dataset *Dataset) PushColumn(col Column) {
 		dataset.Columns[dataset.GetNColumn()-1].Reset()
 	case DatasetModeColumns:
 		dataset.Columns = append(dataset.Columns, col)
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		dataset.Columns = append(dataset.Columns, col)
 		dataset.PushColumnToRows(col)
 	}
@@ -574,7 +581,7 @@ func (dataset *Dataset) RandomPickRows(n int, duplicate bool) (
 		picked.TransposeToColumns()
 		unpicked.TransposeToColumns()
 
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		// transform the picked and unpicked set.
 		picked.TransposeToColumns()
 		unpicked.TransposeToColumns()
@@ -615,7 +622,7 @@ func (dataset *Dataset) RandomPickColumns(n int, dup bool, excludeIdx []int) (
 		dataset.TransposeToRows()
 		picked.TransposeToRows()
 		unpicked.TransposeToRows()
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		picked.TransposeToRows()
 		unpicked.TransposeToRows()
 	}
@@ -772,7 +779,7 @@ func (dataset *Dataset) SplitRowsByCategorical(colidx int, splitVal []string) (
 		dataset.TransposeToColumns()
 		splitIn.TransposeToColumns()
 		splitEx.TransposeToColumns()
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		splitIn.TransposeToColumns()
 		splitEx.TransposeToColumns()
 	}
@@ -884,7 +891,7 @@ func (dataset *Dataset) SelectRowsWhere(colidx int, colval string) (
 	case DatasetModeColumns:
 		dataset.TransposeToColumns()
 		selected.TransposeToColumns()
-	case DatasetModeMatrix:
+	case DatasetModeMatrix, DatasetNoMode:
 		selected.TransposeToColumns()
 	}
 
