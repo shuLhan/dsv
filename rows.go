@@ -7,6 +7,7 @@ package dsv
 import (
 	"fmt"
 	"math/rand"
+	"reflect"
 	"time"
 )
 
@@ -154,6 +155,59 @@ func (rows *Rows) RandomPick(n int, duplicate bool) (
 		if !isPicked {
 			unpicked.PushBack((*rows)[rid])
 			unpickedIdx = append(unpickedIdx, rid)
+		}
+	}
+	return
+}
+
+/*
+Contain return true and index of row, if rows has data that has the same value
+with `row`, otherwise return false and -1 as index.
+*/
+func (rows *Rows) Contain(xrow Row) (bool, int) {
+	for x, row := range *rows {
+		if reflect.DeepEqual(row, xrow) {
+			return true, x
+		}
+	}
+	return false, -1
+}
+
+/*
+Contains return true and indices of row, if rows has data that has the same
+value with `rows`, otherwise return false and empty indices.
+*/
+func (rows *Rows) Contains(xrows Rows) (isin bool, indices []int) {
+	// No data to compare.
+	if len(xrows) <= 0 {
+		return
+	}
+
+	for _, xrow := range xrows {
+		isin, idx := rows.Contain(xrow)
+
+		if isin {
+			indices = append(indices, idx)
+		}
+	}
+
+	// Check if indices length equal to searched rows
+	if len(indices) == len(xrows) {
+		return true, indices
+	}
+
+	return false, nil
+}
+
+/*
+SelectWhere return all rows which column value in `colidx` is equal
+to `colval`.
+*/
+func (rows *Rows) SelectWhere(colidx int, colval string) (selected Rows) {
+	for _, row := range *rows {
+		col := row[colidx]
+		if col.IsEqual(colval) {
+			selected.PushBack(row)
 		}
 	}
 	return

@@ -126,19 +126,16 @@ func TestRandomPick(t *testing.T) {
 			true)
 
 		// check if unpicked item exist in picked items.
-		for _, un := range unpicked {
-			for _, pick := range picked {
-				if reflect.DeepEqual(un, pick) {
-					t.Fatal("random pick: unpicked is false")
-				}
-			}
-		}
+		isin, _ := picked.Contains(unpicked)
 
-		fmt.Println("Random pick with duplicate rows")
-		fmt.Println("==> picked rows   :", picked)
-		fmt.Println("==> picked idx    :", pickedIdx)
-		fmt.Println("==> unpicked rows :", unpicked)
-		fmt.Println("==> unpicked idx  :", unpickedIdx)
+		if isin {
+			fmt.Println("Random pick with duplicate rows")
+			fmt.Println("==> picked rows   :", picked)
+			fmt.Println("==> picked idx    :", pickedIdx)
+			fmt.Println("==> unpicked rows :", unpicked)
+			fmt.Println("==> unpicked idx  :", unpickedIdx)
+			t.Fatal("random pick: unpicked is false")
+		}
 	}
 
 	// random pick without duplication
@@ -152,18 +149,15 @@ func TestRandomPick(t *testing.T) {
 		}
 
 		// check if unpicked item exist in picked items.
-		for _, un := range unpicked {
-			for _, pick := range picked {
-				if reflect.DeepEqual(un, pick) {
-					t.Fatal("random pick: unpicked is false")
-				}
-			}
-		}
+		isin, _ := picked.Contains(unpicked)
 
-		fmt.Println("Random pick with no duplicate rows")
-		fmt.Println("==> picked rows   :", picked)
-		fmt.Println("==> picked idx    :", pickedIdx)
-		fmt.Println("==> unpicked rows :", unpicked)
-		fmt.Println("==> unpicked idx  :", unpickedIdx)
+		if isin {
+			fmt.Println("Random pick with no duplicate rows")
+			fmt.Println("==> picked rows   :", picked)
+			fmt.Println("==> picked idx    :", pickedIdx)
+			fmt.Println("==> unpicked rows :", unpicked)
+			fmt.Println("==> unpicked idx  :", unpickedIdx)
+			t.Fatal("random pick: unpicked is false")
+		}
 	}
 }
