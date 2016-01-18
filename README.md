@@ -222,7 +222,7 @@ directory with configuration file.
 
 ## Working with DSV
 
-### Process each Rows/Columns
+### Processing each Rows/Columns
 
 After opening the input file, we can process the dataset based on rows/columns
 mode using simple `for` loop. Example,
@@ -256,8 +256,16 @@ for {
 
 For more information see `dataset.go`.
 
+* Select rows based on column value
 * Random pick rows with or without replacement
 * Random pick columns with or without replacement
 * Sort all columns using index from indirect-sort
 * Splitting dataset using numeric values
 * Splitting dataset using categorical values
+
+## Limitations
+
+* New line is `\n` for each row.
+* Reader and Writer operate in ASCII (8 bit or char type), UTF-8 is not
+  supported yet, since we can not test it.  Patch for supporting UTF-8 (or
+  runes type) are welcome.
