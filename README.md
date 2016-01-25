@@ -194,6 +194,7 @@ will require additional memory.
 
 For example, given input data file,
 
+    col1,col2,col3
     a,b,c
     1,2,3
 
@@ -204,9 +205,12 @@ For example, given input data file,
 
 "columns" mode is where each line saved by columns, resulting in Columns:
 
-    Columns[0]: [a 1]
-    Columns[1]: [b 2]
-    Columns[1]: [c 3]
+    Columns[0]: {col1 0 0 [] [a 1]}
+    Columns[1]: {col2 0 0 [] [b 2]}
+    Columns[1]: {col3 0 0 [] [c 3]}
+
+Unlike rows mode, each column contain metadata including column name, type,
+flag, and value space (all possible value that _may_ contain in column value).
 
 "matrix" mode is where each record saved both in row and column.
 
@@ -238,12 +242,20 @@ for {
 		// handle error
 	}
 	if n > 0 {
-		for i, row := dsvReader.GetDataAsRows() {
+		for x, row := dsvReader.GetDataAsRows() {
 			// process each row
+
+			for y, record := range row.Records {
+				// process each record in row
+			}
 		}
 
-		for i, column := dsvReader.GetDataAsColumns() {
+		for x, column := dsvReader.GetDataAsColumns() {
 			// process each column
+
+			for y, record := range column.Records {
+				// process each record in column
+			}
 		}
 
 		// Write the dataset to file after processed
@@ -256,16 +268,115 @@ for {
 
 For more information see `dataset.go`.
 
-* Select rows based on column value
-* Random pick rows with or without replacement
-* Random pick columns with or without replacement
-* Sort all columns using index from indirect-sort
-* Splitting dataset using numeric values
-* Splitting dataset using categorical values
+#### Select rows based on column value
+
+Assume that we have read all rows, we can select all rows with column index
+contain specific value. For example, the code below select all row where column
+index 0 has string value `9`.
+
+```
+	selected := reader.SelectRowsWhere(0, "9")
+```
+
+#### Random pick rows with or without replacement
+
+Assume that we have read all rows, we can select `n` random rows from reader or
+dataset with the following code,
+
+```
+// select 5 rows randomly
+n := 5
+// do not allow duplicate rows
+duplicate := false
+
+pickedRow, unpickedRows, pickedIdx, unpickedIdx := reader.RandomPickRows(n,
+	duplicate)
+```
+
+`pickedRows` will contain randomly selected rows, `unpickedRows` will contain
+unselected rows, `pickedIdx` will contain slice of index that has been picked,
+and `unpickedIdx` will contain slice of index that are not picked.
+
+If `duplicate` is true, there is a chance that picked rows contain the same
+row.
+
+#### Random pick columns with or without replacement
+
+This is like random pick rows, but worked on columns mode. Assume that we have
+9 columns, this example will select two columns randomly with a chance of
+duplicate and excluding column 0 and 8 to be picked.
+
+```
+// select 2 columns randomly
+n := 2
+// allow duplicate columns selected
+duplicate := true
+// exclude this column when randomly select
+excludeIdx := []int{0,8}
+
+pickedRow, unpickedRows, pickedIdx, unpickedIdx := reader.RandomPickColumns(n,
+	duplicate, excludeIdx)
+```
+
+#### Sort all columns using index from indirect-sort
+
+Assume that we have read all rows, and an array of index which may come from
+sorting one of the columns using indirect-sort. We can sort all columns using
+function `SortColumnsByIndex` using the sorted index.
+
+#### Splitting dataset using numeric values
+
+Assume that we have read all rows, and we want to split the data into two set
+based on numeric value (float). One can use,
+
+```
+colidx := 0
+splitval := 5.0
+
+splitLess, splitGreater, e := reader.SplitRowsByNumeric(colidx, splitval)
+```
+
+`splitLess` will contain all rows with column index 0 has value less than
+`5.0`, while `splitGreater` will contain all rows with column index 0 has value
+greater or equal to `5.0`.
+
+#### Splitting dataset using categorical values
+
+Assume that we have read all rows, and we want to split the data using string
+value. One can use,
+
+```
+colidx := 0
+splitval := []string{"rain", "cloudy"}
+
+splitInclude, splitExclude, e := reader.SplitRowsByCategorical(colidx,
+	splitval)
+```
+
+`splitInclude` will contain all rows where column index 0 contain string equal
+with "rain" or "cloudy", while `splitExclude` contain the rest of rows.
 
 ## Limitations
 
 * New line is `\n` for each row.
+
 * Reader and Writer operate in ASCII (8 bit or char type), UTF-8 is not
   supported yet, since we can not test it.  Patch for supporting UTF-8 (or
   runes type) are welcome.
+
+* About escaped character in content of data.
+  Since we said that we handle free-style form of CSV, what we mean was the
+  left-quote, right-quote and separator can be string. Its not only one single
+  character like single quote or double quote or any single character, but
+  literally one or more characters without space. Any escaped character will be
+  read as is (along with `'\'`) unless its followed by right-quote or separator.
+  For example,
+
+      "test\'"
+
+  will be readed as `test\'`. But
+
+      "test\""
+
+  will be readed as `test"`, since the right-quote is matched with escaped
+  token.
