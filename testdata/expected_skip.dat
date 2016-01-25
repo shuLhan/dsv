@@ -5,3 +5,5 @@
 0.000000009;9;{{ok}};ok#
 0.101;10;{{integer}};test#
 0.123456789;123456789;{{real}};test#
+13;13;{{string with}};string with#
+14;14;{{string with]] escape}};string with" quote#

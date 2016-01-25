@@ -5,3 +5,5 @@ ID 6/#	{{}};6;0.000006
 ID 9/ok#	{{ok}};9;0.000000009
 ID 10/test#	{{integer}};10;0.101
 ID 12/test#	{{real}};123456789;0.123456789
+ID 13/string with#	{{string with}};13;13
+ID 14/string with" quote#	{{string with]] escape}};14;14

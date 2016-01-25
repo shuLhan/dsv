@@ -38,7 +38,7 @@ func doReadWrite(t *testing.T, dsvReader *dsv.Reader, dsvWriter *dsv.Writer,
 		if n > 0 {
 			if check {
 				r := fmt.Sprint(dsvReader.GetData())
-				assert.Equal(t, r, expectation[i])
+				assert.Equal(t, expectation[i], r)
 				i++
 			}
 

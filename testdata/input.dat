@@ -11,3 +11,5 @@
 10;"test"-[[integer]];010;0.101
 11;"test"-[[integer]];1a;0.1001
 12;"test"-[[real]];123456789;00.123456789
+13;"string with" quote"-[[string with]];13;13.0
+14;"string with\" quote"-[[string with\]] escape]];14;14.0

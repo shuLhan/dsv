@@ -216,6 +216,147 @@ func parsingLeftQuote(md MetadataInterface, line *[]byte, p int) (int, error) {
 }
 
 /*
+isForwardMatch return true if current line at index p match with token,
+otherwise return false.
+*/
+func isForwardMatch(line *[]byte, p int, token []byte) (bool, error) {
+	linelen := len(*line)
+	tokenlen := len(token)
+
+	if p+tokenlen >= linelen {
+		return false, &ErrReader{
+			"Missing token, premature end-of-line",
+			(*line),
+		}
+	}
+
+	for _, v := range token {
+		if v != (*line)[p] {
+			return false, nil
+		}
+		p++
+	}
+	return true, nil
+}
+
+/*
+parsingUntil we found token. Token that is prefixed with escaped character
+'\' will be ignored.
+*/
+func parsingUntil(line *[]byte, p int, token []byte) (
+	v []byte, pRet int, e error,
+) {
+	linelen := len(*line)
+
+	escaped := false
+	for p < linelen {
+		// Assume the escape character always used to escaped the
+		// token ...
+		if (*line)[p] == '\\' {
+			escaped = true
+			p++
+			continue
+		}
+		if (*line)[p] != token[0] {
+			if escaped {
+				// ... turn out its not escaping token.
+				v = append(v, '\\')
+				escaped = false
+			}
+
+			v = append(v, (*line)[p])
+			p++
+			continue
+		}
+
+		// We found the first token character.
+		// Lets check if its match with all content of token.
+		match, e := isForwardMatch(line, p, token)
+
+		if e != nil {
+			return v, p, e
+		}
+
+		// false alarm ...
+		if !match {
+			if escaped {
+				v = append(v, '\\')
+				escaped = false
+			}
+
+			v = append(v, (*line)[p])
+			p++
+			continue
+		}
+
+		// Its matched, but if its prefixed with escaped char '\', then
+		// we assumed it as non breaking token.
+		if escaped {
+			v = append(v, (*line)[p])
+			p++
+			escaped = false
+			continue
+		}
+
+		// Its matched with no escape character.
+		break
+	}
+
+	if p >= linelen {
+		return v, p, &ErrReader{
+			"Premature end-of-line",
+			(*line),
+		}
+	}
+
+	return v, p + len(token), e
+}
+
+/*
+skipUntil skip all characters until matched token is found.
+Return index of line with matched token or error if line end before finding
+the token.
+*/
+func skipUntil(line *[]byte, p int, token []byte) (
+	pRet int, e error,
+) {
+	linelen := len(*line)
+
+	for p < linelen {
+		if (*line)[p] != token[0] {
+			p++
+			continue
+		}
+
+		// We found the first token character.
+		// Lets check if its match with all content of token.
+		match, e := isForwardMatch(line, p, token)
+
+		if e != nil {
+			return p, e
+		}
+
+		// false alarm ...
+		if !match {
+			p++
+			continue
+		}
+
+		// Its matched.
+		break
+	}
+
+	if p >= linelen {
+		return p, &ErrReader{
+			"Premature end-of-line",
+			(*line),
+		}
+	}
+
+	return p + len(token), e
+}
+
+/*
 parsingSeparator parsing the line until we found the separator.
 
 Return the data and index of last parsed line, or error if separator is not
@@ -229,39 +370,11 @@ func parsingSeparator(md MetadataInterface, line *[]byte, p int) (
 		return v, p, nil
 	}
 
-	linelen := len(*line)
 	sep := []byte(md.GetSeparator())
 
-	for p < linelen && (*line)[p] != sep[0] {
-		v = append(v, (*line)[p])
-		p++
-	}
+	v, p, e = parsingUntil(line, p, sep)
 
-	if p >= linelen {
-		return v, p, &ErrReader{
-			"Missing separator, premature end-of-line",
-			(*line),
-		}
-	}
-
-	for i := range sep {
-		if p >= linelen {
-			return v, p, &ErrReader{
-				"Missing separator, premature end-of-line",
-				(*line),
-			}
-		}
-
-		if (*line)[p] != sep[i] {
-			return v, p, &ErrReader{
-				"Invalid separator",
-				(*line),
-			}
-		}
-		p++
-	}
-
-	return v, p, nil
+	return v, p, e
 }
 
 /*
@@ -277,76 +390,26 @@ func parsingRightQuote(md MetadataInterface, line *[]byte, p int) (
 		return parsingSeparator(md, line, p)
 	}
 
-	linelen := len(*line)
 	rq := []byte(md.GetRightQuote())
 
-	// (2.2)
-	for p < linelen && (*line)[p] != rq[0] {
-		v = append(v, (*line)[p])
-		p++
-	}
-
-	if p >= linelen {
-		return v, p, &ErrReader{
-			"Missing right-quote, premature end-of-line",
-			(*line),
-		}
-	}
-
 	// (2.2.1)
-	for i := range rq {
-		if p >= linelen {
-			return v, p, &ErrReader{
-				"Missing right-quote, premature end-of-line",
-				(*line),
-			}
-		}
+	v, p, e = parsingUntil(line, p, rq)
 
-		if (*line)[p] != rq[i] {
-			return v, p, &ErrReader{
-				"Invalid right-quote",
-				(*line),
-			}
-		}
-		p++
+	if e != nil {
+		return v, p, e
 	}
 
-	// (2.2.2)
 	if "" == md.GetSeparator() {
 		return v, p, nil
 	}
 
+	// (2.2.2)
 	// Skip all character until we found separator.
 	sep := []byte(md.GetSeparator())
 
-	for p < linelen && (*line)[p] != sep[0] {
-		p++
-	}
+	p, e = skipUntil(line, p, sep)
 
-	if p >= linelen {
-		return v, p, &ErrReader{
-			"Missing separator, premature end-of-line",
-			(*line),
-		}
-	}
-
-	for i := range sep {
-		if p >= linelen {
-			return v, p, &ErrReader{
-				"Missing separator, premature end-of-line",
-				(*line),
-			}
-		}
-		if (*line)[p] != sep[i] {
-			return v, p, &ErrReader{
-				"Invalid separator",
-				(*line),
-			}
-		}
-		p++
-	}
-
-	return v, p, nil
+	return v, p, e
 }
 
 /*
@@ -392,6 +455,7 @@ func ParseLine(reader ReaderInterface, line *[]byte) (
 			return
 		}
 
+		// (2.2)
 		v, p, e = parsingRightQuote(md, line, p)
 
 		if e != nil {
