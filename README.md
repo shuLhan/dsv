@@ -6,6 +6,30 @@ DSV is a free-style form of CSV format of text data, where each record is
 separated by newline, and each column can be separated by any string, not just
 comma.
 
+* [Example](#example)
+* [Terminology](#terminology)
+* [Configuration](#configuration)
+  * [Metadata](#metadata)
+  * [Input](#input)
+    * [DatasetMode Explained](#datasetmode-explained)
+  * [Output](#output)
+* [Working with DSV](#working-with-dsv)
+  * [Processing each Rows/Columns](#processing-each-rowscolumns)
+  * [Builtin Functions for Dataset](#builtins-functions-for-dataset)
+    * [Select rows based on column value](#select-rows-based-on-column-value)
+    * [Random pick rows with or without
+      replacement](#random-pick-rows-with-or-without-replacement)
+    * [Random pick columns with or without replacement](#random-pick-columns-with-or-without-replacement)
+    * [Sort all columns using index from
+      indirect-sort](#sort-all-columns-using-index-from-indirect-sort)
+    * [Splitting dataset using numeric
+      value](#splitting-dataset-using-numeric-value)
+    * [Splitting dataset using categorical
+      values](#splitting-dataset-using-categorical-values)
+* [Limitations](#limitations)
+
+---
+
 ## Example
 
 Lets process this input file `input.dat`,
@@ -190,7 +214,7 @@ Valid values are "rows", "columns", or "matrix". Matrix mode is combination of
 rows and columns, it give more flexibility when processing the dataset but
 will require additional memory.
 
-#### `DatasetMode` explained
+#### `DatasetMode` Explained
 
 For example, given input data file,
 
@@ -324,7 +348,7 @@ Assume that we have read all rows, and an array of index which may come from
 sorting one of the columns using indirect-sort. We can sort all columns using
 function `SortColumnsByIndex` using the sorted index.
 
-#### Splitting dataset using numeric values
+#### Splitting dataset using numeric value
 
 Assume that we have read all rows, and we want to split the data into two set
 based on numeric value (float). One can use,
