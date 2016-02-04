@@ -220,10 +220,10 @@ func (writer *Writer) WriteColumns(columns *Columns, md []MetadataInterface) (
 	// Get minimum length of all columns.
 	// In case one of the column have different length (shorter or longer),
 	// we will take the column with minimum length.
-	minLen := (*columns)[0].GetLength()
+	minLen := (*columns)[0].Len()
 
 	for i := 1; i < nColumns; i++ {
-		l := (*columns)[i].GetLength()
+		l := (*columns)[i].Len()
 		if minLen > l {
 			minLen = l
 		}
@@ -297,7 +297,7 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 		return
 	}
 
-	nrow = (*cols)[0].GetLength()
+	nrow = (*cols)[0].Len()
 	if nrow <= 0 {
 		return
 	}

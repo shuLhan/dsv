@@ -109,9 +109,9 @@ func (column *Column) GetName() string {
 }
 
 /*
-GetLength return number of record.
+Len return number of record.
 */
-func (column *Column) GetLength() int {
+func (column *Column) Len() int {
 	return len(column.Records)
 }
 
@@ -126,7 +126,7 @@ func (column *Column) PushBack(r *Record) {
 ToFloatSlice convert slice of record to slice of float64.
 */
 func (column *Column) ToFloatSlice() (newcol []float64) {
-	newcol = make([]float64, column.GetLength())
+	newcol = make([]float64, column.Len())
 
 	for i := range column.Records {
 		newcol[i] = column.Records[i].Float()
@@ -139,7 +139,7 @@ func (column *Column) ToFloatSlice() (newcol []float64) {
 ToStringSlice convert slice of record to slice of string.
 */
 func (column *Column) ToStringSlice() (newcol []string) {
-	newcol = make([]string, column.GetLength())
+	newcol = make([]string, column.Len())
 
 	for i := range column.Records {
 		newcol[i] = column.Records[i].String()
@@ -153,7 +153,7 @@ ClearValues set all value in column to empty string or zero if column type is
 numeric.
 */
 func (column *Column) ClearValues() {
-	if column.GetLength() <= 0 {
+	if column.Len() <= 0 {
 		return
 	}
 
@@ -178,7 +178,7 @@ SetValues of all column record.
 */
 func (column *Column) SetValues(values []string) {
 	vallen := len(values)
-	reclen := column.GetLength()
+	reclen := column.Len()
 
 	// initialize column record if its empty.
 	if reclen <= 0 {

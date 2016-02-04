@@ -160,7 +160,7 @@ func (dataset *Dataset) GetNRow() (nrow int) {
 			nrow = 0
 		} else {
 			// get length of record in the first column
-			nrow = dataset.Columns[0].GetLength()
+			nrow = dataset.Columns[0].Len()
 		}
 	case DatasetModeMatrix, DatasetNoMode:
 		// matrix mode could have empty either in rows or column.
@@ -362,7 +362,7 @@ func (dataset *Dataset) TransposeToColumns() {
 		// do nothing.
 	case DatasetModeColumns, DatasetModeMatrix, DatasetNoMode:
 		// check if column records contain data.
-		nrow := dataset.Columns[0].GetLength()
+		nrow := dataset.Columns[0].Len()
 		if nrow > 0 {
 			// return if column record is not empty, its already
 			// transposed
@@ -418,7 +418,7 @@ func (dataset *Dataset) TransposeToRows() {
 	flen := len(dataset.Columns)
 
 	for f := 0; f < flen; f++ {
-		l := dataset.Columns[f].GetLength()
+		l := dataset.Columns[f].Len()
 
 		if l < rowlen {
 			rowlen = l
@@ -510,7 +510,7 @@ func (dataset *Dataset) PushColumn(col Column) {
 PushColumnToRows add each record in column to each rows, from top to bottom.
 */
 func (dataset *Dataset) PushColumnToRows(col Column) {
-	colsize := col.GetLength()
+	colsize := col.Len()
 	if colsize <= 0 {
 		// Do nothing if column is empty.
 		return
