@@ -529,8 +529,8 @@ func TestMergeColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	outfile := "testdata/output_merge.dat"
-	expfile := "testdata/expected_merge.dat"
+	outfile := "testdata/output_merge_columns.dat"
+	expfile := "testdata/expected_merge_columns.dat"
 
 	e = writer.OpenOutput(outfile)
 
@@ -543,5 +543,57 @@ func TestMergeColumns(t *testing.T) {
 
 	writer.Close()
 
+	assert.EqualFileContent(t, outfile, expfile)
+}
+
+func TestMergeRows(t *testing.T) {
+	reader1, e := dsv.NewReader("testdata/config.dsv")
+	if nil != e {
+		t.Fatal(e)
+	}
+
+	reader2, e := dsv.NewReader("testdata/config_skip.dsv")
+	if nil != e {
+		t.Fatal(e)
+	}
+
+	reader1.SetMaxRows(-1)
+	reader2.SetMaxRows(-1)
+
+	_, e = dsv.Read(reader1)
+	if e != io.EOF {
+		t.Fatal(e)
+	}
+
+	_, e = dsv.Read(reader2)
+	if e != io.EOF {
+		t.Fatal(e)
+	}
+
+	reader1.Close()
+	reader2.Close()
+
+	reader1.MergeRows(reader2)
+
+	// write merged reader
+	writer, e := dsv.NewWriter("")
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	outfile := "testdata/output_merge_rows.dat"
+
+	e = writer.OpenOutput(outfile)
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	sep := "\t"
+	writer.WriteDataset(&reader1.Dataset, &sep)
+
+	writer.Close()
+
+	expfile := "testdata/expected_merge_rows.dat"
 	assert.EqualFileContent(t, outfile, expfile)
 }

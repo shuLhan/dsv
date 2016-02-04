@@ -475,3 +475,10 @@ func (reader *Reader) MergeColumns(other *Reader) {
 
 	reader.Dataset.MergeColumns(other.Dataset)
 }
+
+/*
+MergeRows append rows from another reader.
+*/
+func (reader *Reader) MergeRows(other *Reader) {
+	reader.Dataset.MergeRows(other.Dataset)
+}

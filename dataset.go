@@ -909,6 +909,16 @@ func (dataset *Dataset) MergeColumns(other Dataset) {
 }
 
 /*
+MergeRows append rows from other dataset into current dataset.
+*/
+func (dataset *Dataset) MergeRows(other Dataset) {
+	rows := other.GetDataAsRows()
+	for _, row := range rows {
+		dataset.PushRow(row)
+	}
+}
+
+/*
 String pretty print the data.
 */
 func (dataset Dataset) String() (s string) {
