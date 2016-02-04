@@ -5,7 +5,6 @@
 package dsv_test
 
 import (
-	"fmt"
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/dsv/util/assert"
 	"testing"
@@ -30,7 +29,7 @@ func TestRandomPickColumns(t *testing.T) {
 	excludeIdx := []int{3}
 
 	for i := 0; i < 5; i++ {
-		picked, unpicked, pickedIdx, unpickedIdx :=
+		picked, unpicked, _, _ :=
 			dataset.Columns.RandomPick(ncols, dup, excludeIdx)
 
 		// check if unpicked item exist in picked items.
@@ -39,18 +38,12 @@ func TestRandomPickColumns(t *testing.T) {
 				assert.NotEqual(t, un, pick)
 			}
 		}
-
-		fmt.Println("Random pick with duplicate columns")
-		fmt.Println("==> picked columns   :", picked)
-		fmt.Println("==> picked idx       :", pickedIdx)
-		fmt.Println("==> unpicked columns :", unpicked)
-		fmt.Println("==> unpicked idx     :", unpickedIdx)
 	}
 
 	// random pick without duplicate
 	dup = false
 	for i := 0; i < 5; i++ {
-		picked, unpicked, pickedIdx, unpickedIdx :=
+		picked, unpicked, _, _ :=
 			dataset.Columns.RandomPick(ncols, dup, excludeIdx)
 
 		// check if unpicked item exist in picked items.
@@ -59,11 +52,5 @@ func TestRandomPickColumns(t *testing.T) {
 				assert.NotEqual(t, un, pick)
 			}
 		}
-
-		fmt.Println("Random pick without duplicate columns")
-		fmt.Println("==> picked columns   :", picked)
-		fmt.Println("==> picked idx       :", pickedIdx)
-		fmt.Println("==> unpicked columns :", unpicked)
-		fmt.Println("==> unpicked idx     :", unpickedIdx)
 	}
 }
