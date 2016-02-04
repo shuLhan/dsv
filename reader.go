@@ -460,3 +460,18 @@ func (reader *Reader) IsEqual(other *Reader) bool {
 
 	return true
 }
+
+/*
+MergeColumns append metadata and columns from another reader.
+*/
+func (reader *Reader) MergeColumns(other *Reader) {
+	for _, md := range other.InputMetadata {
+		if md.Skip {
+			continue
+		}
+
+		reader.InputMetadata = append(other.InputMetadata)
+	}
+
+	reader.Dataset.MergeColumns(other.Dataset)
+}

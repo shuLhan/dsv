@@ -899,6 +899,16 @@ func (dataset *Dataset) SelectRowsWhere(colidx int, colval string) (
 }
 
 /*
+MergeColumns append columns from other dataset into current dataset.
+*/
+func (dataset *Dataset) MergeColumns(other Dataset) {
+	cols := other.GetDataAsColumns()
+	for _, col := range cols {
+		dataset.PushColumn(col)
+	}
+}
+
+/*
 String pretty print the data.
 */
 func (dataset Dataset) String() (s string) {

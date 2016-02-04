@@ -404,7 +404,6 @@ func TestTransposeToColumns(t *testing.T) {
 }
 
 func TestSortColumnsByIndex(t *testing.T) {
-
 	reader, e := dsv.NewReader("testdata/config_skip.dsv")
 	if nil != e {
 		t.Fatal(e)
@@ -491,4 +490,58 @@ func TestSplitRowsByValue(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+}
+
+func TestMergeColumns(t *testing.T) {
+	reader1, e := dsv.NewReader("testdata/config.dsv")
+	if nil != e {
+		t.Fatal(e)
+	}
+
+	reader2, e := dsv.NewReader("testdata/config_skip.dsv")
+	if nil != e {
+		t.Fatal(e)
+	}
+
+	reader1.SetMaxRows(-1)
+	reader2.SetMaxRows(-1)
+
+	_, e = dsv.Read(reader1)
+	if e != io.EOF {
+		t.Fatal(e)
+	}
+
+	_, e = dsv.Read(reader2)
+	if e != io.EOF {
+		t.Fatal(e)
+	}
+
+	reader1.Close()
+	reader2.Close()
+
+	reader1.InputMetadata[len(reader1.InputMetadata)-1].Separator = ";"
+
+	reader1.MergeColumns(reader2)
+
+	// write merged reader
+	writer, e := dsv.NewWriter("")
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	outfile := "testdata/output_merge.dat"
+	expfile := "testdata/expected_merge.dat"
+
+	e = writer.OpenOutput(outfile)
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	sep := "\t"
+	writer.WriteDataset(&reader1.Dataset, &sep)
+
+	writer.Close()
+
+	assert.EqualFileContent(t, outfile, expfile)
 }

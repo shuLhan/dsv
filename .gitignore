@@ -1,5 +1,6 @@
 rejected.dat
 testdata/output.dat
+testdata/output_merge.dat
 testdata/output_skip.dat
 testdata/rejected.dat
 testdata/writerawcolumns.out
