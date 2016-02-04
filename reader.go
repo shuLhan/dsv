@@ -470,7 +470,7 @@ func (reader *Reader) MergeColumns(other *Reader) {
 			continue
 		}
 
-		reader.InputMetadata = append(other.InputMetadata)
+		reader.InputMetadata = append(reader.InputMetadata, md)
 	}
 
 	reader.Dataset.MergeColumns(other.Dataset)
