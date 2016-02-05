@@ -6,7 +6,6 @@ package dsv
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"strings"
 )
@@ -38,23 +37,40 @@ type Metadata struct {
 }
 
 /*
-Init initalize metadata column, i.e. check and set column type.
+NewMetadata create and return new metadata.
 */
-func (md *Metadata) Init() (e error) {
+func NewMetadata(name, tipe, sep, leftq, rightq string, vs []string) (
+	md *Metadata,
+) {
+	md = &Metadata{
+		Name:       name,
+		Type:       tipe,
+		Separator:  sep,
+		LeftQuote:  leftq,
+		RightQuote: rightq,
+		ValueSpace: vs,
+	}
+
+	md.Init()
+
+	return
+}
+
+/*
+Init initalize metadata column, i.e. check and set column type.
+
+If type is unknown it will default to string.
+*/
+func (md *Metadata) Init() {
 	switch strings.ToUpper(md.Type) {
-	case "STRING":
-		md.T = TString
 	case "INTEGER", "INT":
 		md.T = TInteger
 	case "REAL":
 		md.T = TReal
-	case "":
-		md.T = TString
 	default:
-		e = errors.New("dsv.Metadata.Init: Invalid type" + md.Type)
+		md.T = TString
+		md.Type = "string"
 	}
-
-	return
 }
 
 /*
