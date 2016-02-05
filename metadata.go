@@ -6,6 +6,7 @@ package dsv
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"strings"
 )
@@ -50,10 +51,7 @@ func (md *Metadata) Init() (e error) {
 	case "":
 		md.T = TString
 	default:
-		e = &ErrReader{
-			"dsv: Invalid type",
-			[]byte(md.Type),
-		}
+		e = errors.New("dsv.Metadata.Init: Invalid type" + md.Type)
 	}
 
 	return
