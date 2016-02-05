@@ -6,7 +6,6 @@ package dsv
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -22,23 +21,6 @@ const (
 	// flexibility when working with data.
 	DatasetModeMATRIX = "MATRIX"
 )
-
-/*
-ErrReader to handle error data and message.
-*/
-type ErrReader struct {
-	// What cause the error?
-	What string
-	// InputLine define the line which cause error
-	InputLine []byte
-}
-
-/*
-Error to string.
-*/
-func (e *ErrReader) Error() string {
-	return fmt.Sprintf("dsv: %s '%s'", e.What, e.InputLine)
-}
 
 /*
 Reader hold all configuration, metadata and input data.

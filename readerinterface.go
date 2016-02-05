@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 )
 
 /*
@@ -125,6 +126,7 @@ func InitReader(reader ReaderInterface) (e error) {
 Read row from input file.
 */
 func Read(reader ReaderInterface) (n int, e error) {
+	linenum := 0
 	maxrows := reader.GetMaxRows()
 
 	e = reader.Reset()
@@ -151,9 +153,9 @@ func Read(reader ReaderInterface) (n int, e error) {
 			continue
 		}
 
-		row, e := ParseLine(reader, &line)
+		row, errReader := ParseLine(reader, &line)
 
-		if nil == e {
+		if nil == errReader {
 			reader.PushRow(row)
 
 			n++
@@ -161,6 +163,9 @@ func Read(reader ReaderInterface) (n int, e error) {
 				break
 			}
 		} else {
+			errReader.N = linenum
+			fmt.Fprintf(os.Stderr, "%s\n", errReader)
+
 			// If error, save the rejected line.
 			line = append(line, "\n"...)
 
@@ -169,6 +174,7 @@ func Read(reader ReaderInterface) (n int, e error) {
 				break
 			}
 		}
+		linenum++
 	}
 
 	// remember to flush if we have rejected rows.
@@ -180,7 +186,9 @@ func Read(reader ReaderInterface) (n int, e error) {
 /*
 parsingLeftQuote parse the left-quote string from line.
 */
-func parsingLeftQuote(md MetadataInterface, line *[]byte, p int) (int, error) {
+func parsingLeftQuote(md MetadataInterface, line *[]byte, p int) (
+	int, *readerError,
+) {
 	if "" == md.GetLeftQuote() {
 		return p, nil
 	}
@@ -194,10 +202,7 @@ func parsingLeftQuote(md MetadataInterface, line *[]byte, p int) (int, error) {
 
 	for i := range lq {
 		if p >= linelen {
-			return p, &ErrReader{
-				"Premature end-of-line",
-				(*line),
-			}
+			goto Err
 		}
 
 		if DEBUG {
@@ -205,28 +210,32 @@ func parsingLeftQuote(md MetadataInterface, line *[]byte, p int) (int, error) {
 		}
 
 		if (*line)[p] != lq[i] {
-			return p, &ErrReader{
-				"Invalid left-quote",
-				(*line),
-			}
+			goto Err
 		}
 		p++
 	}
 	return p, nil
+Err:
+	return p, &readerError{
+		"parsingLeftQuote",
+		"Missing left-quote '" + string(lq) + "'",
+		string(*line), p, 0,
+	}
 }
 
 /*
 isForwardMatch return true if current line at index p match with token,
 otherwise return false.
 */
-func isForwardMatch(line *[]byte, p int, token []byte) (bool, error) {
+func isForwardMatch(line *[]byte, p int, token []byte) (bool, *readerError) {
 	linelen := len(*line)
 	tokenlen := len(token)
 
-	if p+tokenlen >= linelen {
-		return false, &ErrReader{
-			"Missing token, premature end-of-line",
-			(*line),
+	if p+tokenlen > linelen {
+		return false, &readerError{
+			"isForwardMatch",
+			"Missing token '" + string(token) + "'",
+			string(*line), p, 0,
 		}
 	}
 
@@ -244,7 +253,7 @@ parsingUntil we found token. Token that is prefixed with escaped character
 '\' will be ignored.
 */
 func parsingUntil(line *[]byte, p int, token []byte) (
-	v []byte, pRet int, e error,
+	v []byte, pRet int, e *readerError,
 ) {
 	linelen := len(*line)
 
@@ -303,9 +312,10 @@ func parsingUntil(line *[]byte, p int, token []byte) (
 	}
 
 	if p >= linelen {
-		return v, p, &ErrReader{
-			"Premature end-of-line",
-			(*line),
+		return v, p, &readerError{
+			"parsingUntil",
+			"Missing token '" + string(token) + "'",
+			string(*line), p, 0,
 		}
 	}
 
@@ -318,7 +328,7 @@ Return index of line with matched token or error if line end before finding
 the token.
 */
 func skipUntil(line *[]byte, p int, token []byte) (
-	pRet int, e error,
+	pRet int, e *readerError,
 ) {
 	linelen := len(*line)
 
@@ -347,9 +357,10 @@ func skipUntil(line *[]byte, p int, token []byte) (
 	}
 
 	if p >= linelen {
-		return p, &ErrReader{
-			"Premature end-of-line",
-			(*line),
+		return p, &readerError{
+			"skipUntil",
+			"Missing token '" + string(token) + "'",
+			string(*line), p, 0,
 		}
 	}
 
@@ -363,7 +374,7 @@ Return the data and index of last parsed line, or error if separator is not
 found or not match with specification.
 */
 func parsingSeparator(md MetadataInterface, line *[]byte, p int) (
-	v []byte, pRet int, e error,
+	v []byte, pRet int, e *readerError,
 ) {
 	if "" == md.GetSeparator() {
 		v = append(v, (*line)[p:]...)
@@ -373,6 +384,10 @@ func parsingSeparator(md MetadataInterface, line *[]byte, p int) (
 	sep := []byte(md.GetSeparator())
 
 	v, p, e = parsingUntil(line, p, sep)
+
+	if e != nil {
+		e.Func = "parsingSeparator"
+	}
 
 	return v, p, e
 }
@@ -384,7 +399,7 @@ Return the data and index of last parsed line, or error if right-quote is not
 found or not match with specification.
 */
 func parsingRightQuote(md MetadataInterface, line *[]byte, p int) (
-	v []byte, pRet int, e error,
+	v []byte, pRet int, e *readerError,
 ) {
 	if "" == md.GetRightQuote() {
 		return parsingSeparator(md, line, p)
@@ -396,6 +411,7 @@ func parsingRightQuote(md MetadataInterface, line *[]byte, p int) (
 	v, p, e = parsingUntil(line, p, rq)
 
 	if e != nil {
+		e.Func = "parsingRightQuote"
 		return v, p, e
 	}
 
@@ -408,6 +424,10 @@ func parsingRightQuote(md MetadataInterface, line *[]byte, p int) (
 	sep := []byte(md.GetSeparator())
 
 	p, e = skipUntil(line, p, sep)
+
+	if e != nil {
+		e.Func = "parsingRightQuote"
+	}
 
 	return v, p, e
 }
@@ -428,7 +448,7 @@ This is how the algorithm works
 (3) save buffer to record
 */
 func ParseLine(reader ReaderInterface, line *[]byte) (
-	row Row, e error,
+	row Row, e *readerError,
 ) {
 	var md MetadataInterface
 	var p = 0
@@ -474,9 +494,10 @@ func ParseLine(reader ReaderInterface, line *[]byte) (
 		r, e := NewRecord(string(v), md.GetType())
 
 		if nil != e {
-			return nil, &ErrReader{
-				"Error or invalid type convertion",
-				v,
+			return nil, &readerError{
+				"ParseLine",
+				"Type convertion error '" + string(v) + "'",
+				string(*line), p, 0,
 			}
 		}
 
