@@ -18,6 +18,7 @@ ReaderInterface is the interface for reading DSV file.
 type ReaderInterface interface {
 	ConfigInterface
 	DatasetInterface
+	AddInputMetadata(*Metadata)
 	GetInputMetadata() []MetadataInterface
 	GetInputMetadataAt(idx int) MetadataInterface
 	GetMaxRows() int
@@ -76,7 +77,7 @@ func InitReader(reader ReaderInterface) (e error) {
 	// Check and initialize metadata and columns attributes.
 	md := reader.GetInputMetadata()
 	for i := range md {
-		e = md[i].Init()
+		md[i].Init()
 
 		if nil != e {
 			return e

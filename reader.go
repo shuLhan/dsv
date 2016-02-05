@@ -201,6 +201,14 @@ func (reader *Reader) SetRejected(path string) {
 }
 
 /*
+AddInputMetadata add new input metadata to reader.
+*/
+func (reader *Reader) AddInputMetadata(md *Metadata) {
+	reader.InputMetadata = append(reader.InputMetadata, *md)
+	reader.AddColumn(md.GetType(), md.GetName(), md.GetValueSpace())
+}
+
+/*
 GetInputMetadata return pointer to slice of metadata.
 */
 func (reader *Reader) GetInputMetadata() []MetadataInterface {
