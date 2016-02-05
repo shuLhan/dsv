@@ -19,6 +19,7 @@ type DatasetInterface interface {
 	SetColumnsName(names []string)
 	GetColumnsName() []string
 
+	AddColumn(tipe int, name string, vs []string)
 	GetColumn(idx int) *Column
 	GetRow(idx int) *Row
 	GetData() interface{}

@@ -270,6 +270,19 @@ func (dataset *Dataset) GetColumnTypeAt(colidx int) (int, error) {
 }
 
 /*
+AddColumn will create and add new empty column with specific type and name into
+dataset.
+*/
+func (dataset *Dataset) AddColumn(tipe int, name string, vs []string) {
+	col := Column{
+		Type:       tipe,
+		Name:       name,
+		ValueSpace: vs,
+	}
+	dataset.PushColumn(col)
+}
+
+/*
 GetColumn return pointer to column object at index `idx`.
 If `idx` is out of range return nil.
 */
