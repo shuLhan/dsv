@@ -7,6 +7,7 @@ package dsv
 import (
 	"bufio"
 	"encoding/json"
+	"github.com/shuLhan/tekstus"
 	"log"
 	"os"
 )
@@ -17,6 +18,8 @@ const (
 	DefSeparator = ","
 	// DefOutput file.
 	DefOutput = "output.dat"
+	// DefEscape default string to escape the right quote or separator.
+	DefEscape = "\\"
 )
 
 /*
@@ -123,18 +126,16 @@ func (writer *Writer) Close() (e error) {
 WriteRow dump content of Row to file using format in metadata.
 */
 func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) {
-	var md Metadata
 	var inMd MetadataInterface
-	var rIdx int
-	var nRecord = len(row)
-	var recV []byte
+	nRecord := len(row)
 	v := []byte{}
+	esc := []byte(DefEscape)
 
 	for i := range writer.OutputMetadata {
-		md = writer.OutputMetadata[i]
+		md := writer.OutputMetadata[i]
 
 		// find the input index based on name on record metadata.
-		rIdx = 0
+		rIdx := 0
 		for y := range recordMd {
 			inMd = recordMd[y]
 
@@ -156,20 +157,36 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 			continue
 		}
 
-		recV = row[rIdx].ToByte()
+		recV := row[rIdx].ToByte()
+		lq := md.GetLeftQuote()
 
-		if "" != md.GetLeftQuote() {
-			v = append(v, []byte(md.GetLeftQuote())...)
+		if "" != lq {
+			v = append(v, []byte(lq)...)
+		}
+
+		rq := md.GetRightQuote()
+		sep := md.GetSeparator()
+
+		// Escape the right quote in field content before writing it.
+		if "" != rq && md.T == TString {
+			recV, _ = tekstus.EncapsulateToken([]byte(rq), recV,
+				esc, nil)
+		} else {
+			// Escape the separator
+			if "" != sep && md.T == TString {
+				recV, _ = tekstus.EncapsulateToken([]byte(sep),
+					recV, esc, nil)
+			}
 		}
 
 		v = append(v, recV...)
 
-		if "" != md.GetRightQuote() {
-			v = append(v, []byte(md.GetRightQuote())...)
+		if "" != rq {
+			v = append(v, []byte(rq)...)
 		}
 
-		if "" != md.GetSeparator() {
-			v = append(v, []byte(md.GetSeparator())...)
+		if "" != sep {
+			v = append(v, []byte(sep)...)
 		}
 	}
 
@@ -260,15 +277,24 @@ func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
 		return
 	}
 
-	var v []byte
+	esc := []byte(DefEscape)
+	sepbytes := []byte(sep)
 
 	for x := 0; x < nrow; x++ {
-		v = []byte{}
+		v := []byte{}
 		for y, rec := range (*rows)[x] {
 			if y > 0 {
-				v = append(v, []byte(sep)...)
+				v = append(v, sepbytes...)
 			}
-			v = append(v, rec.ToByte()...)
+
+			recV := rec.ToByte()
+
+			if rec.GetType() == TString {
+				recV, _ = tekstus.EncapsulateToken(sepbytes,
+					recV, esc, nil)
+			}
+
+			v = append(v, recV...)
 		}
 
 		v = append(v, '\n')
@@ -302,15 +328,25 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 		return
 	}
 
-	var v []byte
+	esc := []byte(DefEscape)
+	sepbytes := []byte(sep)
 
 	for x := 0; x < nrow; x++ {
-		v = []byte{}
+		v := []byte{}
 		for y := 0; y < ncol; y++ {
 			if y > 0 {
-				v = append(v, []byte(sep)...)
+				v = append(v, sepbytes...)
 			}
-			v = append(v, (*cols)[y].Records[x].ToByte()...)
+
+			rec := (*cols)[y].Records[x]
+			recV := rec.ToByte()
+
+			if rec.GetType() == TString {
+				recV, _ = tekstus.EncapsulateToken(sepbytes,
+					recV, esc, nil)
+			}
+
+			v = append(v, recV...)
 		}
 
 		v = append(v, '\n')
