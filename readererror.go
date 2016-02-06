@@ -9,9 +9,9 @@ import (
 )
 
 /*
-readerError to handle error data and message.
+ReaderError to handle error data and message.
 */
-type readerError struct {
+type ReaderError struct {
 	// Func where error happened
 	Func string
 	// What cause the error?
@@ -27,7 +27,7 @@ type readerError struct {
 /*
 Error to string.
 */
-func (e *readerError) Error() string {
+func (e *ReaderError) Error() string {
 	return fmt.Sprintf("dsv.Reader.%s [%d:%d]: %s |%s|", e.Func, e.N,
 		e.Pos, e.What, e.Line)
 }
