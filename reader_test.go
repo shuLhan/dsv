@@ -516,8 +516,15 @@ func TestMergeColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	reader1.Close()
-	reader2.Close()
+	e = reader1.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	e = reader2.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	reader1.InputMetadata[len(reader1.InputMetadata)-1].Separator = ";"
 
@@ -539,9 +546,17 @@ func TestMergeColumns(t *testing.T) {
 	}
 
 	sep := "\t"
-	writer.WriteDataset(&reader1.Dataset, &sep)
+	_, e = writer.WriteDataset(&reader1.Dataset, &sep)
 
-	writer.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	e = writer.Close()
+
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	assert.EqualFileContent(t, outfile, expfile)
 }
@@ -570,8 +585,15 @@ func TestMergeRows(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	reader1.Close()
-	reader2.Close()
+	e = reader1.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	e = reader2.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	reader1.MergeRows(reader2)
 
@@ -590,9 +612,16 @@ func TestMergeRows(t *testing.T) {
 	}
 
 	sep := "\t"
-	writer.WriteDataset(&reader1.Dataset, &sep)
+	_, e = writer.WriteDataset(&reader1.Dataset, &sep)
 
-	writer.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	e = writer.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	expfile := "testdata/expected_merge_rows.dat"
 	assert.EqualFileContent(t, outfile, expfile)

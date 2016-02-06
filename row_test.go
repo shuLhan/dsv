@@ -14,7 +14,7 @@ var dataFloat64 = []float64{0.1, 0.2, 0.3, 0.4, 0.5}
 
 func createRow() (row dsv.Row) {
 	for _, v := range dataFloat64 {
-		rec := &dsv.Record{v}
+		rec := &dsv.Record{V: v}
 		row.PushBack(rec)
 	}
 	return
