@@ -455,6 +455,7 @@ func ParseLine(reader ReaderInterface, line *[]byte) (
 	var p = 0
 	var rIdx = 0
 	var inputMd []MetadataInterface
+	linelen := len(*line)
 
 	inputMd = reader.GetInputMetadata()
 
@@ -465,7 +466,7 @@ func ParseLine(reader ReaderInterface, line *[]byte) (
 		md = inputMd[mdIdx]
 
 		// skip all whitespace in the beginning
-		for (*line)[p] == ' ' || (*line)[p] == '\t' {
+		for p < linelen && ((*line)[p] == ' ' || (*line)[p] == '\t') {
 			p++
 		}
 
