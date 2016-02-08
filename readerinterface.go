@@ -7,8 +7,8 @@ package dsv
 import (
 	"bytes"
 	"fmt"
+	"github.com/shuLhan/tekstus"
 	"io"
-	"log"
 	"os"
 )
 
@@ -39,6 +39,7 @@ type ReaderInterface interface {
 
 	Flush() error
 	ReadLine() ([]byte, error)
+	FetchNextLine([]byte) ([]byte, error)
 	Reject(line []byte) (int, error)
 	Close() error
 }
@@ -138,44 +139,34 @@ func Read(reader ReaderInterface) (n int, e error) {
 	// Loop until we reached MaxRows (> 0) or when all rows has been
 	// read (= -1)
 	for {
-		line, e := reader.ReadLine()
+		row, line, linenum, eRead := ReadRow(reader, linenum)
 
-		if nil != e {
-			if e != io.EOF {
-				log.Print("dsv: ", e)
-			}
-			return n, e
-		}
-
-		// check for empty line
-		line = bytes.TrimSpace(line)
-
-		if len(line) <= 0 {
-			continue
-		}
-
-		row, errReader := ParseLine(reader, &line)
-
-		if nil == errReader {
+		if nil == eRead {
 			reader.PushRow(row)
 
 			n++
 			if maxrows > 0 && n >= maxrows {
 				break
 			}
-		} else {
-			errReader.N = linenum
-			fmt.Fprintf(os.Stderr, "%s\n", errReader)
-
-			// If error, save the rejected line.
-			line = append(line, "\n"...)
-
-			_, e = reader.Reject(line)
-			if e != nil {
-				break
-			}
+			continue
 		}
-		linenum++
+
+		if eRead.T&EReadEOF == EReadEOF {
+			_ = reader.Flush()
+			e = io.EOF
+			return
+		}
+
+		eRead.N = linenum
+		fmt.Fprintf(os.Stderr, "%s\n", eRead)
+
+		// If error, save the rejected line.
+		line = append(line, DefEOL)
+
+		_, e = reader.Reject(line)
+		if e != nil {
+			break
+		}
 	}
 
 	// remember to flush if we have rejected rows.
@@ -187,185 +178,28 @@ func Read(reader ReaderInterface) (n int, e error) {
 /*
 parsingLeftQuote parse the left-quote string from line.
 */
-func parsingLeftQuote(md MetadataInterface, line *[]byte, p int) (
-	int, *ReaderError,
+func parsingLeftQuote(lq, line []byte, startAt int) (
+	p int, eRead *ReaderError,
 ) {
-	if "" == md.GetLeftQuote() {
+	p = startAt
+
+	// parsing until we found left quote token
+	p, found := tekstus.ParsingSkipUntil(lq, line, p, false)
+
+	if found {
 		return p, nil
 	}
 
-	linelen := len(*line)
-	lq := []byte(md.GetLeftQuote())
-
-	if DEBUG {
-		fmt.Println(md.GetLeftQuote())
+	eRead = &ReaderError{
+		T:    EReadMissLeftQuote,
+		Func: "parsingLeftQuote",
+		What: "Missing left-quote '" + string(lq) + "'",
+		Line: string(line),
+		Pos:  p,
+		N:    0,
 	}
 
-	for i := range lq {
-		if p >= linelen {
-			goto Err
-		}
-
-		if DEBUG {
-			fmt.Printf("%c:%c\n", (*line)[p], lq[i])
-		}
-
-		if (*line)[p] != lq[i] {
-			goto Err
-		}
-		p++
-	}
-	return p, nil
-Err:
-	return p, &ReaderError{
-		"parsingLeftQuote",
-		"Missing left-quote '" + string(lq) + "'",
-		string(*line), p, 0,
-	}
-}
-
-/*
-isForwardMatch return true if current line at index p match with token,
-otherwise return false.
-*/
-func isForwardMatch(line *[]byte, p int, token []byte) (bool, *ReaderError) {
-	linelen := len(*line)
-	tokenlen := len(token)
-
-	if p+tokenlen > linelen {
-		return false, &ReaderError{
-			"isForwardMatch",
-			"Missing token '" + string(token) + "'",
-			string(*line), p, 0,
-		}
-	}
-
-	for _, v := range token {
-		if v != (*line)[p] {
-			return false, nil
-		}
-		p++
-	}
-	return true, nil
-}
-
-/*
-parsingUntil we found token. Token that is prefixed with escaped character
-'\' will be ignored.
-*/
-func parsingUntil(line *[]byte, p int, token []byte) (
-	v []byte, pRet int, e *ReaderError,
-) {
-	linelen := len(*line)
-
-	escaped := false
-	for p < linelen {
-		// Assume the escape character always used to escaped the
-		// token ...
-		if (*line)[p] == '\\' {
-			escaped = true
-			p++
-			continue
-		}
-		if (*line)[p] != token[0] {
-			if escaped {
-				// ... turn out its not escaping token.
-				v = append(v, '\\')
-				escaped = false
-			}
-
-			v = append(v, (*line)[p])
-			p++
-			continue
-		}
-
-		// We found the first token character.
-		// Lets check if its match with all content of token.
-		match, e := isForwardMatch(line, p, token)
-
-		if e != nil {
-			return v, p, e
-		}
-
-		// false alarm ...
-		if !match {
-			if escaped {
-				v = append(v, '\\')
-				escaped = false
-			}
-
-			v = append(v, (*line)[p])
-			p++
-			continue
-		}
-
-		// Its matched, but if its prefixed with escaped char '\', then
-		// we assumed it as non breaking token.
-		if escaped {
-			v = append(v, (*line)[p])
-			p++
-			escaped = false
-			continue
-		}
-
-		// Its matched with no escape character.
-		break
-	}
-
-	if p >= linelen {
-		return v, p, &ReaderError{
-			"parsingUntil",
-			"Missing token '" + string(token) + "'",
-			string(*line), p, 0,
-		}
-	}
-
-	return v, p + len(token), e
-}
-
-/*
-skipUntil skip all characters until matched token is found.
-Return index of line with matched token or error if line end before finding
-the token.
-*/
-func skipUntil(line *[]byte, p int, token []byte) (
-	pRet int, e *ReaderError,
-) {
-	linelen := len(*line)
-
-	for p < linelen {
-		if (*line)[p] != token[0] {
-			p++
-			continue
-		}
-
-		// We found the first token character.
-		// Lets check if its match with all content of token.
-		match, e := isForwardMatch(line, p, token)
-
-		if e != nil {
-			return p, e
-		}
-
-		// false alarm ...
-		if !match {
-			p++
-			continue
-		}
-
-		// Its matched.
-		break
-	}
-
-	if p >= linelen {
-		return p, &ReaderError{
-			"skipUntil",
-			"Missing token '" + string(token) + "'",
-			string(*line), p, 0,
-		}
-	}
-
-	return p + len(token), e
+	return p, eRead
 }
 
 /*
@@ -374,63 +208,101 @@ parsingSeparator parsing the line until we found the separator.
 Return the data and index of last parsed line, or error if separator is not
 found or not match with specification.
 */
-func parsingSeparator(md MetadataInterface, line *[]byte, p int) (
-	v []byte, pRet int, e *ReaderError,
+func parsingSeparator(sep, line []byte, startAt int) (
+	v []byte, p int, eRead *ReaderError,
 ) {
-	if "" == md.GetSeparator() {
-		v = append(v, (*line)[p:]...)
+	p = startAt
+
+	v, p, found := tekstus.ParsingUntil(sep, line, p, false)
+
+	if found {
 		return v, p, nil
 	}
 
-	sep := []byte(md.GetSeparator())
-
-	v, p, e = parsingUntil(line, p, sep)
-
-	if e != nil {
-		e.Func = "parsingSeparator"
+	eRead = &ReaderError{
+		Func: "parsingSeparator",
+		What: "Missing separator '" + string(sep) + "'",
+		Line: string(line),
+		Pos:  p,
+		N:    0,
 	}
 
-	return v, p, e
+	return v, p, eRead
 }
 
 /*
-parsingRightQuote parsing the line until we found the right quote.
+parsingRightQuote parsing the line until we found the right quote or separator.
 
 Return the data and index of last parsed line, or error if right-quote is not
 found or not match with specification.
 */
-func parsingRightQuote(md MetadataInterface, line *[]byte, p int) (
-	v []byte, pRet int, e *ReaderError,
+func parsingRightQuote(reader ReaderInterface, rq, line []byte, startAt int) (
+	v, lines []byte, p int, eRead *ReaderError,
 ) {
-	if "" == md.GetRightQuote() {
-		return parsingSeparator(md, line, p)
-	}
-
-	rq := []byte(md.GetRightQuote())
+	var e error
+	var content []byte
+	p = startAt
+	found := false
 
 	// (2.2.1)
-	v, p, e = parsingUntil(line, p, rq)
+	for {
+		content, p, found = tekstus.ParsingUntil(rq, line, p, true)
 
-	if e != nil {
-		e.Func = "parsingRightQuote"
-		return v, p, e
+		v = append(v, content...)
+
+		if found {
+			return v, line, p, nil
+		}
+
+		// EOL before finding right-quote.
+		// Read and join with the next line.
+		line, e = reader.FetchNextLine(line)
+
+		if e != nil {
+			break
+		}
 	}
 
-	if "" == md.GetSeparator() {
-		return v, p, nil
+	eRead = &ReaderError{
+		T:    EReadMissRightQuote,
+		Func: "parsingRightQuote",
+		What: "Missing right-quote '" + string(rq) + "'",
+		Line: string(line),
+		Pos:  p,
+		N:    0,
 	}
 
-	// (2.2.2)
-	// Skip all character until we found separator.
-	sep := []byte(md.GetSeparator())
-
-	p, e = skipUntil(line, p, sep)
-
-	if e != nil {
-		e.Func = "parsingRightQuote"
+	if e == io.EOF {
+		eRead.T &= EReadEOF
 	}
 
-	return v, p, e
+	return v, line, p, eRead
+}
+
+/*
+parsingSkipSeparator parse until we found separator or EOF
+*/
+func parsingSkipSeparator(sep, line []byte, startAt int) (
+	p int, eRead *ReaderError,
+) {
+	p = startAt
+
+	p, found := tekstus.ParsingSkipUntil(sep, line, p, false)
+
+	if found {
+		return p, nil
+	}
+
+	eRead = &ReaderError{
+		T:    EReadMissSeparator,
+		Func: "parsingSkipSeparator",
+		What: "Missing separator '" + string(sep) + "'",
+		Line: string(line),
+		Pos:  p,
+		N:    0,
+	}
+
+	return p, eRead
 }
 
 /*
@@ -440,66 +312,81 @@ ParseLine parse a line containing records. The output is array of record
 This is how the algorithm works
 (1) create n slice of record, where n is number of column metadata
 (2) for each metadata
-	(2.1) If using left quote, skip it
+	(2.1) If using left quote, skip until we found left-quote
 	(2.2) If using right quote, append byte to buffer until right-quote
-		(2.2.1) Skip until the end of right quote
-		(2.2.2) If using separator, skip until separator
+		(2.2.1) If using separator, skip until separator
 	(2.3) If using separator, append byte to buffer until separator
 	(2.4) else append all byte to buffer.
 (3) save buffer to record
 */
-func ParseLine(reader ReaderInterface, line *[]byte) (
-	row Row, e *ReaderError,
+func ParseLine(reader ReaderInterface, line []byte) (
+	row Row, eRead *ReaderError,
 ) {
-	var md MetadataInterface
-	var p = 0
-	var rIdx = 0
-	var inputMd []MetadataInterface
-	linelen := len(*line)
-
-	inputMd = reader.GetInputMetadata()
-
+	p := 0
+	rIdx := 0
+	inputMd := reader.GetInputMetadata()
 	row = make(Row, reader.GetNColumn())
 
-	for mdIdx := range inputMd {
+	for _, md := range inputMd {
+		lq := md.GetLeftQuote()
+		rq := md.GetRightQuote()
+		sep := md.GetSeparator()
 		v := []byte{}
-		md = inputMd[mdIdx]
-
-		// skip all whitespace in the beginning
-		for p < linelen && ((*line)[p] == ' ' || (*line)[p] == '\t') {
-			p++
-		}
 
 		// (2.1)
-		p, e = parsingLeftQuote(md, line, p)
+		if lq != "" {
+			p, eRead = parsingLeftQuote([]byte(lq), line, p)
 
-		if e != nil {
-			return
+			if eRead != nil {
+				return
+			}
 		}
 
 		// (2.2)
-		v, p, e = parsingRightQuote(md, line, p)
+		if rq != "" {
+			v, line, p, eRead = parsingRightQuote(reader, []byte(rq),
+				line, p)
 
-		if e != nil {
-			return
-		}
+			if eRead != nil {
+				return
+			}
 
-		if DEBUG {
-			fmt.Println(string(v))
+			if sep != "" {
+				p, eRead = parsingSkipSeparator([]byte(sep),
+					line, p)
+
+				if eRead != nil {
+					return
+				}
+			}
+		} else {
+			if sep != "" {
+				v, p, eRead = parsingSeparator([]byte(sep),
+					line, p)
+
+				if eRead != nil {
+					return
+				}
+			} else {
+				v = line[p:]
+				p = p + len(line)
+			}
 		}
 
 		if md.GetSkip() {
 			continue
 		}
 
-		v = bytes.TrimSpace(v)
 		r, e := NewRecord(string(v), md.GetType())
 
 		if nil != e {
 			return nil, &ReaderError{
-				"ParseLine",
-				"Type convertion error '" + string(v) + "'",
-				string(*line), p, 0,
+				T:    ETypeConvertion,
+				Func: "ParseLine",
+				What: "Type convertion error '" + string(v) + "'",
+				Line: string(line),
+				Pos:  p,
+				N:    0,
 			}
 		}
 
@@ -507,5 +394,54 @@ func ParseLine(reader ReaderInterface, line *[]byte) (
 		rIdx++
 	}
 
-	return row, e
+	return row, nil
+}
+
+/*
+ReadRow read one line at a time until we get one row or error when parsing the
+data.
+*/
+func ReadRow(reader ReaderInterface, linenum int) (
+	row Row,
+	line []byte,
+	n int,
+	eRead *ReaderError,
+) {
+	var e error
+	n = linenum
+
+	// Read one line, skip empty line.
+	for {
+		line, e = reader.ReadLine()
+		n++
+
+		if e != nil {
+			goto err
+		}
+
+		// check for empty line
+		linetrimed := bytes.TrimSpace(line)
+
+		if len(linetrimed) > 0 {
+			break
+		}
+	}
+
+	row, eRead = ParseLine(reader, line)
+
+	return row, line, n, eRead
+
+err:
+	eRead = &ReaderError{
+		Func: "ReadRow",
+		What: fmt.Sprint(e),
+	}
+
+	if e == io.EOF {
+		eRead.T = EReadEOF
+	} else {
+		eRead.T = EReadLine
+	}
+
+	return nil, line, n, eRead
 }

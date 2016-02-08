@@ -383,6 +383,7 @@ func TestTransposeToColumns(t *testing.T) {
 	reader.SetMaxRows(-1)
 
 	_, e = dsv.Read(reader)
+
 	if e != io.EOF {
 		t.Fatal(e)
 	}
@@ -468,7 +469,7 @@ func TestSplitRowsByValue(t *testing.T) {
 
 	// test left split
 	exp := ""
-	for x := 0; x < 3; x++ {
+	for x := 0; x < 4; x++ {
 		exp += expectation[x]
 	}
 
@@ -478,7 +479,7 @@ func TestSplitRowsByValue(t *testing.T) {
 
 	// test right split
 	exp = ""
-	for x := 3; x < len(expectation); x++ {
+	for x := 4; x < len(expectation); x++ {
 		exp += expectation[x]
 	}
 

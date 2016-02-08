@@ -8,10 +8,29 @@ import (
 	"fmt"
 )
 
+const (
+	_ = iota
+	// EReadMissLeftQuote read error when no left-quote found on line.
+	EReadMissLeftQuote
+	// EReadMissRightQuote read error when no right-quote found on line.
+	EReadMissRightQuote
+	// EReadMissSeparator read error when no separator found on line.
+	EReadMissSeparator
+	// EReadLine error when reading line from file.
+	EReadLine
+	// EReadEOF error which indicated end-of-file.
+	EReadEOF
+	// ETypeConvertion error when converting type from string to numeric or
+	// vice versa.
+	ETypeConvertion
+)
+
 /*
 ReaderError to handle error data and message.
 */
 type ReaderError struct {
+	// T define type of error.
+	T int
 	// Func where error happened
 	Func string
 	// What cause the error?
