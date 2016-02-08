@@ -26,6 +26,8 @@ const (
 	DefaultMaxRows = 256
 	// DefDatasetMode default output mode is rows.
 	DefDatasetMode = DatasetModeROWS
+	// DefEOL default end-of-line
+	DefEOL = '\n'
 )
 
 var (
