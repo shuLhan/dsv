@@ -167,6 +167,11 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 		rq := md.GetRightQuote()
 		sep := md.GetSeparator()
 
+		// Escape the escape character itself.
+		if md.T == TString {
+			recV, _ = tekstus.EncapsulateToken(esc, recV, esc, nil)
+		}
+
 		// Escape the right quote in field content before writing it.
 		if "" != rq && md.T == TString {
 			recV, _ = tekstus.EncapsulateToken([]byte(rq), recV,
@@ -190,7 +195,7 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 		}
 	}
 
-	v = append(v, '\n')
+	v = append(v, DefEOL)
 
 	_, e = writer.BufWriter.Write(v)
 
@@ -297,7 +302,7 @@ func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
 			v = append(v, recV...)
 		}
 
-		v = append(v, '\n')
+		v = append(v, DefEOL)
 
 		_, e = writer.BufWriter.Write(v)
 
@@ -349,7 +354,7 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 			v = append(v, recV...)
 		}
 
-		v = append(v, '\n')
+		v = append(v, DefEOL)
 
 		_, e = writer.BufWriter.Write(v)
 
