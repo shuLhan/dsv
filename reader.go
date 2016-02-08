@@ -379,21 +379,26 @@ func (reader *Reader) Flush() error {
 ReadLine will read one line from input file.
 */
 func (reader *Reader) ReadLine() (line []byte, e error) {
-	var read []byte
-	stub := true
+	line, e = reader.bufRead.ReadBytes(DefEOL)
 
-	// repeat until one full line is read.
-	for stub {
-		read, stub, e = reader.bufRead.ReadLine()
-
-		if nil != e {
-			return
-		}
-
-		line = append(line, read...)
+	if e == nil {
+		// remove EOL
+		line = line[:len(line)-1]
 	}
 
 	return
+}
+
+/*
+FetchNextLine read the next line and combine it with the `lastline`.
+*/
+func (reader *Reader) FetchNextLine(lastline []byte) (line []byte, e error) {
+	line, e = reader.ReadLine()
+
+	lastline = append(lastline, DefEOL)
+	lastline = append(lastline, line...)
+
+	return lastline, e
 }
 
 /*
