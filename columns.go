@@ -6,6 +6,7 @@ package dsv
 
 import (
 	"github.com/shuLhan/dsv/util"
+	"github.com/shuLhan/tekstus"
 )
 
 /*
@@ -87,5 +88,53 @@ func (cols *Columns) RandomPick(n int, dup bool, excludeIdx []int) (
 		}
 	}
 
+	return
+}
+
+/*
+GetMinMaxLength given a slice of column, find the minimum and maximum column
+length among them.
+*/
+func (cols *Columns) GetMinMaxLength() (min, max int) {
+	for _, col := range *cols {
+		collen := col.Len()
+		if collen < min {
+			min = collen
+		} else if collen > max {
+			max = collen
+		}
+	}
+	return
+}
+
+/*
+Join all column records value at index `row` using separator `sep` and make
+sure if there is a separator in value it will be escaped with `esc`.
+
+Given slice of columns, where row is 1 and sep is `,` and escape is `\`
+
+	  0 1 2
+	0 A B C
+	1 D , F <- row
+	2 G H I
+
+this function will return "D,\,,F" in bytes.
+
+*/
+func (cols *Columns) Join(row int, sep, esc []byte) (v []byte) {
+	for y, col := range *cols {
+		if y > 0 {
+			v = append(v, sep...)
+		}
+
+		rec := col.Records[row]
+		recV := rec.ToByte()
+
+		if rec.GetType() == TString {
+			recV, _ = tekstus.EncapsulateToken(sep, recV, esc, nil)
+		}
+
+		v = append(v, recV...)
+	}
 	return
 }
