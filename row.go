@@ -39,3 +39,27 @@ func (row *Row) Clone() (clone Row) {
 	}
 	return
 }
+
+/*
+IsNilAt return true if there is no record value in row at `idx`, otherwise
+return false.
+*/
+func (row *Row) IsNilAt(idx int) bool {
+	if len(*row) <= idx {
+		return true
+	}
+	if (*row)[idx] == nil {
+		return true
+	}
+	if (*row)[idx].V == nil {
+		return true
+	}
+	return false
+}
+
+/*
+SetValueAt will set the value of row at cell index `idx` with record `rec`.
+*/
+func (row *Row) SetValueAt(idx int, rec *Record) {
+	(*row)[idx] = rec
+}
