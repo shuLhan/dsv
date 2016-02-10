@@ -126,7 +126,6 @@ func (writer *Writer) Close() (e error) {
 WriteRow dump content of Row to file using format in metadata.
 */
 func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) {
-	var inMd MetadataInterface
 	nRecord := len(row)
 	v := []byte{}
 	esc := []byte(DefEscape)
@@ -135,25 +134,15 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 		md := writer.OutputMetadata[i]
 
 		// find the input index based on name on record metadata.
-		rIdx := 0
-		for y := range recordMd {
-			inMd = recordMd[y]
-
-			if inMd.GetName() == md.GetName() {
-				break
-			}
-			if !inMd.GetSkip() {
-				rIdx++
-			}
-		}
-
-		// If input column is ignored, continue to next record.
-		if inMd.GetSkip() {
-			continue
-		}
+		rIdx, mdMatch := FindMetadata(&md, recordMd)
 
 		// No input metadata matched? skip it too.
 		if rIdx >= nRecord {
+			continue
+		}
+
+		// If input column is ignored, continue to next record.
+		if mdMatch != nil && mdMatch.GetSkip() {
 			continue
 		}
 
@@ -240,17 +229,7 @@ func (writer *Writer) WriteColumns(columns *Columns, colMd []MetadataInterface) 
 	// we will take the column with minimum length first and continue with
 	// the maximum length.
 
-	minlen := 0
-	maxlen := 0
-
-	for _, col := range *columns {
-		collen := col.Len()
-		if collen < minlen {
-			minlen = collen
-		} else if collen > maxlen {
-			maxlen = collen
-		}
-	}
+	minlen, maxlen := columns.GetMinMaxLength()
 
 	// If metadata is nil, generate it from column name.
 	if colMd == nil {
@@ -355,17 +334,7 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 	}
 
 	// Find minimum and maximum column length.
-	minlen := 0
-	maxlen := 0
-
-	for _, col := range *cols {
-		collen := col.Len()
-		if collen < minlen {
-			minlen = collen
-		} else if collen > maxlen {
-			maxlen = collen
-		}
-	}
+	minlen, maxlen := cols.GetMinMaxLength()
 
 	esc := []byte(DefEscape)
 	sepbytes := []byte(sep)
@@ -373,23 +342,7 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 
 	// First, write until minimum column length.
 	for ; x < minlen; x++ {
-		v := []byte{}
-		for y := 0; y < ncol; y++ {
-			if y > 0 {
-				v = append(v, sepbytes...)
-			}
-
-			rec := (*cols)[y].Records[x]
-			recV := rec.ToByte()
-
-			if rec.GetType() == TString {
-				recV, _ = tekstus.EncapsulateToken(sepbytes,
-					recV, esc, nil)
-			}
-
-			v = append(v, recV...)
-		}
-
+		v := cols.Join(x, sepbytes, esc)
 		v = append(v, DefEOL)
 
 		_, e = writer.BufWriter.Write(v)
@@ -401,28 +354,7 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 
 	// and then write column until max length.
 	for ; x < maxlen; x++ {
-		v := []byte{}
-		for y, col := range *cols {
-			if y > 0 {
-				v = append(v, sepbytes...)
-			}
-
-			// Empty record, skip it.
-			if col.Len() < x {
-				continue
-			}
-
-			rec := col.Records[x]
-			recV := rec.ToByte()
-
-			if rec.GetType() == TString {
-				recV, _ = tekstus.EncapsulateToken(sepbytes,
-					recV, esc, nil)
-			}
-
-			v = append(v, recV...)
-		}
-
+		v := cols.Join(x, sepbytes, esc)
 		v = append(v, DefEOL)
 
 		_, e = writer.BufWriter.Write(v)
