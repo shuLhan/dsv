@@ -90,7 +90,7 @@ func TestWriteRawRows(t *testing.T) {
 
 	e = writer.OpenOutput(outfile)
 
-	_, e = writer.WriteDataset(dataset, nil)
+	_, e = writer.WriteRawDataset(dataset, nil)
 
 	if e != nil {
 		t.Fatal(e)
@@ -114,7 +114,7 @@ func TestWriteRawColumns(t *testing.T) {
 
 	e = writer.OpenOutput(outfile)
 
-	_, e = writer.WriteDataset(dataset, nil)
+	_, e = writer.WriteRawDataset(dataset, nil)
 
 	if e != nil {
 		t.Fatal(e)

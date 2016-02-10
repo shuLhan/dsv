@@ -547,7 +547,7 @@ func TestMergeColumns(t *testing.T) {
 	}
 
 	sep := "\t"
-	_, e = writer.WriteDataset(&reader1.Dataset, &sep)
+	_, e = writer.WriteRawDataset(&reader1.Dataset, &sep)
 
 	if e != nil {
 		t.Fatal(e)
@@ -613,7 +613,7 @@ func TestMergeRows(t *testing.T) {
 	}
 
 	sep := "\t"
-	_, e = writer.WriteDataset(&reader1.Dataset, &sep)
+	_, e = writer.WriteRawDataset(&reader1.Dataset, &sep)
 
 	if e != nil {
 		t.Fatal(e)

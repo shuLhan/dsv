@@ -211,26 +211,23 @@ func (writer *Writer) WriteRows(rows Rows, recordMd []MetadataInterface) (
 	n int,
 	e error,
 ) {
-	n = 0
-
 	for i := range rows {
 		e = writer.WriteRow(rows[i], recordMd)
 		if nil != e {
-			if DEBUG {
-				log.Println(e)
-			}
+			break
 		}
 		n++
 	}
 
-	return n, nil
+	writer.Flush()
+	return n, e
 }
 
 /*
 WriteColumns will write content of columns to output file.
 Return n for number of row written, and e if error happened.
 */
-func (writer *Writer) WriteColumns(columns *Columns, md []MetadataInterface) (
+func (writer *Writer) WriteColumns(columns *Columns, colMd []MetadataInterface) (
 	n int,
 	e error,
 ) {
@@ -253,6 +250,18 @@ func (writer *Writer) WriteColumns(columns *Columns, md []MetadataInterface) (
 
 	lenColumn := minLen
 
+	// If metadata is nil, generate from column name.
+	if colMd == nil {
+		for _, col := range *columns {
+			md := &Metadata{
+				Name: col.Name,
+				T:    col.Type,
+			}
+
+			colMd = append(colMd, md)
+		}
+	}
+
 	// First loop, iterate over the column length.
 	var f int
 	row := make(Row, nColumns)
@@ -263,12 +272,13 @@ func (writer *Writer) WriteColumns(columns *Columns, md []MetadataInterface) (
 			row[f] = (*columns)[f].Records[r]
 		}
 
-		e = writer.WriteRow(row, md)
+		e = writer.WriteRow(row, colMd)
 		if e != nil {
 			break
 		}
 	}
 
+	writer.Flush()
 	return n, e
 }
 
@@ -284,8 +294,9 @@ func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
 
 	esc := []byte(DefEscape)
 	sepbytes := []byte(sep)
+	x := 0
 
-	for x := 0; x < nrow; x++ {
+	for ; x < nrow; x++ {
 		v := []byte{}
 		for y, rec := range (*rows)[x] {
 			if y > 0 {
@@ -307,12 +318,12 @@ func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
 		_, e = writer.BufWriter.Write(v)
 
 		if nil != e {
-			return 0, e
+			break
 		}
 	}
 
-	e = writer.Flush()
-	return
+	writer.Flush()
+	return x, e
 }
 
 /*
@@ -335,8 +346,9 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 
 	esc := []byte(DefEscape)
 	sepbytes := []byte(sep)
+	x := 0
 
-	for x := 0; x < nrow; x++ {
+	for ; x < nrow; x++ {
 		v := []byte{}
 		for y := 0; y < ncol; y++ {
 			if y > 0 {
@@ -359,21 +371,21 @@ func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
 		_, e = writer.BufWriter.Write(v)
 
 		if nil != e {
-			return 0, e
+			break
 		}
 	}
 
-	e = writer.Flush()
-	return
+	writer.Flush()
+	return x, e
 }
 
 /*
-WriteDataset will write content of dataset to file without metadata but using
+WriteRawDataset will write content of dataset to file without metadata but using
 separator `sep` for each record.
 
 We use pointer in separator parameter, so we can use empty string as separator.
 */
-func (writer *Writer) WriteDataset(dataset *Dataset, sep *string) (int, error) {
+func (writer *Writer) WriteRawDataset(dataset *Dataset, sep *string) (int, error) {
 	if nil == writer.fWriter {
 		return 0, ErrNotOpen
 	}
