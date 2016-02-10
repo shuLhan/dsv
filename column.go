@@ -123,6 +123,13 @@ func (column *Column) PushBack(r *Record) {
 }
 
 /*
+PushRecords append slice of record to the end of column's records.
+*/
+func (column *Column) PushRecords(rs []*Record) {
+	column.Records = append(column.Records, rs...)
+}
+
+/*
 ToFloatSlice convert slice of record to slice of float64.
 */
 func (column *Column) ToFloatSlice() (newcol []float64) {
