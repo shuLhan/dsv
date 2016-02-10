@@ -47,6 +47,6 @@ type ReaderError struct {
 Error to string.
 */
 func (e *ReaderError) Error() string {
-	return fmt.Sprintf("dsv.Reader.%s [%d:%d]: %s |%s|", e.Func, e.N,
+	return fmt.Sprintf("dsv.Reader.%-20s [%d:%d]: %-30s data:|%s|", e.Func, e.N,
 		e.Pos, e.What, e.Line)
 }
