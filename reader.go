@@ -457,11 +457,25 @@ func (reader *Reader) IsEqual(other *Reader) bool {
 }
 
 /*
-MergeColumns append metadata and columns from another reader.
+MergeColumns append metadata and columns from another reader if not exist in
+current metadata set.
 */
 func (reader *Reader) MergeColumns(other *Reader) {
 	for _, md := range other.InputMetadata {
 		if md.Skip {
+			continue
+		}
+
+		// Check if the same metadata name exist in current dataset.
+		found := false
+		for _, lmd := range reader.InputMetadata {
+			if lmd.Name == md.Name {
+				found = true
+				break
+			}
+		}
+
+		if found {
 			continue
 		}
 

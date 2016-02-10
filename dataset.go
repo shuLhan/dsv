@@ -304,6 +304,23 @@ func (dataset *Dataset) GetColumn(idx int) (col *Column) {
 }
 
 /*
+GetColumnByName return column based on their `name`.
+*/
+func (dataset *Dataset) GetColumnByName(name string) (col *Column) {
+	switch dataset.Mode {
+	case DatasetModeRows:
+		dataset.TransposeToColumns()
+	}
+
+	for x, col := range dataset.Columns {
+		if col.Name == name {
+			return &dataset.Columns[x]
+		}
+	}
+	return
+}
+
+/*
 GetRow return row at index `idx`.
 */
 func (dataset *Dataset) GetRow(idx int) *Row {
@@ -502,20 +519,104 @@ func (dataset *Dataset) PushRowToColumns(row Row) {
 }
 
 /*
-PushColumn will append new column to the end of slice.
+FillRowsWithColumn given a column, fill the dataset with row where the record
+only set at index `colIdx`.
+
+Example, content of dataset was,
+
+index:	0 1 2
+	A B C
+	X     (step 1) nrow = 2
+
+If we filled column at index 2 with [Y Z], the dataset will become:
+
+index:	0 1 2
+	A B C
+	X   Y (step 2) fill the empty row
+	    Z (step 3) create dummy row which contain the rest of column data.
+*/
+func (dataset *Dataset) FillRowsWithColumn(colIdx int, col Column) {
+	if dataset.GetMode() != DatasetModeRows {
+		// Only work if dataset mode is ROWS
+		return
+	}
+
+	nrow := dataset.GetNRow()
+	emptyAt := nrow
+
+	// (step 1) Find the row with empty records
+	for x, row := range dataset.Rows {
+		if row.IsNilAt(colIdx) {
+			emptyAt = x
+			break
+		}
+	}
+
+	// (step 2) Fill the empty rows using column records.
+	y := 0
+	for x := emptyAt; x < nrow; x++ {
+		dataset.Rows[x].SetValueAt(colIdx, col.Records[y])
+		y++
+	}
+
+	// (step 3) Continue filling the column but using dummy row which
+	// contain only record at index `colIdx`.
+	ncol := dataset.GetNColumn()
+	nrow = col.Len()
+	for ; y < nrow; y++ {
+		row := make(Row, ncol)
+
+		for z := 0; z < ncol; z++ {
+			if z == colIdx {
+				row[colIdx] = col.Records[y]
+			} else {
+				row[z] = &Record{V: nil}
+			}
+		}
+
+		dataset.PushRow(row)
+	}
+}
+
+/*
+PushColumn will append new column to the end of slice if no existing column
+with the same name. If it exist, the records will be merged.
 */
 func (dataset *Dataset) PushColumn(col Column) {
+	exist := false
+	colIdx := 0
+	for x, c := range dataset.Columns {
+		if c.Name == col.Name {
+			exist = true
+			colIdx = x
+			break
+		}
+	}
+
 	switch dataset.GetMode() {
 	case DatasetModeRows:
-		dataset.Columns = append(dataset.Columns, col)
-		dataset.PushColumnToRows(col)
-		// Remove records in column
-		dataset.Columns[dataset.GetNColumn()-1].Reset()
+		if exist {
+			dataset.FillRowsWithColumn(colIdx, col)
+		} else {
+			// append new column
+			dataset.Columns = append(dataset.Columns, col)
+			dataset.PushColumnToRows(col)
+			// Remove records in column
+			dataset.Columns[dataset.GetNColumn()-1].Reset()
+		}
 	case DatasetModeColumns:
-		dataset.Columns = append(dataset.Columns, col)
+		if exist {
+			dataset.Columns[colIdx].PushRecords(col.Records)
+		} else {
+			dataset.Columns = append(dataset.Columns, col)
+		}
 	case DatasetModeMatrix, DatasetNoMode:
-		dataset.Columns = append(dataset.Columns, col)
-		dataset.PushColumnToRows(col)
+		if exist {
+			dataset.Columns[colIdx].PushRecords(col.Records)
+		} else {
+			dataset.Columns = append(dataset.Columns, col)
+			dataset.PushColumnToRows(col)
+		}
 	}
 }
 

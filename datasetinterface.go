@@ -21,6 +21,7 @@ type DatasetInterface interface {
 
 	AddColumn(tipe int, name string, vs []string)
 	GetColumn(idx int) *Column
+	GetColumnByName(name string) *Column
 	GetRow(idx int) *Row
 	GetData() interface{}
 	GetDataAsRows() Rows
