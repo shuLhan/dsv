@@ -381,7 +381,7 @@ func ParseLine(reader ReaderInterface, line []byte) (
 
 		if nil != e {
 			return nil, &ReaderError{
-				T:    ETypeConvertion,
+				T:    ETypeConversion,
 				Func: "ParseLine",
 				What: "Type convertion error '" + string(v) + "'",
 				Line: string(line),

@@ -57,7 +57,7 @@ func NewMetadata(name, tipe, sep, leftq, rightq string, vs []string) (
 }
 
 /*
-Init initalize metadata column, i.e. check and set column type.
+Init initialize metadata column, i.e. check and set column type.
 
 If type is unknown it will default to string.
 */

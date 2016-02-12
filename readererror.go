@@ -20,9 +20,9 @@ const (
 	EReadLine
 	// EReadEOF error which indicated end-of-file.
 	EReadEOF
-	// ETypeConvertion error when converting type from string to numeric or
+	// ETypeConversion error when converting type from string to numeric or
 	// vice versa.
-	ETypeConvertion
+	ETypeConversion
 )
 
 /*
