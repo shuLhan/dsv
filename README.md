@@ -1,4 +1,5 @@
 [![GoDoc](https://godoc.org/github.com/shuLhan/dsv?status.svg)](https://godoc.org/github.com/shuLhan/dsv)
+[![Go Report Card](https://goreportcard.com/badge/github.com/shuLhan/dsv)](https://goreportcard.com/report/github.com/shuLhan/dsv)
 
 Package `dsv` is a Go library for working with delimited separated value (DSV).
 
