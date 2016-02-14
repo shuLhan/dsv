@@ -99,44 +99,6 @@ func TestSortFloatSliceByIndex(t *testing.T) {
 	assert.Equal(t, exp, got)
 }
 
-func TestStringCountBy(t *testing.T) {
-	data := []string{"A", "B", "A", "C"}
-	class := []string{"A", "B"}
-	exp := []int{2, 1}
-
-	got := util.StringCountBy(data, class)
-
-	assert.Equal(t, exp, got)
-}
-
-func TestIntFindMax(t *testing.T) {
-	in1 := []int{}
-	in2 := []int{1, 2, 3, 4, 5}
-
-	maxv, maxid := util.IntFindMax(in1)
-
-	assert.Equal(t, -1, maxid)
-
-	maxv, maxid = util.IntFindMax(in2)
-
-	assert.Equal(t, 5, maxv)
-	assert.Equal(t, 4, maxid)
-}
-
-func TestIntFindMin(t *testing.T) {
-	in1 := []int{}
-	in2 := []int{1, 2, 3, 4, 5}
-
-	minv, minid := util.IntFindMin(in1)
-
-	assert.Equal(t, -1, minid)
-
-	minv, minid = util.IntFindMin(in2)
-
-	assert.Equal(t, 1, minv)
-	assert.Equal(t, 0, minid)
-}
-
 func TestCountMissRate(t *testing.T) {
 	data := []string{"A", "B", "C", "D"}
 	test := []string{"A", "B", "C", "D"}
