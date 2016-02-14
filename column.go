@@ -95,10 +95,24 @@ func (column *Column) Reset() {
 }
 
 /*
+SetType of column.
+*/
+func (column *Column) SetType(t int) {
+	column.Type = t
+}
+
+/*
 GetType return column type.
 */
 func (column *Column) GetType() int {
 	return column.Type
+}
+
+/*
+SetName of column.
+*/
+func (column *Column) SetName(name string) {
+	column.Name = name
 }
 
 /*
