@@ -106,6 +106,13 @@ func (r *Record) SetFloat(v float64) {
 }
 
 /*
+SetInteger will set the record value with integer 64bit.
+*/
+func (r *Record) SetInteger(v int64) {
+	r.V = v
+}
+
+/*
 Value return value of record based on their type.
 */
 func (r *Record) Value() interface{} {
