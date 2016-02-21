@@ -77,6 +77,13 @@ func (writer *Writer) SetOutput(path string) {
 }
 
 /*
+AddMetadata will add new output metadata to writer.
+*/
+func (writer *Writer) AddMetadata(md Metadata) {
+	writer.OutputMetadata = append(writer.OutputMetadata, md)
+}
+
+/*
 OpenOutput file and buffered writer.
 */
 func (writer *Writer) OpenOutput(file string) (e error) {
