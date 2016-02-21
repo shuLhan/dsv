@@ -165,17 +165,17 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 
 		// Escape the escape character itself.
 		if md.T == TString {
-			recV, _ = tekstus.EncapsulateToken(esc, recV, esc, nil)
+			recV, _ = tekstus.BytesEncapsulate(esc, recV, esc, nil)
 		}
 
 		// Escape the right quote in field content before writing it.
 		if "" != rq && md.T == TString {
-			recV, _ = tekstus.EncapsulateToken([]byte(rq), recV,
+			recV, _ = tekstus.BytesEncapsulate([]byte(rq), recV,
 				esc, nil)
 		} else {
 			// Escape the separator
 			if "" != sep && md.T == TString {
-				recV, _ = tekstus.EncapsulateToken([]byte(sep),
+				recV, _ = tekstus.BytesEncapsulate([]byte(sep),
 					recV, esc, nil)
 			}
 		}
@@ -231,6 +231,8 @@ func (writer *Writer) WriteColumns(columns *Columns, colMd []MetadataInterface) 
 		return
 	}
 
+	emptyRec := &Record{V: ""}
+
 	// Get minimum and maximum length of all columns.
 	// In case one of the column have different length (shorter or longer),
 	// we will take the column with minimum length first and continue with
@@ -269,7 +271,11 @@ func (writer *Writer) WriteColumns(columns *Columns, colMd []MetadataInterface) 
 	for ; n < maxlen; n++ {
 		// Convert columns to record.
 		for y, col := range *columns {
-			row[y] = col.Records[n]
+			if col.Len() > n {
+				row[y] = col.Records[n]
+			} else {
+				row[y] = emptyRec
+			}
 		}
 
 		e = writer.WriteRow(row, colMd)
@@ -307,7 +313,7 @@ func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
 			recV := rec.ToByte()
 
 			if rec.GetType() == TString {
-				recV, _ = tekstus.EncapsulateToken(sepbytes,
+				recV, _ = tekstus.BytesEncapsulate(sepbytes,
 					recV, esc, nil)
 			}
 

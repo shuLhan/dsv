@@ -131,7 +131,7 @@ func (cols *Columns) Join(row int, sep, esc []byte) (v []byte) {
 		recV := rec.ToByte()
 
 		if rec.GetType() == TString {
-			recV, _ = tekstus.EncapsulateToken(sep, recV, esc, nil)
+			recV, _ = tekstus.BytesEncapsulate(sep, recV, esc, nil)
 		}
 
 		v = append(v, recV...)

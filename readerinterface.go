@@ -184,7 +184,7 @@ func parsingLeftQuote(lq, line []byte, startAt int) (
 	p = startAt
 
 	// parsing until we found left quote token
-	p, found := tekstus.ParsingSkipUntil(lq, line, p, false)
+	p, found := tekstus.BytesSkipUntil(line, lq, p, false)
 
 	if found {
 		return p, nil
@@ -213,7 +213,7 @@ func parsingSeparator(sep, line []byte, startAt int) (
 ) {
 	p = startAt
 
-	v, p, found := tekstus.ParsingUntil(sep, line, p, false)
+	v, p, found := tekstus.BytesCutUntil(line, sep, p, false)
 
 	if found {
 		return v, p, nil
@@ -246,7 +246,7 @@ func parsingRightQuote(reader ReaderInterface, rq, line []byte, startAt int) (
 
 	// (2.2.1)
 	for {
-		content, p, found = tekstus.ParsingUntil(rq, line, p, true)
+		content, p, found = tekstus.BytesCutUntil(line, rq, p, true)
 
 		v = append(v, content...)
 
@@ -287,7 +287,7 @@ func parsingSkipSeparator(sep, line []byte, startAt int) (
 ) {
 	p = startAt
 
-	p, found := tekstus.ParsingSkipUntil(sep, line, p, false)
+	p, found := tekstus.BytesSkipUntil(line, sep, p, false)
 
 	if found {
 		return p, nil
