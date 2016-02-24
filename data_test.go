@@ -5,7 +5,6 @@
 package dsv_test
 
 import (
-	"github.com/shuLhan/dsv"
 	"os"
 )
 
@@ -62,47 +61,4 @@ var expSkipColumnsAllRev = []string{
 	"{value 0 0 [] [string with]] escape string with real integer missing right-quote];8;0.00000008\n9;\"ok\"-[[ok  A;B C D A;B C,D BCD AB]}",
 	"{integer 1 0 [] [14 13 123456789 10 9 6 4 3 2 1]}",
 	"{real 2 0 [] [14 13 0.123456789 0.101 0.000000009 0.000006 0.0004 0.003 0.02 0.1]}",
-}
-
-// Testing data and function for Rows and MapRows
-var rowsData = [][]string{
-	{"1", "5", "9", "+"},
-	{"2", "6", "0", "-"},
-	{"3", "7", "1", "-"},
-	{"4", "8", "2", "+"},
-}
-
-var testColTypes = []int{dsv.TInteger, dsv.TInteger, dsv.TInteger, dsv.TString}
-var testColNames = []string{"int01", "int02", "int03", "class"}
-
-var rowsExpect = []string{
-	"[1 5 9 +]",
-	"[2 6 0 -]",
-	"[3 7 1 -]",
-	"[4 8 2 +]",
-}
-
-var testClassIdx = 3
-
-var groupByExpect = "[{+ [1 5 9 +][4 8 2 +]} {- [2 6 0 -][3 7 1 -]}]"
-
-func initRows() (rows dsv.Rows, e error) {
-	for i := range rowsData {
-		l := len(rowsData[i])
-		row := make(dsv.Row, 0)
-
-		for j := 0; j < l; j++ {
-			rec, e := dsv.NewRecord(rowsData[i][j],
-				testColTypes[j])
-
-			if nil != e {
-				return nil, e
-			}
-
-			row = append(row, rec)
-		}
-
-		rows.PushBack(row)
-	}
-	return rows, nil
 }

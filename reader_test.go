@@ -7,7 +7,7 @@ package dsv_test
 import (
 	"fmt"
 	"github.com/shuLhan/dsv"
-	"github.com/shuLhan/dsv/util/assert"
+	"github.com/shuLhan/tabula/util/assert"
 	"io"
 	"strings"
 	"testing"

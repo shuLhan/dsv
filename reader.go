@@ -6,6 +6,7 @@ package dsv
 
 import (
 	"bufio"
+	"github.com/shuLhan/tabula"
 	"log"
 	"os"
 	"strings"
@@ -69,7 +70,7 @@ type Reader struct {
 	// configuration file belong.
 	Config
 	// Dataset contains the content of input file after read.
-	Dataset
+	tabula.Dataset
 	// Input file, mandatory.
 	Input string `json:"Input"`
 	// Skip n lines from the head.
@@ -254,11 +255,11 @@ SetDatasetMode to `mode`.
 func (reader *Reader) SetDatasetMode(mode string) error {
 	switch strings.ToUpper(mode) {
 	case DatasetModeROWS:
-		reader.SetMode(DatasetModeRows)
+		reader.SetMode(tabula.DatasetModeRows)
 	case DatasetModeCOLUMNS:
-		reader.SetMode(DatasetModeColumns)
+		reader.SetMode(tabula.DatasetModeColumns)
 	case DatasetModeMATRIX:
-		reader.SetMode(DatasetModeMatrix)
+		reader.SetMode(tabula.DatasetModeMatrix)
 	default:
 		return ErrUnknownDatasetMode
 	}

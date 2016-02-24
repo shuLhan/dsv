@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/shuLhan/dsv"
-	"github.com/shuLhan/dsv/util/assert"
+	"github.com/shuLhan/tabula"
+	"github.com/shuLhan/tabula/util/assert"
 )
 
 /*
@@ -76,9 +77,9 @@ func TestWriterWithColumns(t *testing.T) {
 }
 
 func TestWriteRawRows(t *testing.T) {
-	dataset := dsv.NewDataset(dsv.DatasetModeRows, nil, nil)
+	dataset := tabula.NewDataset(tabula.DatasetModeRows, nil, nil)
 
-	PopulateWithRows(t, dataset)
+	populateWithRows(t, dataset)
 
 	writer, e := dsv.NewWriter("")
 	if e != nil {
@@ -100,9 +101,9 @@ func TestWriteRawRows(t *testing.T) {
 }
 
 func TestWriteRawColumns(t *testing.T) {
-	dataset := dsv.NewDataset(dsv.DatasetModeColumns, nil, nil)
+	dataset := tabula.NewDataset(tabula.DatasetModeColumns, nil, nil)
 
-	PopulateWithColumns(t, dataset)
+	populateWithColumns(t, dataset)
 
 	writer, e := dsv.NewWriter("")
 	if e != nil {

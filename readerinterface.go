@@ -7,6 +7,7 @@ package dsv
 import (
 	"bytes"
 	"fmt"
+	"github.com/shuLhan/tabula"
 	"github.com/shuLhan/tekstus"
 	"io"
 	"os"
@@ -17,7 +18,7 @@ ReaderInterface is the interface for reading DSV file.
 */
 type ReaderInterface interface {
 	ConfigInterface
-	DatasetInterface
+	tabula.DatasetInterface
 	AddInputMetadata(*Metadata)
 	GetInputMetadata() []MetadataInterface
 	GetInputMetadataAt(idx int) MetadataInterface
@@ -87,7 +88,7 @@ func InitReader(reader ReaderInterface) (e error) {
 		// Count number of output columns.
 		if !md[i].GetSkip() {
 			// add type of metadata to list of type
-			col := Column{
+			col := tabula.Column{
 				Type:       md[i].GetType(),
 				Name:       md[i].GetName(),
 				ValueSpace: md[i].GetValueSpace(),
@@ -320,12 +321,12 @@ This is how the algorithm works
 (3) save buffer to record
 */
 func ParseLine(reader ReaderInterface, line []byte) (
-	row Row, eRead *ReaderError,
+	row tabula.Row, eRead *ReaderError,
 ) {
 	p := 0
 	rIdx := 0
 	inputMd := reader.GetInputMetadata()
-	row = make(Row, reader.GetNColumn())
+	row = make(tabula.Row, reader.GetNColumn())
 
 	for _, md := range inputMd {
 		lq := md.GetLeftQuote()
@@ -377,7 +378,7 @@ func ParseLine(reader ReaderInterface, line []byte) (
 			continue
 		}
 
-		r, e := NewRecord(string(v), md.GetType())
+		r, e := tabula.NewRecord(string(v), md.GetType())
 
 		if nil != e {
 			return nil, &ReaderError{
@@ -402,7 +403,7 @@ ReadRow read one line at a time until we get one row or error when parsing the
 data.
 */
 func ReadRow(reader ReaderInterface, linenum int) (
-	row Row,
+	row tabula.Row,
 	line []byte,
 	n int,
 	eRead *ReaderError,

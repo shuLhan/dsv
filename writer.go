@@ -7,6 +7,7 @@ package dsv
 import (
 	"bufio"
 	"encoding/json"
+	"github.com/shuLhan/tabula"
 	"github.com/shuLhan/tekstus"
 	"log"
 	"os"
@@ -132,7 +133,9 @@ func (writer *Writer) Close() (e error) {
 /*
 WriteRow dump content of Row to file using format in metadata.
 */
-func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) {
+func (writer *Writer) WriteRow(row tabula.Row, recordMd []MetadataInterface) (
+	e error,
+) {
 	nRecord := len(row)
 	v := []byte{}
 	esc := []byte(DefEscape)
@@ -164,17 +167,17 @@ func (writer *Writer) WriteRow(row Row, recordMd []MetadataInterface) (e error) 
 		sep := md.GetSeparator()
 
 		// Escape the escape character itself.
-		if md.T == TString {
+		if md.T == tabula.TString {
 			recV, _ = tekstus.BytesEncapsulate(esc, recV, esc, nil)
 		}
 
 		// Escape the right quote in field content before writing it.
-		if "" != rq && md.T == TString {
+		if "" != rq && md.T == tabula.TString {
 			recV, _ = tekstus.BytesEncapsulate([]byte(rq), recV,
 				esc, nil)
 		} else {
 			// Escape the separator
-			if "" != sep && md.T == TString {
+			if "" != sep && md.T == tabula.TString {
 				recV, _ = tekstus.BytesEncapsulate([]byte(sep),
 					recV, esc, nil)
 			}
@@ -203,7 +206,7 @@ WriteRows will loop each row in the list of rows and write their content to
 output file.
 Return n for number of row written, and e if error happened.
 */
-func (writer *Writer) WriteRows(rows Rows, recordMd []MetadataInterface) (
+func (writer *Writer) WriteRows(rows tabula.Rows, recordMd []MetadataInterface) (
 	n int,
 	e error,
 ) {
@@ -222,7 +225,9 @@ func (writer *Writer) WriteRows(rows Rows, recordMd []MetadataInterface) (
 WriteColumns will write content of columns to output file.
 Return n for number of row written, and e if error happened.
 */
-func (writer *Writer) WriteColumns(columns *Columns, colMd []MetadataInterface) (
+func (writer *Writer) WriteColumns(columns *tabula.Columns,
+	colMd []MetadataInterface,
+) (
 	n int,
 	e error,
 ) {
@@ -231,7 +236,7 @@ func (writer *Writer) WriteColumns(columns *Columns, colMd []MetadataInterface) 
 		return
 	}
 
-	emptyRec := &Record{V: ""}
+	emptyRec := &tabula.Record{V: ""}
 
 	// Get minimum and maximum length of all columns.
 	// In case one of the column have different length (shorter or longer),
@@ -253,7 +258,7 @@ func (writer *Writer) WriteColumns(columns *Columns, colMd []MetadataInterface) 
 	}
 
 	// First loop, iterate until minimum column length.
-	row := make(Row, nColumns)
+	row := make(tabula.Row, nColumns)
 
 	for ; n < minlen; n++ {
 		// Convert columns to record.
@@ -292,7 +297,10 @@ err:
 /*
 WriteRawRows write rows data using separator `sep` for each record.
 */
-func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
+func (writer *Writer) WriteRawRows(rows *tabula.Rows, sep string) (
+	nrow int,
+	e error,
+) {
 	nrow = len(*rows)
 
 	if nrow <= 0 {
@@ -312,7 +320,7 @@ func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
 
 			recV := rec.ToByte()
 
-			if rec.GetType() == TString {
+			if rec.GetType() == tabula.TString {
 				recV, _ = tekstus.BytesEncapsulate(sepbytes,
 					recV, esc, nil)
 			}
@@ -337,7 +345,7 @@ func (writer *Writer) WriteRawRows(rows *Rows, sep string) (nrow int, e error) {
 WriteRawColumns write raw columns using separator `sep` for each record to
 file.
 */
-func (writer *Writer) WriteRawColumns(cols *Columns, sep string) (
+func (writer *Writer) WriteRawColumns(cols *tabula.Columns, sep string) (
 	nrow int,
 	e error,
 ) {
@@ -387,7 +395,9 @@ separator `sep` for each record.
 
 We use pointer in separator parameter, so we can use empty string as separator.
 */
-func (writer *Writer) WriteRawDataset(dataset *Dataset, sep *string) (int, error) {
+func (writer *Writer) WriteRawDataset(dataset *tabula.Dataset, sep *string) (
+	int, error,
+) {
 	if nil == writer.fWriter {
 		return 0, ErrNotOpen
 	}
@@ -400,10 +410,10 @@ func (writer *Writer) WriteRawDataset(dataset *Dataset, sep *string) (int, error
 	}
 
 	switch dataset.GetMode() {
-	case DatasetModeRows, DatasetModeMatrix:
+	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
 		return writer.WriteRawRows(&dataset.Rows, *sep)
 
-	case DatasetModeColumns:
+	case tabula.DatasetModeColumns:
 		return writer.WriteRawColumns(&dataset.Columns, *sep)
 	}
 
@@ -423,12 +433,12 @@ func (writer *Writer) Write(reader *Reader) (int, error) {
 	}
 
 	switch reader.GetMode() {
-	case DatasetModeRows:
+	case tabula.DatasetModeRows:
 		return writer.WriteRows(reader.Rows, reader.GetInputMetadata())
-	case DatasetModeColumns:
+	case tabula.DatasetModeColumns:
 		return writer.WriteColumns(&reader.Columns,
 			reader.GetInputMetadata())
-	case DatasetModeMatrix:
+	case tabula.DatasetModeMatrix:
 		return writer.WriteRows(reader.Rows, reader.GetInputMetadata())
 	}
 

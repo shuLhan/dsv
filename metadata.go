@@ -6,6 +6,7 @@ package dsv
 
 import (
 	"encoding/json"
+	"github.com/shuLhan/tabula"
 	"log"
 	"strings"
 )
@@ -64,11 +65,11 @@ If type is unknown it will default to string.
 func (md *Metadata) Init() {
 	switch strings.ToUpper(md.Type) {
 	case "INTEGER", "INT":
-		md.T = TInteger
+		md.T = tabula.TInteger
 	case "REAL":
-		md.T = TReal
+		md.T = tabula.TReal
 	default:
-		md.T = TString
+		md.T = tabula.TString
 		md.Type = "string"
 	}
 }
