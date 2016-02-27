@@ -307,6 +307,22 @@ func parsingSkipSeparator(sep, line []byte, startAt int) (
 }
 
 /*
+parsingSkipSpace skip all space starting from `startAt`.
+*/
+func parsingSkipSpace(line []byte, startAt int) (p int) {
+	linelen := len(line)
+
+	for p = startAt; p < linelen; p++ {
+		if line[p] == ' ' || line[p] == '\t' || line[p] == '\n' ||
+			line[p] == '\r' {
+			continue
+		}
+		break
+	}
+	return
+}
+
+/*
 ParseLine parse a line containing records. The output is array of record
 (or single row).
 
@@ -359,14 +375,32 @@ func ParseLine(reader ReaderInterface, line []byte) (
 				if eRead != nil {
 					return
 				}
+
+				// Handle multi space if separator is a single
+				// space.
+				if sep == " " {
+					p = parsingSkipSpace(line, p)
+				}
 			}
 		} else {
 			if sep != "" {
+				// Skip space at beginning if separator is a
+				// single space.
+				if sep == " " {
+					p = parsingSkipSpace(line, p)
+				}
+
 				v, p, eRead = parsingSeparator([]byte(sep),
 					line, p)
 
 				if eRead != nil {
 					return
+				}
+
+				// Handle multi space if separator is a single
+				// space.
+				if sep == " " {
+					p = parsingSkipSpace(line, p)
 				}
 			} else {
 				v = line[p:]
@@ -381,10 +415,13 @@ func ParseLine(reader ReaderInterface, line []byte) (
 		r, e := tabula.NewRecord(string(v), md.GetType())
 
 		if nil != e {
+			msg := fmt.Sprintf("md %s: Type convertion error from %q to %s",
+				md.GetName(), string(v), md.GetTypeName())
+
 			return nil, &ReaderError{
 				T:    ETypeConversion,
 				Func: "ParseLine",
-				What: "Type convertion error '" + string(v) + "'",
+				What: msg,
 				Line: string(line),
 				Pos:  p,
 				N:    0,
