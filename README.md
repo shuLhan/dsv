@@ -204,6 +204,9 @@ directory with configuration file.
 * `InputMetadata`: mandatory, list of metadata.
 * `Skip`: optional, number, default 0. Skip define the number of line that will
 be skipped when first input file is opened.
+* `TrimSpace`: optional, boolean, default is true. If its true, before parsed, the
+  white space in the beginning and end of each input line will be removed,
+  otherwise it will leave unmodified.
 * `Rejected`: optional, default to `rejected.dat`. Rejected is file where
 data that does not match with metadata will be saved. One can inspect the
 rejected file fix it for re-process or ignore it.

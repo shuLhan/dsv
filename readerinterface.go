@@ -33,6 +33,7 @@ type ReaderInterface interface {
 	SetRejected(path string)
 	GetSkip() int
 	SetSkip(n int)
+	IsTrimSpace() bool
 	SetDefault()
 	OpenInput() error
 	OpenRejected() error
@@ -463,6 +464,10 @@ func ReadRow(reader ReaderInterface, linenum int) (
 		if len(linetrimed) > 0 {
 			break
 		}
+	}
+
+	if reader.IsTrimSpace() {
+		line = bytes.TrimSpace(line)
 	}
 
 	row, eRead = ParseLine(reader, line)

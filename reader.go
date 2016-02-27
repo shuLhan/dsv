@@ -75,6 +75,10 @@ type Reader struct {
 	Input string `json:"Input"`
 	// Skip n lines from the head.
 	Skip int `json:"Skip"`
+	// TrimSpace or not. If its true, before parsing the line, the white
+	// space in the beginning and end of each input line will be removed,
+	// otherwise it will leave unmodified.  Default is true.
+	TrimSpace bool `json:"TrimSpace"`
 	// Rejected is the file name where row that does not fit
 	// with metadata will be saved.
 	Rejected string `json:"Rejected"`
@@ -124,6 +128,7 @@ func NewReader(config string) (reader *Reader, e error) {
 	reader = &Reader{
 		Input:         "",
 		Skip:          0,
+		TrimSpace:     true,
 		Rejected:      "rejected.dat",
 		InputMetadata: nil,
 		MaxRows:       DefaultMaxRows,
@@ -154,6 +159,7 @@ func (reader *Reader) CopyConfig(src *Reader) {
 	reader.ConfigPath = src.GetConfigPath()
 	reader.Input = src.GetInput()
 	reader.Skip = src.GetSkip()
+	reader.TrimSpace = src.IsTrimSpace()
 	reader.Rejected = src.GetRejected()
 	reader.MaxRows = src.GetMaxRows()
 	reader.DatasetMode = src.GetDatasetMode()
@@ -185,6 +191,13 @@ SetSkip set number of lines that will be skipped before reading actual data.
 */
 func (reader *Reader) SetSkip(n int) {
 	reader.Skip = n
+}
+
+/*
+IsTrimSpace return value of TrimSpace option.
+*/
+func (reader *Reader) IsTrimSpace() bool {
+	return reader.TrimSpace
 }
 
 /*
