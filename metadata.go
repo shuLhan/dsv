@@ -89,6 +89,13 @@ func (md *Metadata) GetType() int {
 }
 
 /*
+GetTypeName return string representation of type.
+*/
+func (md *Metadata) GetTypeName() string {
+	return md.Type
+}
+
+/*
 GetSeparator return the field separator.
 */
 func (md *Metadata) GetSeparator() string {

@@ -12,6 +12,7 @@ type MetadataInterface interface {
 	Init()
 	GetName() string
 	GetType() int
+	GetTypeName() string
 	GetLeftQuote() string
 	GetRightQuote() string
 	GetSeparator() string
