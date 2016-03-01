@@ -1,4 +1,4 @@
-// Copyright 2015 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Copyright 2015-2016 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -56,4 +56,23 @@ func TestReadWriterAll(t *testing.T) {
 	}
 
 	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected.dat")
+}
+
+func TestSimpleReadWrite(t *testing.T) {
+	fcfg := "testdata/config_simpleread.dsv"
+
+	reader, e := dsv.SimpleRead(fcfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	fout := "testdata/output.dat"
+	fexp := "testdata/expected.dat"
+
+	e = dsv.SimpleWrite(reader, fcfg)
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	assert.EqualFileContent(t, fexp, fout)
 }
