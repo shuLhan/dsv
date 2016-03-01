@@ -225,13 +225,13 @@ func (writer *Writer) WriteRows(rows tabula.Rows, recordMd []MetadataInterface) 
 WriteColumns will write content of columns to output file.
 Return n for number of row written, and e if error happened.
 */
-func (writer *Writer) WriteColumns(columns *tabula.Columns,
+func (writer *Writer) WriteColumns(columns tabula.Columns,
 	colMd []MetadataInterface,
 ) (
 	n int,
 	e error,
 ) {
-	nColumns := len(*columns)
+	nColumns := len(columns)
 	if nColumns <= 0 {
 		return
 	}
@@ -247,7 +247,7 @@ func (writer *Writer) WriteColumns(columns *tabula.Columns,
 
 	// If metadata is nil, generate it from column name.
 	if colMd == nil {
-		for _, col := range *columns {
+		for _, col := range columns {
 			md := &Metadata{
 				Name: col.Name,
 				T:    col.Type,
@@ -262,7 +262,7 @@ func (writer *Writer) WriteColumns(columns *tabula.Columns,
 
 	for ; n < minlen; n++ {
 		// Convert columns to record.
-		for y, col := range *columns {
+		for y, col := range columns {
 			row[y] = col.Records[n]
 		}
 
@@ -275,7 +275,7 @@ func (writer *Writer) WriteColumns(columns *tabula.Columns,
 	// Second loop, iterate until maximum column length.
 	for ; n < maxlen; n++ {
 		// Convert columns to record.
-		for y, col := range *columns {
+		for y, col := range columns {
 			if col.Len() > n {
 				row[y] = col.Records[n]
 			} else {
@@ -424,7 +424,7 @@ func (writer *Writer) WriteRawDataset(dataset *tabula.Dataset, sep *string) (
 Write rows from Reader to file.
 Return n for number of row written, or e if error happened.
 */
-func (writer *Writer) Write(reader *Reader) (int, error) {
+func (writer *Writer) Write(reader ReaderInterface) (int, error) {
 	if nil == reader {
 		return 0, ErrNilReader
 	}
@@ -433,13 +433,12 @@ func (writer *Writer) Write(reader *Reader) (int, error) {
 	}
 
 	switch reader.GetMode() {
-	case tabula.DatasetModeRows:
-		return writer.WriteRows(reader.Rows, reader.GetInputMetadata())
-	case tabula.DatasetModeColumns:
-		return writer.WriteColumns(&reader.Columns,
+	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
+		return writer.WriteRows(reader.GetDataAsRows(),
 			reader.GetInputMetadata())
-	case tabula.DatasetModeMatrix:
-		return writer.WriteRows(reader.Rows, reader.GetInputMetadata())
+	case tabula.DatasetModeColumns:
+		return writer.WriteColumns(reader.GetDataAsColumns(),
+			reader.GetInputMetadata())
 	}
 
 	return 0, ErrUnknownDatasetMode
