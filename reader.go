@@ -331,7 +331,7 @@ OpenRejected open rejected file, for saving unparseable line.
 */
 func (reader *Reader) OpenRejected() (e error) {
 	reader.fReject, e = os.OpenFile(reader.Rejected,
-		os.O_CREATE|os.O_WRONLY, 0600)
+		os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if nil != e {
 		return e
 	}
