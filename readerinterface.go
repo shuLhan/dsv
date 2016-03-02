@@ -18,8 +18,8 @@ ReaderInterface is the interface for reading DSV file.
 */
 type ReaderInterface interface {
 	ConfigInterface
-	tabula.DatasetInterface
 	AddInputMetadata(*Metadata)
+	AppendMetadata(MetadataInterface)
 	GetInputMetadata() []MetadataInterface
 	GetInputMetadataAt(idx int) MetadataInterface
 	GetMaxRows() int
@@ -39,11 +39,15 @@ type ReaderInterface interface {
 	OpenRejected() error
 	SkipLines() error
 
+	Reset() error
 	Flush() error
 	ReadLine() ([]byte, error)
 	FetchNextLine([]byte) ([]byte, error)
 	Reject(line []byte) (int, error)
 	Close() error
+
+	GetDataset() tabula.DatasetInterface
+	MergeColumns(ReaderInterface)
 }
 
 /*
@@ -94,7 +98,7 @@ func InitReader(reader ReaderInterface) (e error) {
 				Name:       md[i].GetName(),
 				ValueSpace: md[i].GetValueSpace(),
 			}
-			reader.PushColumn(col)
+			reader.GetDataset().PushColumn(col)
 		}
 	}
 
@@ -144,7 +148,7 @@ func Read(reader ReaderInterface) (n int, e error) {
 		row, line, linenum, eRead := ReadRow(reader, linenum)
 
 		if nil == eRead {
-			reader.PushRow(row)
+			reader.GetDataset().PushRow(row)
 
 			n++
 			if maxrows > 0 && n >= maxrows {
@@ -343,7 +347,7 @@ func ParseLine(reader ReaderInterface, line []byte) (
 	p := 0
 	rIdx := 0
 	inputMd := reader.GetInputMetadata()
-	row = make(tabula.Row, reader.GetNColumn())
+	row = make(tabula.Row, reader.GetDataset().GetNColumn())
 
 	for _, md := range inputMd {
 		lq := md.GetLeftQuote()

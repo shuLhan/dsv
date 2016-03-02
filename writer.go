@@ -432,12 +432,14 @@ func (writer *Writer) Write(reader ReaderInterface) (int, error) {
 		return 0, ErrNotOpen
 	}
 
-	switch reader.GetMode() {
+	ds := reader.GetDataset()
+
+	switch ds.GetMode() {
 	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
-		return writer.WriteRows(reader.GetDataAsRows(),
+		return writer.WriteRows(ds.GetDataAsRows(),
 			reader.GetInputMetadata())
 	case tabula.DatasetModeColumns:
-		return writer.WriteColumns(reader.GetDataAsColumns(),
+		return writer.WriteColumns(ds.GetDataAsColumns(),
 			reader.GetInputMetadata())
 	}
 

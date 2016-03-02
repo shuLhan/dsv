@@ -223,6 +223,14 @@ func (reader *Reader) AddInputMetadata(md *Metadata) {
 }
 
 /*
+AppendMetadata will append new metadata `md` to list of reader input metadata.
+*/
+func (reader *Reader) AppendMetadata(mdi MetadataInterface) {
+	md := mdi.(*Metadata)
+	reader.InputMetadata = append(reader.InputMetadata, *md)
+}
+
+/*
 GetInputMetadata return pointer to slice of metadata.
 */
 func (reader *Reader) GetInputMetadata() []MetadataInterface {
@@ -471,19 +479,26 @@ func (reader *Reader) IsEqual(other *Reader) bool {
 }
 
 /*
+GetDataset return reader dataset.
+*/
+func (reader *Reader) GetDataset() tabula.DatasetInterface {
+	return &reader.Dataset
+}
+
+/*
 MergeColumns append metadata and columns from another reader if not exist in
 current metadata set.
 */
-func (reader *Reader) MergeColumns(other *Reader) {
-	for _, md := range other.InputMetadata {
-		if md.Skip {
+func (reader *Reader) MergeColumns(other ReaderInterface) {
+	for _, md := range other.GetInputMetadata() {
+		if md.GetSkip() {
 			continue
 		}
 
 		// Check if the same metadata name exist in current dataset.
 		found := false
-		for _, lmd := range reader.InputMetadata {
-			if lmd.Name == md.Name {
+		for _, lmd := range reader.GetInputMetadata() {
+			if lmd.GetName() == md.GetName() {
 				found = true
 				break
 			}
@@ -493,10 +508,10 @@ func (reader *Reader) MergeColumns(other *Reader) {
 			continue
 		}
 
-		reader.InputMetadata = append(reader.InputMetadata, md)
+		reader.AppendMetadata(md)
 	}
 
-	reader.Dataset.MergeColumns(other.Dataset)
+	reader.GetDataset().MergeColumns(other.GetDataset())
 }
 
 /*
