@@ -76,3 +76,23 @@ func TestSimpleReadWrite(t *testing.T) {
 
 	assert.EqualFileContent(t, fexp, fout)
 }
+
+func TestSimpleMerge(t *testing.T) {
+	fcfg1 := "testdata/config_simpleread.dsv"
+	fcfg2 := "testdata/config_simpleread.dsv"
+
+	reader, e := dsv.SimpleMerge(fcfg1, fcfg2)
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	e = dsv.SimpleWrite(reader, fcfg1)
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	fexp := "testdata/expected_simplemerge.dat"
+	fout := "testdata/output.dat"
+
+	assert.EqualFileContent(t, fexp, fout)
+}

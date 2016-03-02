@@ -51,3 +51,29 @@ func SimpleWrite(reader ReaderInterface, fcfg string) (e error) {
 
 	return
 }
+
+/*
+SimpleMerge provide a shortcut to merge two dsv files using configuration
+files passed in parameters.
+
+One must remember to set,
+- "MaxRows" to -1 to be able to read all rows, in both input configuration, and
+- "DatasetMode" to "columns" to speeding up process.
+
+This function return the merged reader or error if failed.
+*/
+func SimpleMerge(fin1, fin2 string) (ReaderInterface, error) {
+	reader1, e := SimpleRead(fin1)
+	if e != nil {
+		return nil, e
+	}
+
+	reader2, e := SimpleRead(fin2)
+	if e != nil {
+		return nil, e
+	}
+
+	reader1.MergeColumns(reader2)
+
+	return reader1, nil
+}
