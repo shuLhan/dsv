@@ -36,13 +36,13 @@ func SimpleRead(fcfg string) (reader ReaderInterface, e error) {
 SimpleWrite provide a shortcut to write data from reader using output metadata
 format and output file defined in file `fcfg`.
 */
-func SimpleWrite(reader ReaderInterface, fcfg string) (e error) {
+func SimpleWrite(reader ReaderInterface, fcfg string) (nrows int, e error) {
 	writer, e := NewWriter(fcfg)
 	if e != nil {
 		return
 	}
 
-	_, e = writer.Write(reader)
+	nrows, e = writer.Write(reader)
 	if e != nil {
 		return
 	}

@@ -69,7 +69,7 @@ func TestSimpleReadWrite(t *testing.T) {
 	fout := "testdata/output.dat"
 	fexp := "testdata/expected.dat"
 
-	e = dsv.SimpleWrite(reader, fcfg)
+	_, e = dsv.SimpleWrite(reader, fcfg)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -86,7 +86,7 @@ func TestSimpleMerge(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	e = dsv.SimpleWrite(reader, fcfg1)
+	_, e = dsv.SimpleWrite(reader, fcfg1)
 	if e != nil {
 		t.Fatal(e)
 	}
