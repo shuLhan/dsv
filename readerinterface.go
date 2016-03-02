@@ -334,6 +334,8 @@ ParseLine parse a line containing records. The output is array of record
 This is how the algorithm works
 (1) create n slice of record, where n is number of column metadata
 (2) for each metadata
+	(2.0) Check if next sequence if match with separator.
+	(2.0.1) If its match, create empty record
 	(2.1) If using left quote, skip until we found left-quote
 	(2.2) If using right quote, append byte to buffer until right-quote
 		(2.2.1) If using separator, skip until separator
@@ -354,6 +356,18 @@ func ParseLine(reader ReaderInterface, line []byte) (
 		rq := md.GetRightQuote()
 		sep := md.GetSeparator()
 		v := []byte{}
+
+		// (2.0)
+		if sep != "" && sep != lq {
+			match := tekstus.BytesMatchForward(line, []byte(sep),
+				p)
+
+			// (2.0.1)
+			if match {
+				p += len(sep)
+				goto empty
+			}
+		}
 
 		// (2.1)
 		if lq != "" {
@@ -416,7 +430,7 @@ func ParseLine(reader ReaderInterface, line []byte) (
 		if md.GetSkip() {
 			continue
 		}
-
+	empty:
 		r, e := tabula.NewRecord(string(v), md.GetType())
 
 		if nil != e {
