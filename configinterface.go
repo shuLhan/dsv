@@ -17,7 +17,7 @@ type ConfigInterface interface {
 /*
 ConfigOpen configuration file and initialize the attributes.
 */
-func ConfigOpen(rw ConfigInterface, fcfg string) error {
+func ConfigOpen(rw interface{}, fcfg string) error {
 	cfg, e := ioutil.ReadFile(fcfg)
 
 	if nil != e {
@@ -25,7 +25,8 @@ func ConfigOpen(rw ConfigInterface, fcfg string) error {
 	}
 
 	// Get directory where the config reside.
-	rw.SetConfigPath(path.Dir(fcfg))
+	rwconfig := rw.(ConfigInterface)
+	rwconfig.SetConfigPath(path.Dir(fcfg))
 
 	return ConfigParse(rw, cfg)
 }
@@ -33,8 +34,8 @@ func ConfigOpen(rw ConfigInterface, fcfg string) error {
 /*
 ConfigParse from JSON string.
 */
-func ConfigParse(rw ConfigInterface, cfg []byte) error {
-	return json.Unmarshal([]byte(cfg), rw)
+func ConfigParse(rw interface{}, cfg []byte) error {
+	return json.Unmarshal(cfg, rw)
 }
 
 /*
