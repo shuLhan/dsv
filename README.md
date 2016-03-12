@@ -16,17 +16,8 @@ comma.
   * [Output](#output)
 * [Working with DSV](#working-with-dsv)
   * [Processing each Rows/Columns](#processing-each-rowscolumns)
-  * [Builtin Functions for Dataset](#builtins-functions-for-dataset)
-    * [Select rows based on column value](#select-rows-based-on-column-value)
-    * [Random pick rows with or without
-      replacement](#random-pick-rows-with-or-without-replacement)
-    * [Random pick columns with or without replacement](#random-pick-columns-with-or-without-replacement)
-    * [Sort all columns using index from
-      indirect-sort](#sort-all-columns-using-index-from-indirect-sort)
-    * [Splitting dataset using numeric
-      value](#splitting-dataset-using-numeric-value)
-    * [Splitting dataset using categorical
-      values](#splitting-dataset-using-categorical-values)
+  * [Using different Dataset](#using-different-dataset)
+  * [Builtin Functions for Dataset](#builtin-functions-for-dataset)
 * [Limitations](#limitations)
 
 ---
@@ -104,7 +95,7 @@ and `reader.go`.
 
 Second, we create a reader to read the input file.
 
-    dsvReader, e := dsv.NewReader("config.dsv")
+    dsvReader, e := dsv.NewReader("config.dsv", nil)
 
     if nil != e {
         t.Fatal(e)
@@ -138,7 +129,7 @@ Last action, we process them: read input records and pass them to writer.
 Easy enough? We can combine the reader and writer using `dsv.New()`, which will
 create reader and writer,
 
-    rw, e := dsv.New("config.dsv")
+    rw, e := dsv.New("config.dsv", nil)
 
     if nil != e {
         t.Error(e)
@@ -260,26 +251,23 @@ After opening the input file, we can process the dataset based on rows/columns
 mode using simple `for` loop. Example,
 
 ```
+// Save dataset object for used later.
+dataset := dsvReader.GetDataset().(tabula.DatasetInterface)
+
 for {
 	n, e := dsv.Read(dsvReader)
 
-	if e == io.EOF {
-		break
-	}
-	if e != nil {
-		// handle error
-	}
 	if n > 0 {
-		for x, row := dsvReader.GetDataAsRows() {
-			// process each row
+		// Process each row ...
+		for x, row := dataset.GetDataAsRows() {
 
 			for y, record := range row.Records {
 				// process each record in row
 			}
 		}
 
-		for x, column := dsvReader.GetDataAsColumns() {
-			// process each column
+		// Or, process each columns
+		for x, column := dataset.GetDataAsColumns() {
 
 			for y, record := range column.Records {
 				// process each record in column
@@ -289,100 +277,51 @@ for {
 		// Write the dataset to file after processed
 		dsvWriter.Write(dsvReader)
 	}
+	if e == io.EOF {
+		break
+	}
+	if e != nil {
+		// handle error
+	}
 }
 ```
 
+### Using different Dataset
+
+Default dataset used by Reader is
+[tabula.Dataset](https://godoc.org/github.com/shuLhan/tabula#Dataset).
+
+You can extend and implement
+[DatasetInterface](https://godoc.org/github.com/shuLhan/tabula#DatasetInterface)
+and use it in reader object, either by
+
+* passing it in the second parameter in `NewReader`, for example,
+
+  ```
+  myset := MySet{
+  	...
+  }
+  reader, e := dsv.NewReader("config.dsv", &myset)
+  ```
+
+* or by calling `reader.Init` after creating new Reader,
+
+  ```
+  myset := MySet{
+  	...
+  }
+  reader := dsv.Reader{
+  	...
+  }
+  reader.Init("config.dsv", &myset)
+  ```
+
 ### Builtin Functions for Dataset
 
-For more information see `dataset.go`.
-
-#### Select rows based on column value
-
-Assume that we have read all rows, we can select all rows with column index
-contain specific value. For example, the code below select all row where column
-index 0 has string value `9`.
-
-```
-	selected := reader.SelectRowsWhere(0, "9")
-```
-
-#### Random pick rows with or without replacement
-
-Assume that we have read all rows, we can select `n` random rows from reader or
-dataset with the following code,
-
-```
-// select 5 rows randomly
-n := 5
-// do not allow duplicate rows
-duplicate := false
-
-pickedRow, unpickedRows, pickedIdx, unpickedIdx := reader.RandomPickRows(n,
-	duplicate)
-```
-
-`pickedRows` will contain randomly selected rows, `unpickedRows` will contain
-unselected rows, `pickedIdx` will contain slice of index that has been picked,
-and `unpickedIdx` will contain slice of index that are not picked.
-
-If `duplicate` is true, there is a chance that picked rows contain the same
-row.
-
-#### Random pick columns with or without replacement
-
-This is like random pick rows, but worked on columns mode. Assume that we have
-9 columns, this example will select two columns randomly with a chance of
-duplicate and excluding column 0 and 8 to be picked.
-
-```
-// select 2 columns randomly
-n := 2
-// allow duplicate columns selected
-duplicate := true
-// exclude this column when randomly select
-excludeIdx := []int{0,8}
-
-pickedRow, unpickedRows, pickedIdx, unpickedIdx := reader.RandomPickColumns(n,
-	duplicate, excludeIdx)
-```
-
-#### Sort all columns using index from indirect-sort
-
-Assume that we have read all rows, and an array of index which may come from
-sorting one of the columns using indirect-sort. We can sort all columns using
-function `SortColumnsByIndex` using the sorted index.
-
-#### Splitting dataset using numeric value
-
-Assume that we have read all rows, and we want to split the data into two set
-based on numeric value (float). One can use,
-
-```
-colidx := 0
-splitval := 5.0
-
-splitLess, splitGreater, e := reader.SplitRowsByNumeric(colidx, splitval)
-```
-
-`splitLess` will contain all rows with column index 0 has value less than
-`5.0`, while `splitGreater` will contain all rows with column index 0 has value
-greater or equal to `5.0`.
-
-#### Splitting dataset using categorical values
-
-Assume that we have read all rows, and we want to split the data using string
-value. One can use,
-
-```
-colidx := 0
-splitval := []string{"rain", "cloudy"}
-
-splitInclude, splitExclude, e := reader.SplitRowsByCategorical(colidx,
-	splitval)
-```
-
-`splitInclude` will contain all rows where column index 0 contain string equal
-with "rain" or "cloudy", while `splitExclude` contain the rest of rows.
+Since we use tabula package to manage data, any features in those package
+can be used in our dataset.
+For more information see [tabula
+package](https://godoc.org/github.com/shuLhan/tabula).
 
 ## Limitations
 
@@ -393,6 +332,7 @@ with "rain" or "cloudy", while `splitExclude` contain the rest of rows.
   runes type) are welcome.
 
 * About escaped character in content of data.
+
   Since we said that we handle free-style form of CSV, what we mean was the
   left-quote, right-quote and separator can be string. Its not only one single
   character like single quote or double quote or any single character, but
