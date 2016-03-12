@@ -19,7 +19,7 @@ import (
 const (
 	// DefaultRejected define the default file which will contain the
 	// rejected row.
-	DefaultRejected = "rejected.dsv"
+	DefaultRejected = "rejected.dat"
 	// DefaultMaxRows define default maximum row that will be saved
 	// in memory for each read if input data is too large and can not be
 	// consumed in one read operation.
