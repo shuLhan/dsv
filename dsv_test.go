@@ -81,7 +81,7 @@ func TestSimpleMerge(t *testing.T) {
 	fcfg1 := "testdata/config_simpleread.dsv"
 	fcfg2 := "testdata/config_simpleread.dsv"
 
-	reader, e := dsv.SimpleMerge(fcfg1, fcfg2, nil)
+	reader, e := dsv.SimpleMerge(fcfg1, fcfg2, nil, nil)
 	if e != nil {
 		t.Fatal(e)
 	}

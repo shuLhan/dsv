@@ -65,16 +65,16 @@ One must remember to set,
 
 This function return the merged reader or error if failed.
 */
-func SimpleMerge(fin1, fin2 string, dataset interface{}) (
+func SimpleMerge(fin1, fin2 string, dataset1, dataset2 interface{}) (
 	ReaderInterface,
 	error,
 ) {
-	reader1, e := SimpleRead(fin1, dataset)
+	reader1, e := SimpleRead(fin1, dataset1)
 	if e != nil {
 		return nil, e
 	}
 
-	reader2, e := SimpleRead(fin2, dataset)
+	reader2, e := SimpleRead(fin2, dataset2)
 	if e != nil {
 		return nil, e
 	}
