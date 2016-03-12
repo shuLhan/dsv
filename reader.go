@@ -53,7 +53,7 @@ DSV Reader work like this,
 
 (4.1) Iterate through rows
 
-		for row := range dsvReader.GetData() {
+		for row := range dsvReader.GetDataAsRows() {
 			// work with row ...
 		}
 	}
@@ -70,7 +70,7 @@ type Reader struct {
 	// configuration file belong.
 	Config
 	// Dataset contains the content of input file after read.
-	tabula.Dataset
+	dataset interface{}
 	// Input file, mandatory.
 	Input string `json:"Input"`
 	// Skip n lines from the head.
@@ -124,31 +124,115 @@ type Reader struct {
 /*
 NewReader create and initialize new instance of DSV Reader with default values.
 */
-func NewReader(config string) (reader *Reader, e error) {
+func NewReader(config string, dataset interface{}) (reader *Reader, e error) {
 	reader = &Reader{
 		Input:         "",
 		Skip:          0,
 		TrimSpace:     true,
-		Rejected:      "rejected.dat",
+		Rejected:      DefaultRejected,
 		InputMetadata: nil,
 		MaxRows:       DefaultMaxRows,
 		DatasetMode:   DefDatasetMode,
+		dataset:       dataset,
 		fRead:         nil,
 		fReject:       nil,
 		bufRead:       nil,
 		bufReject:     nil,
 	}
 
-	if config == "" {
-		return
-	}
-
-	e = OpenReader(reader, config)
+	e = reader.Init(config, dataset)
 	if e != nil {
 		return nil, e
 	}
 
 	return
+}
+
+func (reader *Reader) Init(fcfg string, dataset interface{}) (e error) {
+	if dataset == nil {
+		dataset = reader.GetDataset()
+		if dataset == nil {
+			dataset = &tabula.Dataset{}
+			reader.dataset = dataset
+		}
+	}
+
+	fcfg = strings.TrimSpace(fcfg)
+	if fcfg != "" {
+		e = ConfigOpen(reader, fcfg)
+		if e != nil {
+			return e
+		}
+
+		tabula.ReadDatasetConfig(dataset, fcfg)
+	}
+
+	// Set default value
+	reader.SetDefault()
+
+	// Check if output mode is valid and initialize it if valid.
+	e = reader.SetDatasetMode(reader.GetDatasetMode())
+	if nil != e {
+		return
+	}
+
+	// Check and initialize metadata and columns attributes.
+	ds := dataset.(tabula.DatasetInterface)
+	md := reader.GetInputMetadata()
+	for i := range md {
+		md[i].Init()
+
+		if nil != e {
+			return e
+		}
+
+		// Count number of output columns.
+		if !md[i].GetSkip() {
+			// add type of metadata to list of type
+			col := tabula.Column{
+				Type:       md[i].GetType(),
+				Name:       md[i].GetName(),
+				ValueSpace: md[i].GetValueSpace(),
+			}
+			ds.PushColumn(col)
+		}
+	}
+
+	// Check if Input is name only without path, so we can prefix it with
+	// config path.
+	reader.SetInput(ConfigCheckPath(reader, reader.GetInput()))
+	reader.SetRejected(ConfigCheckPath(reader, reader.GetRejected()))
+
+	e = reader.OpenRejected()
+	if nil != e {
+		return
+	}
+
+	// Get ready ...
+	e = reader.OpenInput()
+	if nil != e {
+		return
+	}
+
+	return
+}
+
+/*
+SetDefault options for global config and each metadata.
+*/
+func (reader *Reader) SetDefault() {
+	if "" == strings.TrimSpace(reader.Rejected) {
+		reader.Rejected = DefaultRejected
+	}
+	if 0 == reader.MaxRows {
+		reader.MaxRows = DefaultMaxRows
+	}
+	if "" == strings.TrimSpace(reader.DatasetMode) {
+		reader.DatasetMode = DefDatasetMode
+	}
+	if nil == reader.dataset {
+		reader.dataset = &tabula.Dataset{}
+	}
 }
 
 /*
@@ -219,7 +303,8 @@ AddInputMetadata add new input metadata to reader.
 */
 func (reader *Reader) AddInputMetadata(md *Metadata) {
 	reader.InputMetadata = append(reader.InputMetadata, *md)
-	reader.AddColumn(md.GetType(), md.GetName(), md.GetValueSpace())
+	ds := reader.dataset.(tabula.DatasetInterface)
+	ds.AddColumn(md.GetType(), md.GetName(), md.GetValueSpace())
 }
 
 /*
@@ -274,13 +359,14 @@ func (reader *Reader) GetDatasetMode() string {
 SetDatasetMode to `mode`.
 */
 func (reader *Reader) SetDatasetMode(mode string) error {
+	ds := reader.dataset.(tabula.DatasetInterface)
 	switch strings.ToUpper(mode) {
 	case DatasetModeROWS:
-		reader.SetMode(tabula.DatasetModeRows)
+		ds.SetMode(tabula.DatasetModeRows)
 	case DatasetModeCOLUMNS:
-		reader.SetMode(tabula.DatasetModeColumns)
+		ds.SetMode(tabula.DatasetModeColumns)
 	case DatasetModeMATRIX:
-		reader.SetMode(tabula.DatasetModeMatrix)
+		ds.SetMode(tabula.DatasetModeMatrix)
 	default:
 		return ErrUnknownDatasetMode
 	}
@@ -298,21 +384,6 @@ func (reader *Reader) GetNColumnIn() int {
 }
 
 /*
-SetDefault options for global config and each metadata.
-*/
-func (reader *Reader) SetDefault() {
-	if "" == reader.Rejected {
-		reader.Rejected = DefaultRejected
-	}
-	if 0 == reader.MaxRows {
-		reader.MaxRows = DefaultMaxRows
-	}
-	if "" == reader.DatasetMode {
-		reader.DatasetMode = DefDatasetMode
-	}
-}
-
-/*
 OpenInput open the input file, metadata must have been initialize.
 */
 func (reader *Reader) OpenInput() (e error) {
@@ -322,6 +393,15 @@ func (reader *Reader) OpenInput() (e error) {
 	}
 
 	reader.bufRead = bufio.NewReader(reader.fRead)
+
+	// Skip lines
+	if reader.GetSkip() > 0 {
+		e = reader.SkipLines()
+
+		if nil != e {
+			return
+		}
+	}
 
 	return nil
 }
@@ -386,7 +466,7 @@ func (reader *Reader) Reset() (e error) {
 	if e != nil {
 		return
 	}
-	e = reader.Dataset.Reset()
+	e = reader.dataset.(tabula.DatasetInterface).Reset()
 	return
 }
 
@@ -481,8 +561,8 @@ func (reader *Reader) IsEqual(other *Reader) bool {
 /*
 GetDataset return reader dataset.
 */
-func (reader *Reader) GetDataset() tabula.DatasetInterface {
-	return &reader.Dataset
+func (reader *Reader) GetDataset() interface{} {
+	return reader.dataset
 }
 
 /*
@@ -511,12 +591,14 @@ func (reader *Reader) MergeColumns(other ReaderInterface) {
 		reader.AppendMetadata(md)
 	}
 
-	reader.GetDataset().MergeColumns(other.GetDataset())
+	reader.dataset.(tabula.DatasetInterface).MergeColumns(
+		other.GetDataset().(tabula.DatasetInterface))
 }
 
 /*
 MergeRows append rows from another reader.
 */
 func (reader *Reader) MergeRows(other *Reader) {
-	reader.Dataset.MergeRows(other.Dataset)
+	reader.dataset.(tabula.DatasetInterface).MergeRows(
+		other.GetDataset().(tabula.DatasetInterface))
 }

@@ -46,88 +46,8 @@ type ReaderInterface interface {
 	Reject(line []byte) (int, error)
 	Close() error
 
-	GetDataset() tabula.DatasetInterface
+	GetDataset() interface{}
 	MergeColumns(ReaderInterface)
-}
-
-/*
-OpenReader configuration file and initialize the attributes.
-*/
-func OpenReader(reader ReaderInterface, fcfg string) (e error) {
-	e = ConfigOpen(reader, fcfg)
-	if e != nil {
-		return e
-	}
-
-	return InitReader(reader)
-}
-
-/*
-InitReader initialize reader object by opening input and rejected files and
-skip n lines from input.
-*/
-func InitReader(reader ReaderInterface) (e error) {
-	// Exit immediately if no input file is defined in config.
-	if "" == reader.GetInput() {
-		return ErrNoInput
-	}
-
-	// Set default value
-	reader.SetDefault()
-
-	// Check if output mode is valid and initialize it if valid.
-	e = reader.SetDatasetMode(reader.GetDatasetMode())
-	if nil != e {
-		return
-	}
-
-	// Check and initialize metadata and columns attributes.
-	md := reader.GetInputMetadata()
-	for i := range md {
-		md[i].Init()
-
-		if nil != e {
-			return e
-		}
-
-		// Count number of output columns.
-		if !md[i].GetSkip() {
-			// add type of metadata to list of type
-			col := tabula.Column{
-				Type:       md[i].GetType(),
-				Name:       md[i].GetName(),
-				ValueSpace: md[i].GetValueSpace(),
-			}
-			reader.GetDataset().PushColumn(col)
-		}
-	}
-
-	// Check if Input is name only without path, so we can prefix it with
-	// config path.
-	reader.SetInput(ConfigCheckPath(reader, reader.GetInput()))
-	reader.SetRejected(ConfigCheckPath(reader, reader.GetRejected()))
-
-	// Get ready ...
-	e = reader.OpenInput()
-	if nil != e {
-		return
-	}
-
-	e = reader.OpenRejected()
-	if nil != e {
-		return
-	}
-
-	// Skip lines
-	if reader.GetSkip() > 0 {
-		e = reader.SkipLines()
-
-		if nil != e {
-			return
-		}
-	}
-
-	return
 }
 
 /*
@@ -142,13 +62,15 @@ func Read(reader ReaderInterface) (n int, e error) {
 		return
 	}
 
+	dataset := reader.GetDataset().(tabula.DatasetInterface)
+
 	// Loop until we reached MaxRows (> 0) or when all rows has been
 	// read (= -1)
 	for {
 		row, line, linenum, eRead := ReadRow(reader, linenum)
 
 		if nil == eRead {
-			reader.GetDataset().PushRow(row)
+			dataset.PushRow(row)
 
 			n++
 			if maxrows > 0 && n >= maxrows {
@@ -349,7 +271,7 @@ func ParseLine(reader ReaderInterface, line []byte) (
 	p := 0
 	rIdx := 0
 	inputMd := reader.GetInputMetadata()
-	row = make(tabula.Row, reader.GetDataset().GetNColumn())
+	row = make(tabula.Row, 0)
 
 	for _, md := range inputMd {
 		lq := md.GetLeftQuote()
@@ -447,7 +369,7 @@ func ParseLine(reader ReaderInterface, line []byte) (
 			}
 		}
 
-		row[rIdx] = r
+		row = append(row, r)
 		rIdx++
 	}
 

@@ -7,6 +7,7 @@ package dsv_test
 import (
 	"fmt"
 	"github.com/shuLhan/dsv"
+	"github.com/shuLhan/tabula"
 	"github.com/shuLhan/tabula/util/assert"
 	"io"
 	"strings"
@@ -114,18 +115,15 @@ var readers = []*dsv.Reader{
 TestReaderNoInput will print error that the input is not defined.
 */
 func TestReaderNoInput(t *testing.T) {
-	dsvReader, e := dsv.NewReader("")
-	if nil != e {
-		t.Fatal(e)
-	}
+	dsvReader := &dsv.Reader{}
 
-	e = dsv.ConfigParse(dsvReader, []byte(jsonSample[0]))
+	e := dsv.ConfigParse(dsvReader, []byte(jsonSample[0]))
 
 	if nil != e {
 		t.Fatal(e)
 	}
 
-	e = dsv.InitReader(dsvReader)
+	e = dsvReader.Init("", nil)
 
 	if nil == e {
 		t.Fatal("TestReaderNoInput: failed, should return non nil!")
@@ -150,10 +148,7 @@ func TestConfigParse(t *testing.T) {
 		},
 	}
 
-	dsvReader, e := dsv.NewReader("")
-	if nil != e {
-		t.Fatal(e)
-	}
+	dsvReader := &dsv.Reader{}
 
 	for _, c := range cases {
 		e := dsv.ConfigParse(dsvReader, []byte(c.in))
@@ -211,7 +206,9 @@ func doRead(t *testing.T, dsvReader *dsv.Reader, exp []string) {
 		n, e = dsv.Read(dsvReader)
 
 		if n > 0 {
-			r := fmt.Sprint(dsvReader.Rows)
+			r := fmt.Sprint(dsvReader.
+				GetDataset().(tabula.DatasetInterface).
+				GetDataAsRows())
 
 			assert.Equal(t, exp[i], r)
 
@@ -227,19 +224,15 @@ func doRead(t *testing.T, dsvReader *dsv.Reader, exp []string) {
 TestReader test reading.
 */
 func TestReaderRead(t *testing.T) {
-	dsvReader, e := dsv.NewReader("")
-	if nil != e {
-		t.Fatal(e)
-	}
+	dsvReader := &dsv.Reader{}
 
-	e = dsv.ConfigParse(dsvReader, []byte(jsonSample[4]))
+	e := dsv.ConfigParse(dsvReader, []byte(jsonSample[4]))
 
 	if nil != e {
 		t.Fatal(e)
 	}
 
-	e = dsv.InitReader(dsvReader)
-
+	e = dsvReader.Init("", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -256,7 +249,7 @@ func TestReaderRead(t *testing.T) {
 TestReaderOpen real example from the start.
 */
 func TestReaderOpen(t *testing.T) {
-	dsvReader, e := dsv.NewReader("testdata/config.dsv")
+	dsvReader, e := dsv.NewReader("testdata/config.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -296,10 +289,7 @@ func TestDatasetMode(t *testing.T) {
 		string(config[2]),
 	}}
 
-	reader, e := dsv.NewReader("")
-	if nil != e {
-		t.Fatal(e)
-	}
+	reader := &dsv.Reader{}
 
 	for k, v := range exps {
 		e = dsv.ConfigParse(reader, []byte(config[k]))
@@ -308,8 +298,7 @@ func TestDatasetMode(t *testing.T) {
 			t.Fatal(e)
 		}
 
-		e = dsv.InitReader(reader)
-
+		e = reader.Init("", nil)
 		if e != nil {
 			if v.status == true {
 				t.Fatal(e)
@@ -319,10 +308,14 @@ func TestDatasetMode(t *testing.T) {
 }
 
 func TestReaderToColumns(t *testing.T) {
-	reader, e := dsv.NewReader("")
+	reader := &dsv.Reader{}
 
-	e = dsv.ConfigParse(reader, []byte(jsonSample[4]))
+	e := dsv.ConfigParse(reader, []byte(jsonSample[4]))
+	if nil != e {
+		t.Fatal(e)
+	}
 
+	e = reader.Init("", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -332,20 +325,15 @@ func TestReaderToColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	e = dsv.InitReader(reader)
-
-	if nil != e {
-		t.Fatal(e)
-	}
-
 	var n, i int
 	for {
 		n, e = dsv.Read(reader)
 
 		if n > 0 {
-			reader.TransposeToRows()
+			ds := reader.GetDataset().(tabula.DatasetInterface)
+			ds.TransposeToRows()
 
-			r := fmt.Sprint(reader.GetData())
+			r := fmt.Sprint(ds.GetData())
 
 			assert.Equal(t, expectation[i], r)
 
@@ -361,7 +349,7 @@ func TestReaderToColumns(t *testing.T) {
 TestReaderSkip will test the 'Skip' option in Metadata.
 */
 func TestReaderSkip(t *testing.T) {
-	dsvReader, e := dsv.NewReader("testdata/config_skip.dsv")
+	dsvReader, e := dsv.NewReader("testdata/config_skip.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -375,7 +363,7 @@ func TestReaderSkip(t *testing.T) {
 }
 
 func TestTransposeToColumns(t *testing.T) {
-	reader, e := dsv.NewReader("testdata/config_skip.dsv")
+	reader, e := dsv.NewReader("testdata/config_skip.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -388,13 +376,14 @@ func TestTransposeToColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	reader.TransposeToColumns()
+	ds := reader.GetDataset().(tabula.DatasetInterface)
+	ds.TransposeToColumns()
 
 	exp := fmt.Sprint(expSkipColumnsAll)
 
-	columns := reader.GetDataAsColumns()
+	columns := ds.GetDataAsColumns()
 
-	got := fmt.Sprint(columns)
+	got := fmt.Sprint(*columns)
 
 	assert.Equal(t, exp, got)
 
@@ -405,7 +394,7 @@ func TestTransposeToColumns(t *testing.T) {
 }
 
 func TestSortColumnsByIndex(t *testing.T) {
-	reader, e := dsv.NewReader("testdata/config_skip.dsv")
+	reader, e := dsv.NewReader("testdata/config_skip.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -426,18 +415,20 @@ func TestSortColumnsByIndex(t *testing.T) {
 		expReverse = append(expReverse, expSkip[x])
 	}
 
-	reader.SortColumnsByIndex(idxReverse)
+	ds := reader.GetDataset().(tabula.DatasetInterface)
+
+	tabula.SortColumnsByIndex(ds, idxReverse)
 
 	exp := strings.Join(expReverse, "")
-	got := fmt.Sprint(reader.GetDataAsRows())
+	got := fmt.Sprint(ds.GetDataAsRows())
 
 	assert.Equal(t, exp, got)
 
 	exp = "[" + strings.Join(expSkipColumnsAllRev, " ") + "]"
 
-	columns := reader.GetDataAsColumns()
+	columns := ds.GetDataAsColumns()
 
-	got = fmt.Sprint(columns)
+	got = fmt.Sprint(*columns)
 
 	assert.Equal(t, exp, got)
 
@@ -448,7 +439,7 @@ func TestSortColumnsByIndex(t *testing.T) {
 }
 
 func TestSplitRowsByValue(t *testing.T) {
-	reader, e := dsv.NewReader("testdata/config.dsv")
+	reader, e := dsv.NewReader("testdata/config.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -461,7 +452,8 @@ func TestSplitRowsByValue(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	splitL, splitR, e := reader.SplitRowsByValue(0, 6)
+	ds := reader.GetDataset().(tabula.DatasetInterface)
+	splitL, splitR, e := tabula.SplitRowsByValue(ds, 0, 6)
 
 	if e != nil {
 		t.Fatal(e)
@@ -494,12 +486,12 @@ func TestSplitRowsByValue(t *testing.T) {
 }
 
 func TestMergeColumns(t *testing.T) {
-	reader1, e := dsv.NewReader("testdata/config.dsv")
+	reader1, e := dsv.NewReader("testdata/config.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
 
-	reader2, e := dsv.NewReader("testdata/config_skip.dsv")
+	reader2, e := dsv.NewReader("testdata/config_skip.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -547,7 +539,8 @@ func TestMergeColumns(t *testing.T) {
 	}
 
 	sep := "\t"
-	_, e = writer.WriteRawDataset(&reader1.Dataset, &sep)
+	ds1 := reader1.GetDataset().(tabula.DatasetInterface)
+	_, e = writer.WriteRawDataset(ds1, &sep)
 
 	if e != nil {
 		t.Fatal(e)
@@ -563,12 +556,12 @@ func TestMergeColumns(t *testing.T) {
 }
 
 func TestMergeRows(t *testing.T) {
-	reader1, e := dsv.NewReader("testdata/config.dsv")
+	reader1, e := dsv.NewReader("testdata/config.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
 
-	reader2, e := dsv.NewReader("testdata/config_skip.dsv")
+	reader2, e := dsv.NewReader("testdata/config_skip.dsv", nil)
 	if nil != e {
 		t.Fatal(e)
 	}
@@ -613,7 +606,8 @@ func TestMergeRows(t *testing.T) {
 	}
 
 	sep := "\t"
-	_, e = writer.WriteRawDataset(&reader1.Dataset, &sep)
+	ds1 := reader1.GetDataset().(tabula.DatasetInterface)
+	_, e = writer.WriteRawDataset(ds1, &sep)
 
 	if e != nil {
 		t.Fatal(e)

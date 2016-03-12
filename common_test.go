@@ -18,6 +18,7 @@ doReadWrite test reading and writing the DSV data.
 */
 func doReadWrite(t *testing.T, dsvReader *dsv.Reader, dsvWriter *dsv.Writer,
 	expectation []string, check bool) {
+	var got string
 	i := 0
 
 	for {
@@ -38,8 +39,23 @@ func doReadWrite(t *testing.T, dsvReader *dsv.Reader, dsvWriter *dsv.Writer,
 
 		if n > 0 {
 			if check {
-				r := fmt.Sprint(dsvReader.GetData())
-				assert.Equal(t, expectation[i], r)
+				ds := dsvReader.GetDataset().(tabula.DatasetInterface)
+				data := ds.GetData()
+
+				switch data.(type) {
+				case *tabula.Rows:
+					rows := data.(*tabula.Rows)
+					got = fmt.Sprint(*rows)
+				case *tabula.Columns:
+					cols := data.(*tabula.Columns)
+					got = fmt.Sprint(*cols)
+				case *tabula.Matrix:
+					matrix := data.(*tabula.Matrix)
+					got = fmt.Sprint(*matrix)
+				default:
+					fmt.Println("data type unknown")
+				}
+				assert.Equal(t, expectation[i], got)
 				i++
 			}
 
