@@ -15,8 +15,11 @@ Return the reader contained data or error if failed.
 Reader object upon returned has been closed, so if one need to read all
 data in it simply set the `MaxRows` to `-1` in config file.
 */
-func SimpleRead(fcfg string) (reader ReaderInterface, e error) {
-	reader, e = NewReader(fcfg)
+func SimpleRead(fcfg string, dataset interface{}) (
+	reader ReaderInterface,
+	e error,
+) {
+	reader, e = NewReader(fcfg, dataset)
 
 	if e != nil {
 		return
@@ -62,13 +65,16 @@ One must remember to set,
 
 This function return the merged reader or error if failed.
 */
-func SimpleMerge(fin1, fin2 string) (ReaderInterface, error) {
-	reader1, e := SimpleRead(fin1)
+func SimpleMerge(fin1, fin2 string, dataset interface{}) (
+	ReaderInterface,
+	error,
+) {
+	reader1, e := SimpleRead(fin1, dataset)
 	if e != nil {
 		return nil, e
 	}
 
-	reader2, e := SimpleRead(fin2)
+	reader2, e := SimpleRead(fin2, dataset)
 	if e != nil {
 		return nil, e
 	}

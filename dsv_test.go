@@ -15,7 +15,7 @@ doInit create read-write object.
 */
 func doInit(t *testing.T, fcfg string) (rw *dsv.ReadWriter, e error) {
 	// Initialize dsv
-	rw, e = dsv.New(fcfg)
+	rw, e = dsv.New(fcfg, nil)
 
 	if nil != e {
 		t.Fatal(e)
@@ -61,7 +61,7 @@ func TestReadWriterAll(t *testing.T) {
 func TestSimpleReadWrite(t *testing.T) {
 	fcfg := "testdata/config_simpleread.dsv"
 
-	reader, e := dsv.SimpleRead(fcfg)
+	reader, e := dsv.SimpleRead(fcfg, nil)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -81,7 +81,7 @@ func TestSimpleMerge(t *testing.T) {
 	fcfg1 := "testdata/config_simpleread.dsv"
 	fcfg2 := "testdata/config_simpleread.dsv"
 
-	reader, e := dsv.SimpleMerge(fcfg1, fcfg2)
+	reader, e := dsv.SimpleMerge(fcfg1, fcfg2, nil)
 	if e != nil {
 		t.Fatal(e)
 	}

@@ -63,14 +63,15 @@ type ReadWriter struct {
 /*
 New create a new ReadWriter object.
 */
-func New(config string) (rw *ReadWriter, e error) {
+func New(config string, dataset interface{}) (rw *ReadWriter, e error) {
 	rw = &ReadWriter{}
 
-	if config == "" {
-		return
+	e = rw.Reader.Init(config, dataset)
+	if e != nil {
+		return nil, e
 	}
 
-	e = rw.Open(config)
+	e = OpenWriter(&rw.Writer, config)
 	if e != nil {
 		return nil, e
 	}
@@ -84,21 +85,6 @@ SetConfigPath of input and output file.
 func (dsv *ReadWriter) SetConfigPath(dir string) {
 	dsv.Reader.SetConfigPath(dir)
 	dsv.Writer.SetConfigPath(dir)
-}
-
-/*
-Open configuration file for reading and writing.
-*/
-func (dsv *ReadWriter) Open(fcfg string) (e error) {
-	e = OpenReader(&dsv.Reader, fcfg)
-
-	if e != nil {
-		return
-	}
-
-	e = OpenWriter(&dsv.Writer, fcfg)
-
-	return e
 }
 
 /*
