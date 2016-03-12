@@ -395,7 +395,7 @@ separator `sep` for each record.
 
 We use pointer in separator parameter, so we can use empty string as separator.
 */
-func (writer *Writer) WriteRawDataset(dataset *tabula.Dataset, sep *string) (
+func (writer *Writer) WriteRawDataset(dataset tabula.DatasetInterface, sep *string) (
 	int, error,
 ) {
 	if nil == writer.fWriter {
@@ -411,10 +411,12 @@ func (writer *Writer) WriteRawDataset(dataset *tabula.Dataset, sep *string) (
 
 	switch dataset.GetMode() {
 	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
-		return writer.WriteRawRows(&dataset.Rows, *sep)
+		rows := dataset.GetDataAsRows()
+		return writer.WriteRawRows(rows, *sep)
 
 	case tabula.DatasetModeColumns:
-		return writer.WriteRawColumns(&dataset.Columns, *sep)
+		cols := dataset.GetDataAsColumns()
+		return writer.WriteRawColumns(cols, *sep)
 	}
 
 	return 0, ErrUnknownDatasetMode
@@ -432,15 +434,15 @@ func (writer *Writer) Write(reader ReaderInterface) (int, error) {
 		return 0, ErrNotOpen
 	}
 
-	ds := reader.GetDataset()
+	ds := reader.GetDataset().(tabula.DatasetInterface)
 
 	switch ds.GetMode() {
 	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
-		return writer.WriteRows(ds.GetDataAsRows(),
-			reader.GetInputMetadata())
+		rows := ds.GetDataAsRows()
+		return writer.WriteRows(*rows, reader.GetInputMetadata())
 	case tabula.DatasetModeColumns:
-		return writer.WriteColumns(ds.GetDataAsColumns(),
-			reader.GetInputMetadata())
+		cols := ds.GetDataAsColumns()
+		return writer.WriteColumns(*cols, reader.GetInputMetadata())
 	}
 
 	return 0, ErrUnknownDatasetMode

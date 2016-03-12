@@ -16,7 +16,7 @@ import (
 TestWriter test reading and writing DSV.
 */
 func TestWriter(t *testing.T) {
-	rw, e := dsv.New("testdata/config.dsv")
+	rw, e := dsv.New("testdata/config.dsv", nil)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -36,7 +36,7 @@ TestWriterWithSkip test reading and writing DSV with some column in input being
 skipped.
 */
 func TestWriterWithSkip(t *testing.T) {
-	rw, e := dsv.New("testdata/config_skip.dsv")
+	rw, e := dsv.New("testdata/config_skip.dsv", nil)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -56,7 +56,7 @@ TestWriterWithColumns test reading and writing DSV with where each row
 is saved in DatasetMode = 'columns'.
 */
 func TestWriterWithColumns(t *testing.T) {
-	rw, e := dsv.New("testdata/config_skip.dsv")
+	rw, e := dsv.New("testdata/config_skip.dsv", nil)
 	if e != nil {
 		t.Fatal(e)
 	}
