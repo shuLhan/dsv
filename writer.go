@@ -84,10 +84,10 @@ func (writer *Writer) AddMetadata(md Metadata) {
 	writer.OutputMetadata = append(writer.OutputMetadata, md)
 }
 
-/*
-OpenOutput file and buffered writer.
-*/
-func (writer *Writer) OpenOutput(file string) (e error) {
+//
+// open a generic method to open output file with specific flag.
+//
+func (writer *Writer) open(file string, flag int) (e error) {
 	if file == "" {
 		if writer.Output == "" {
 			file = DefOutput
@@ -96,8 +96,7 @@ func (writer *Writer) OpenOutput(file string) (e error) {
 		}
 	}
 
-	writer.fWriter, e = os.OpenFile(file,
-		os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	writer.fWriter, e = os.OpenFile(file, flag, 0600)
 	if nil != e {
 		return e
 	}
@@ -105,6 +104,24 @@ func (writer *Writer) OpenOutput(file string) (e error) {
 	writer.BufWriter = bufio.NewWriter(writer.fWriter)
 
 	return nil
+}
+
+//
+// OpenOutput file and buffered writer.
+// File will be truncated if its exist.
+//
+func (writer *Writer) OpenOutput(file string) (e error) {
+	return writer.open(file, os.O_CREATE|os.O_TRUNC|os.O_WRONLY)
+}
+
+//
+// ReopenOutput will open the output file back without truncating the content.
+//
+func (writer *Writer) ReopenOutput(file string) (e error) {
+	if e = writer.Close(); e != nil {
+		return
+	}
+	return writer.open(file, os.O_CREATE|os.O_APPEND|os.O_WRONLY)
 }
 
 /*
@@ -294,21 +311,27 @@ err:
 	return n, e
 }
 
-/*
-WriteRawRows write rows data using separator `sep` for each record.
-*/
-func (writer *Writer) WriteRawRows(rows *tabula.Rows, sep string) (
+//
+// WriteRawRows write rows data using separator `sep` for each record.
+// We use pointer in separator parameter, so we can use empty string as
+// separator.
+//
+func (writer *Writer) WriteRawRows(rows *tabula.Rows, sep *string) (
 	nrow int,
 	e error,
 ) {
 	nrow = len(*rows)
-
 	if nrow <= 0 {
 		return
 	}
 
+	if sep == nil {
+		sep = new(string)
+		*sep = DefSeparator
+	}
+
 	esc := []byte(DefEscape)
-	sepbytes := []byte(sep)
+	sepbytes := []byte(*sep)
 	x := 0
 
 	for ; x < nrow; x++ {
@@ -341,11 +364,14 @@ func (writer *Writer) WriteRawRows(rows *tabula.Rows, sep string) (
 	return x, e
 }
 
-/*
-WriteRawColumns write raw columns using separator `sep` for each record to
-file.
-*/
-func (writer *Writer) WriteRawColumns(cols *tabula.Columns, sep string) (
+//
+// WriteRawColumns write raw columns using separator `sep` for each record to
+// file.
+//
+// We use pointer in separator parameter, so we can use empty string as
+// separator.
+//
+func (writer *Writer) WriteRawColumns(cols *tabula.Columns, sep *string) (
 	nrow int,
 	e error,
 ) {
@@ -354,11 +380,16 @@ func (writer *Writer) WriteRawColumns(cols *tabula.Columns, sep string) (
 		return
 	}
 
+	if sep == nil {
+		sep = new(string)
+		*sep = DefSeparator
+	}
+
 	// Find minimum and maximum column length.
 	minlen, maxlen := cols.GetMinMaxLength()
 
 	esc := []byte(DefEscape)
-	sepbytes := []byte(sep)
+	sepbytes := []byte(*sep)
 	x := 0
 
 	// First, write until minimum column length.
@@ -389,13 +420,16 @@ func (writer *Writer) WriteRawColumns(cols *tabula.Columns, sep string) (
 	return x, e
 }
 
-/*
-WriteRawDataset will write content of dataset to file without metadata but using
-separator `sep` for each record.
-
-We use pointer in separator parameter, so we can use empty string as separator.
-*/
-func (writer *Writer) WriteRawDataset(dataset tabula.DatasetInterface, sep *string) (
+//
+// WriteRawDataset will write content of dataset to file without metadata but
+// using separator `sep` for each record.
+//
+// We use pointer in separator parameter, so we can use empty string as
+// separator.
+//
+func (writer *Writer) WriteRawDataset(dataset tabula.DatasetInterface,
+	sep *string,
+) (
 	int, error,
 ) {
 	if nil == writer.fWriter {
@@ -412,11 +446,11 @@ func (writer *Writer) WriteRawDataset(dataset tabula.DatasetInterface, sep *stri
 	switch dataset.GetMode() {
 	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
 		rows := dataset.GetDataAsRows()
-		return writer.WriteRawRows(rows, *sep)
+		return writer.WriteRawRows(rows, sep)
 
 	case tabula.DatasetModeColumns:
 		cols := dataset.GetDataAsColumns()
-		return writer.WriteRawColumns(cols, *sep)
+		return writer.WriteRawColumns(cols, sep)
 	}
 
 	return 0, ErrUnknownDatasetMode
