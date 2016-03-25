@@ -148,7 +148,21 @@ func NewReader(config string, dataset interface{}) (reader *Reader, e error) {
 	return
 }
 
+//
+// Init will initialize reader object by
+//
+// (1) Check if dataset is not empty.
+// (2) Read config file.
+// (3) Set reader object default value.
+// (4) Check if output mode is valid and initialize it if valid.
+// (5) Check and initialize metadata and columns attributes.
+// (6) Check if Input is name only without path, so we can prefix it with
+//     config path.
+// (7) Open rejected file.
+// (8) Open input file.
+//
 func (reader *Reader) Init(fcfg string, dataset interface{}) (e error) {
+	// (1)
 	if dataset == nil {
 		dataset = reader.GetDataset()
 		if dataset == nil {
@@ -157,6 +171,7 @@ func (reader *Reader) Init(fcfg string, dataset interface{}) (e error) {
 		}
 	}
 
+	// (2)
 	fcfg = strings.TrimSpace(fcfg)
 	if fcfg != "" {
 		e = ConfigOpen(reader, fcfg)
@@ -164,19 +179,22 @@ func (reader *Reader) Init(fcfg string, dataset interface{}) (e error) {
 			return e
 		}
 
-		tabula.ReadDatasetConfig(dataset, fcfg)
+		e = tabula.ReadDatasetConfig(dataset, fcfg)
+		if e != nil {
+			return e
+		}
 	}
 
-	// Set default value
+	// (3)
 	reader.SetDefault()
 
-	// Check if output mode is valid and initialize it if valid.
+	// (4)
 	e = reader.SetDatasetMode(reader.GetDatasetMode())
 	if nil != e {
 		return
 	}
 
-	// Check and initialize metadata and columns attributes.
+	// (5)
 	ds := dataset.(tabula.DatasetInterface)
 	md := reader.GetInputMetadata()
 	for i := range md {
@@ -198,17 +216,17 @@ func (reader *Reader) Init(fcfg string, dataset interface{}) (e error) {
 		}
 	}
 
-	// Check if Input is name only without path, so we can prefix it with
-	// config path.
+	// (6)
 	reader.SetInput(ConfigCheckPath(reader, reader.GetInput()))
 	reader.SetRejected(ConfigCheckPath(reader, reader.GetRejected()))
 
+	// (7)
 	e = reader.OpenRejected()
 	if nil != e {
 		return
 	}
 
-	// Get ready ...
+	// (8)
 	e = reader.OpenInput()
 	if nil != e {
 		return
