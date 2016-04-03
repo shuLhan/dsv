@@ -189,10 +189,7 @@ func (reader *Reader) Init(fcfg string, dataset interface{}) (e error) {
 	reader.SetDefault()
 
 	// (4)
-	e = reader.SetDatasetMode(reader.GetDatasetMode())
-	if nil != e {
-		return
-	}
+	reader.SetDatasetMode(reader.GetDatasetMode())
 
 	// (5)
 	ds := dataset.(tabula.DatasetInterface)
@@ -376,7 +373,7 @@ func (reader *Reader) GetDatasetMode() string {
 /*
 SetDatasetMode to `mode`.
 */
-func (reader *Reader) SetDatasetMode(mode string) error {
+func (reader *Reader) SetDatasetMode(mode string) {
 	ds := reader.dataset.(tabula.DatasetInterface)
 	switch strings.ToUpper(mode) {
 	case DatasetModeROWS:
@@ -384,13 +381,12 @@ func (reader *Reader) SetDatasetMode(mode string) error {
 	case DatasetModeCOLUMNS:
 		ds.SetMode(tabula.DatasetModeColumns)
 	case DatasetModeMATRIX:
-		ds.SetMode(tabula.DatasetModeMatrix)
+		fallthrough
 	default:
-		return ErrUnknownDatasetMode
+		ds.SetMode(tabula.DatasetModeMatrix)
+		mode = DatasetModeMATRIX
 	}
 	reader.DatasetMode = mode
-
-	return nil
 }
 
 /*

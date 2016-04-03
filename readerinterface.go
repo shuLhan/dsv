@@ -25,7 +25,7 @@ type ReaderInterface interface {
 	GetMaxRows() int
 	SetMaxRows(max int)
 	GetDatasetMode() string
-	SetDatasetMode(mode string) error
+	SetDatasetMode(mode string)
 	GetNColumnIn() int
 	GetInput() string
 	SetInput(path string)

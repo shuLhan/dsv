@@ -61,10 +61,7 @@ func TestWriterWithColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	e = rw.SetDatasetMode(dsv.DatasetModeCOLUMNS)
-	if e != nil {
-		t.Fatal(e)
-	}
+	rw.SetDatasetMode(dsv.DatasetModeCOLUMNS)
 
 	doReadWrite(t, &rw.Reader, &rw.Writer, expSkipColumns, true)
 

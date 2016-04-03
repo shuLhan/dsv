@@ -320,10 +320,7 @@ func TestReaderToColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	e = reader.SetDatasetMode(dsv.DatasetModeCOLUMNS)
-	if e != nil {
-		t.Fatal(e)
-	}
+	reader.SetDatasetMode(dsv.DatasetModeCOLUMNS)
 
 	var n, i int
 	for {
