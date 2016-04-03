@@ -443,17 +443,19 @@ func (writer *Writer) WriteRawDataset(dataset tabula.DatasetInterface,
 		*sep = DefSeparator
 	}
 
-	switch dataset.GetMode() {
-	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
-		rows := dataset.GetDataAsRows()
-		return writer.WriteRawRows(rows, sep)
+	var rows *tabula.Rows
 
+	switch dataset.GetMode() {
 	case tabula.DatasetModeColumns:
 		cols := dataset.GetDataAsColumns()
 		return writer.WriteRawColumns(cols, sep)
+	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
+		fallthrough
+	default:
+		rows = dataset.GetDataAsRows()
 	}
 
-	return 0, ErrUnknownDatasetMode
+	return writer.WriteRawRows(rows, sep)
 }
 
 /*
@@ -470,16 +472,19 @@ func (writer *Writer) Write(reader ReaderInterface) (int, error) {
 
 	ds := reader.GetDataset().(tabula.DatasetInterface)
 
+	var rows *tabula.Rows
+
 	switch ds.GetMode() {
-	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
-		rows := ds.GetDataAsRows()
-		return writer.WriteRows(*rows, reader.GetInputMetadata())
 	case tabula.DatasetModeColumns:
 		cols := ds.GetDataAsColumns()
 		return writer.WriteColumns(*cols, reader.GetInputMetadata())
+	case tabula.DatasetModeRows, tabula.DatasetModeMatrix:
+		fallthrough
+	default:
+		rows = ds.GetDataAsRows()
 	}
 
-	return 0, ErrUnknownDatasetMode
+	return writer.WriteRows(*rows, reader.GetInputMetadata())
 }
 
 /*
