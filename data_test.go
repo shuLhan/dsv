@@ -1,4 +1,4 @@
-// Copyright 2015 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Copyright 2015-2016 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -11,29 +11,29 @@ import (
 var DEBUG = bool(os.Getenv("DEBUG") != "")
 
 var expectation = []string{
-	"[1 A-B AB 1 0.1]",
-	"[2 A-B-C BCD 2 0.02]",
-	"[3 A;B-C,D A;B C,D 3 0.003]",
-	"[4 A;B-C,D A;B C D 4 0.0004]",
-	"[6   6 0.000006]",
-	"[8 ok missing right-quote];8;0.00000008\n9;\"ok\"-[[ok 9 0.000000009]",
-	"[10 test integer 10 0.101]",
-	"[12 test real 123456789 0.123456789]",
-	"[13 string with string with 13 13]",
-	"[14 string with\" quote string with]] escape 14 14]",
+	"&[1 A-B AB 1 0.1]",
+	"&[2 A-B-C BCD 2 0.02]",
+	"&[3 A;B-C,D A;B C,D 3 0.003]",
+	"&[4 A;B-C,D A;B C D 4 0.0004]",
+	"&[6   6 0.000006]",
+	"&[8 ok missing right-quote];8;0.00000008\n9;\"ok\"-[[ok 9 0.000000009]",
+	"&[10 test integer 10 0.101]",
+	"&[12 test real 123456789 0.123456789]",
+	"&[13 string with string with 13 13]",
+	"&[14 string with\" quote string with]] escape 14 14]",
 }
 
 var expSkip = []string{
-	"[A-B AB 1 0.1]",
-	"[A-B-C BCD 2 0.02]",
-	"[A;B-C,D A;B C,D 3 0.003]",
-	"[A;B-C,D A;B C D 4 0.0004]",
-	"[  6 0.000006]",
-	"[ok missing right-quote];8;0.00000008\n9;\"ok\"-[[ok 9 0.000000009]",
-	"[test integer 10 0.101]",
-	"[test real 123456789 0.123456789]",
-	"[string with string with 13 13]",
-	"[string with\" quote string with]] escape 14 14]",
+	"&[A-B AB 1 0.1]",
+	"&[A-B-C BCD 2 0.02]",
+	"&[A;B-C,D A;B C,D 3 0.003]",
+	"&[A;B-C,D A;B C D 4 0.0004]",
+	"&[  6 0.000006]",
+	"&[ok missing right-quote];8;0.00000008\n9;\"ok\"-[[ok 9 0.000000009]",
+	"&[test integer 10 0.101]",
+	"&[test real 123456789 0.123456789]",
+	"&[string with string with 13 13]",
+	"&[string with\" quote string with]] escape 14 14]",
 }
 
 var expSkipColumns = []string{

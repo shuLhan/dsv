@@ -266,12 +266,12 @@ This is how the algorithm works
 (3) save buffer to record
 */
 func ParseLine(reader ReaderInterface, line []byte) (
-	row tabula.Row, eRead *ReaderError,
+	prow *tabula.Row, eRead *ReaderError,
 ) {
 	p := 0
 	rIdx := 0
 	inputMd := reader.GetInputMetadata()
-	row = make(tabula.Row, 0)
+	row := make(tabula.Row, 0)
 
 	for _, md := range inputMd {
 		lq := md.GetLeftQuote()
@@ -373,7 +373,7 @@ func ParseLine(reader ReaderInterface, line []byte) (
 		rIdx++
 	}
 
-	return row, nil
+	return &row, nil
 }
 
 /*
@@ -381,7 +381,7 @@ ReadRow read one line at a time until we get one row or error when parsing the
 data.
 */
 func ReadRow(reader ReaderInterface, linenum int) (
-	row tabula.Row,
+	row *tabula.Row,
 	line []byte,
 	n int,
 	eRead *ReaderError,

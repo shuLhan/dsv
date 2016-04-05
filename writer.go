@@ -1,4 +1,4 @@
-// Copyright 2015 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
+// Copyright 2015-2016 Mhd Sulhan <ms@kilabit.info>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -150,10 +150,10 @@ func (writer *Writer) Close() (e error) {
 /*
 WriteRow dump content of Row to file using format in metadata.
 */
-func (writer *Writer) WriteRow(row tabula.Row, recordMd []MetadataInterface) (
+func (writer *Writer) WriteRow(row *tabula.Row, recordMd []MetadataInterface) (
 	e error,
 ) {
-	nRecord := len(row)
+	nRecord := row.Len()
 	v := []byte{}
 	esc := []byte(DefEscape)
 
@@ -173,7 +173,7 @@ func (writer *Writer) WriteRow(row tabula.Row, recordMd []MetadataInterface) (
 			continue
 		}
 
-		recV := row[rIdx].ToByte()
+		recV := (*row)[rIdx].ToByte()
 		lq := md.GetLeftQuote()
 
 		if "" != lq {
@@ -283,7 +283,7 @@ func (writer *Writer) WriteColumns(columns tabula.Columns,
 			row[y] = col.Records[n]
 		}
 
-		e = writer.WriteRow(row, colMd)
+		e = writer.WriteRow(&row, colMd)
 		if e != nil {
 			goto err
 		}
@@ -300,7 +300,7 @@ func (writer *Writer) WriteColumns(columns tabula.Columns,
 			}
 		}
 
-		e = writer.WriteRow(row, colMd)
+		e = writer.WriteRow(&row, colMd)
 		if e != nil {
 			goto err
 		}
@@ -336,7 +336,8 @@ func (writer *Writer) WriteRawRows(rows *tabula.Rows, sep *string) (
 
 	for ; x < nrow; x++ {
 		v := []byte{}
-		for y, rec := range (*rows)[x] {
+		row := (*rows)[x]
+		for y, rec := range *row {
 			if y > 0 {
 				v = append(v, sepbytes...)
 			}

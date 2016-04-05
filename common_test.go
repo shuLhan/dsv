@@ -112,7 +112,7 @@ func populateWithRows(t *testing.T, dataset *tabula.Dataset) {
 			row[x] = rec
 		}
 
-		dataset.PushRow(row)
+		dataset.PushRow(&row)
 	}
 }
 
