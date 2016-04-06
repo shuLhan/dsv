@@ -312,6 +312,41 @@ err:
 }
 
 //
+// WriteRawRow will write row data using separator `sep` for each record.
+//
+func (writer *Writer) WriteRawRow(row *tabula.Row, sep, esc []byte) (e error) {
+	if sep == nil {
+		sep = []byte(DefSeparator)
+	}
+	if esc == nil {
+		esc = []byte(DefEscape)
+	}
+
+	v := []byte{}
+	for x, rec := range *row {
+		if x > 0 {
+			v = append(v, sep...)
+		}
+
+		recV := rec.ToByte()
+
+		if rec.GetType() == tabula.TString {
+			recV, _ = tekstus.BytesEncapsulate(sep, recV, esc, nil)
+		}
+
+		v = append(v, recV...)
+	}
+
+	v = append(v, DefEOL)
+
+	_, e = writer.BufWriter.Write(v)
+
+	_ = writer.Flush()
+
+	return e
+}
+
+//
 // WriteRawRows write rows data using separator `sep` for each record.
 // We use pointer in separator parameter, so we can use empty string as
 // separator.
@@ -330,38 +365,17 @@ func (writer *Writer) WriteRawRows(rows *tabula.Rows, sep *string) (
 		*sep = DefSeparator
 	}
 
-	esc := []byte(DefEscape)
+	escbytes := []byte(DefEscape)
 	sepbytes := []byte(*sep)
 	x := 0
 
 	for ; x < nrow; x++ {
-		v := []byte{}
-		row := (*rows)[x]
-		for y, rec := range *row {
-			if y > 0 {
-				v = append(v, sepbytes...)
-			}
-
-			recV := rec.ToByte()
-
-			if rec.GetType() == tabula.TString {
-				recV, _ = tekstus.BytesEncapsulate(sepbytes,
-					recV, esc, nil)
-			}
-
-			v = append(v, recV...)
-		}
-
-		v = append(v, DefEOL)
-
-		_, e = writer.BufWriter.Write(v)
-
+		e = writer.WriteRawRow((*rows)[x], sepbytes, escbytes)
 		if nil != e {
 			break
 		}
 	}
 
-	_ = writer.Flush()
 	return x, e
 }
 
