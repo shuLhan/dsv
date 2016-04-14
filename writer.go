@@ -253,7 +253,7 @@ func (writer *Writer) WriteColumns(columns tabula.Columns,
 		return
 	}
 
-	emptyRec := &tabula.Record{V: ""}
+	emptyRec := tabula.NewRecordString("")
 
 	// Get minimum and maximum length of all columns.
 	// In case one of the column have different length (shorter or longer),

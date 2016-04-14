@@ -104,7 +104,7 @@ func populateWithRows(t *testing.T, dataset *tabula.Dataset) {
 		row := make(tabula.Row, len(rowin))
 
 		for x, recin := range rowin {
-			rec, e := tabula.NewRecord(recin, datasetTypes[x])
+			rec, e := tabula.NewRecordBy(recin, datasetTypes[x])
 			if e != nil {
 				t.Fatal(e)
 			}
