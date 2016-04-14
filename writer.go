@@ -330,7 +330,7 @@ func (writer *Writer) WriteRawRow(row *tabula.Row, sep, esc []byte) (e error) {
 
 		recV := rec.ToByte()
 
-		if rec.GetType() == tabula.TString {
+		if rec.Type() == tabula.TString {
 			recV, _ = tekstus.BytesEncapsulate(sep, recV, esc, nil)
 		}
 
