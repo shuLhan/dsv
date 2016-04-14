@@ -173,7 +173,7 @@ func (writer *Writer) WriteRow(row *tabula.Row, recordMd []MetadataInterface) (
 			continue
 		}
 
-		recV := (*row)[rIdx].ToByte()
+		recV := (*row)[rIdx].Bytes()
 		lq := md.GetLeftQuote()
 
 		if "" != lq {
@@ -328,7 +328,7 @@ func (writer *Writer) WriteRawRow(row *tabula.Row, sep, esc []byte) (e error) {
 			v = append(v, sep...)
 		}
 
-		recV := rec.ToByte()
+		recV := rec.Bytes()
 
 		if rec.Type() == tabula.TString {
 			recV, _ = tekstus.BytesEncapsulate(sep, recV, esc, nil)
