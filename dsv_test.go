@@ -6,7 +6,6 @@ package dsv_test
 
 import (
 	"github.com/shuLhan/dsv"
-	"github.com/shuLhan/tabula/util/assert"
 	"testing"
 )
 
@@ -37,7 +36,7 @@ func TestReadWriter(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected.dat")
+	assertFile(t, rw.GetOutput(), "testdata/expected.dat", true)
 }
 
 /*
@@ -55,7 +54,7 @@ func TestReadWriterAll(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected.dat")
+	assertFile(t, rw.GetOutput(), "testdata/expected.dat", true)
 }
 
 func TestSimpleReadWrite(t *testing.T) {
@@ -74,7 +73,7 @@ func TestSimpleReadWrite(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, fexp, fout)
+	assertFile(t, fexp, fout, true)
 }
 
 func TestSimpleMerge(t *testing.T) {
@@ -94,5 +93,5 @@ func TestSimpleMerge(t *testing.T) {
 	fexp := "testdata/expected_simplemerge.dat"
 	fout := "testdata/output.dat"
 
-	assert.EqualFileContent(t, fexp, fout)
+	assertFile(t, fexp, fout, true)
 }

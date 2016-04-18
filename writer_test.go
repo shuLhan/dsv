@@ -9,7 +9,6 @@ import (
 
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/tabula"
-	"github.com/shuLhan/tabula/util/assert"
 )
 
 /*
@@ -28,7 +27,7 @@ func TestWriter(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected.dat")
+	assertFile(t, rw.GetOutput(), "testdata/expected.dat", true)
 }
 
 /*
@@ -48,7 +47,7 @@ func TestWriterWithSkip(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, rw.GetOutput(), "testdata/expected_skip.dat")
+	assertFile(t, rw.GetOutput(), "testdata/expected_skip.dat", true)
 }
 
 /*
@@ -70,7 +69,7 @@ func TestWriterWithColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, "testdata/expected_skip.dat", rw.GetOutput())
+	assertFile(t, "testdata/expected_skip.dat", rw.GetOutput(), true)
 }
 
 func TestWriteRawRows(t *testing.T) {
@@ -94,7 +93,7 @@ func TestWriteRawRows(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, outfile, expfile)
+	assertFile(t, outfile, expfile, true)
 }
 
 func TestWriteRawColumns(t *testing.T) {
@@ -118,5 +117,5 @@ func TestWriteRawColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, outfile, expfile)
+	assertFile(t, outfile, expfile, true)
 }

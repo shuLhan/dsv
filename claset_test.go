@@ -7,7 +7,6 @@ package dsv_test
 import (
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/tabula"
-	"github.com/shuLhan/tabula/util/assert"
 	"testing"
 )
 
@@ -21,14 +20,14 @@ func TestReaderWithClaset(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.Equal(t, 3, claset.GetClassIndex())
+	assert(t, 3, claset.GetClassIndex(), true)
 
 	claset.SetMajorityClass("regular")
 	claset.SetMinorityClass("vandalism")
 
 	clone := claset.Clone().(tabula.ClasetInterface)
 
-	assert.Equal(t, 3, clone.GetClassIndex())
-	assert.Equal(t, "regular", clone.MajorityClass())
-	assert.Equal(t, "vandalism", clone.MinorityClass())
+	assert(t, 3, clone.GetClassIndex(), true)
+	assert(t, "regular", clone.MajorityClass(), true)
+	assert(t, "vandalism", clone.MinorityClass(), true)
 }

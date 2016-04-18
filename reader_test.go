@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/shuLhan/dsv"
 	"github.com/shuLhan/tabula"
-	"github.com/shuLhan/tabula/util/assert"
 	"io"
 	"strings"
 	"testing"
@@ -210,7 +209,7 @@ func doRead(t *testing.T, dsvReader *dsv.Reader, exp []string) {
 				GetDataset().(tabula.DatasetInterface).
 				GetDataAsRows())
 
-			assert.Equal(t, exp[i], r)
+			assert(t, exp[i], r, true)
 
 			i++
 		} else if e == io.EOF {
@@ -332,7 +331,7 @@ func TestReaderToColumns(t *testing.T) {
 
 			r := fmt.Sprint(ds.GetData())
 
-			assert.Equal(t, expectation[i], r)
+			assert(t, expectation[i], r, true)
 
 			i++
 		} else if e == io.EOF {
@@ -382,7 +381,7 @@ func TestTransposeToColumns(t *testing.T) {
 
 	got := fmt.Sprint(*columns)
 
-	assert.Equal(t, exp, got)
+	assert(t, exp, got, true)
 
 	e = reader.Close()
 	if e != nil {
@@ -419,7 +418,7 @@ func TestSortColumnsByIndex(t *testing.T) {
 	exp := strings.Join(expReverse, "")
 	got := fmt.Sprint(ds.GetDataAsRows())
 
-	assert.Equal(t, exp, got)
+	assert(t, exp, got, true)
 
 	exp = "[" + strings.Join(expSkipColumnsAllRev, " ") + "]"
 
@@ -427,7 +426,7 @@ func TestSortColumnsByIndex(t *testing.T) {
 
 	got = fmt.Sprint(*columns)
 
-	assert.Equal(t, exp, got)
+	assert(t, exp, got, true)
 
 	e = reader.Close()
 	if e != nil {
@@ -464,7 +463,7 @@ func TestSplitRowsByValue(t *testing.T) {
 
 	got := fmt.Sprint(splitL.GetDataAsRows())
 
-	assert.Equal(t, exp, got)
+	assert(t, exp, got, true)
 
 	// test right split
 	exp = ""
@@ -474,7 +473,7 @@ func TestSplitRowsByValue(t *testing.T) {
 
 	got = fmt.Sprint(splitR.GetDataAsRows())
 
-	assert.Equal(t, exp, got)
+	assert(t, exp, got, true)
 
 	e = reader.Close()
 	if e != nil {
@@ -549,7 +548,7 @@ func TestMergeColumns(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	assert.EqualFileContent(t, outfile, expfile)
+	assertFile(t, outfile, expfile, true)
 }
 
 func TestMergeRows(t *testing.T) {
@@ -616,5 +615,5 @@ func TestMergeRows(t *testing.T) {
 	}
 
 	expfile := "testdata/expected_merge_rows.dat"
-	assert.EqualFileContent(t, outfile, expfile)
+	assertFile(t, outfile, expfile, true)
 }
