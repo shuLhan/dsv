@@ -14,6 +14,7 @@ package dsv
 import (
 	"errors"
 	"os"
+	"strconv"
 )
 
 const (
@@ -46,8 +47,8 @@ var (
 	// to Write function.
 	ErrNilReader = errors.New("dsv: Reader object is nil")
 
-	// DEBUG exported from environment to debug the library.
-	DEBUG = bool(os.Getenv("DEBUG") != "")
+	// DEBUG imported from environment DSV_DEBUG to debug the library.
+	DEBUG = 0
 )
 
 /*
@@ -56,6 +57,14 @@ ReadWriter combine reader and writer.
 type ReadWriter struct {
 	Reader
 	Writer
+}
+
+func init() {
+	var e error
+	DEBUG, e = strconv.Atoi(os.Getenv("DSV_DEBUG"))
+	if e != nil {
+		DEBUG = 0
+	}
 }
 
 /*
