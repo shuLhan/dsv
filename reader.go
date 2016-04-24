@@ -524,6 +524,20 @@ func (reader *Reader) Reject(line []byte) (int, error) {
 	return reader.bufReject.Write(line)
 }
 
+//
+// deleteEmptyRejected if rejected file is empty, delete it.
+//
+func (reader *Reader) deleteEmptyRejected() {
+	finfo, e := os.Stat(reader.Rejected)
+	if e != nil {
+		return
+	}
+
+	if finfo.Size() >= 0 {
+		_ = os.Remove(reader.Rejected)
+	}
+}
+
 /*
 Close all open descriptors.
 */
@@ -540,6 +554,9 @@ func (reader *Reader) Close() (e error) {
 			return
 		}
 	}
+
+	reader.deleteEmptyRejected()
+
 	if nil != reader.fRead {
 		e = reader.fRead.Close()
 	}
