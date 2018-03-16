@@ -198,8 +198,8 @@ func TestReaderIsEqual(t *testing.T) {
 //
 func doRead(t *testing.T, dsvReader *dsv.Reader, exp []string) {
 	i := 0
-	n := 0
-	e := error(nil)
+	var n int
+	var e error
 
 	for {
 		n, e = dsv.Read(dsvReader)
@@ -299,7 +299,7 @@ func TestDatasetMode(t *testing.T) {
 
 		e = reader.Init("", nil)
 		if e != nil {
-			if v.status == true {
+			if v.status {
 				t.Fatal(e)
 			}
 		}
@@ -481,6 +481,38 @@ func TestSplitRowsByValue(t *testing.T) {
 	}
 }
 
+//
+// testWriteOutput will write merged reader and check with expected file output.
+//
+func testWriteOutput(t *testing.T, r *dsv.Reader, outfile, expfile string) {
+
+	writer, e := dsv.NewWriter("")
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	e = writer.OpenOutput(outfile)
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	sep := "\t"
+	ds := r.GetDataset().(tabula.DatasetInterface)
+
+	_, e = writer.WriteRawDataset(ds, &sep)
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	e = writer.Close()
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	assertFile(t, outfile, expfile, true)
+}
+
 func TestMergeColumns(t *testing.T) {
 	reader1, e := dsv.NewReader("testdata/config.dsv", nil)
 	if nil != e {
@@ -519,36 +551,10 @@ func TestMergeColumns(t *testing.T) {
 
 	reader1.MergeColumns(reader2)
 
-	// write merged reader
-	writer, e := dsv.NewWriter("")
-	if e != nil {
-		t.Fatal(e)
-	}
-
 	outfile := "testdata/output_merge_columns.dat"
 	expfile := "testdata/expected_merge_columns.dat"
 
-	e = writer.OpenOutput(outfile)
-
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	sep := "\t"
-	ds1 := reader1.GetDataset().(tabula.DatasetInterface)
-	_, e = writer.WriteRawDataset(ds1, &sep)
-
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	e = writer.Close()
-
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	assertFile(t, outfile, expfile, true)
+	testWriteOutput(t, reader1, outfile, expfile)
 }
 
 func TestMergeRows(t *testing.T) {
@@ -587,33 +593,8 @@ func TestMergeRows(t *testing.T) {
 
 	reader1.MergeRows(reader2)
 
-	// write merged reader
-	writer, e := dsv.NewWriter("")
-	if e != nil {
-		t.Fatal(e)
-	}
-
 	outfile := "testdata/output_merge_rows.dat"
-
-	e = writer.OpenOutput(outfile)
-
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	sep := "\t"
-	ds1 := reader1.GetDataset().(tabula.DatasetInterface)
-	_, e = writer.WriteRawDataset(ds1, &sep)
-
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	e = writer.Close()
-	if e != nil {
-		t.Fatal(e)
-	}
-
 	expfile := "testdata/expected_merge_rows.dat"
-	assertFile(t, outfile, expfile, true)
+
+	testWriteOutput(t, reader1, outfile, expfile)
 }

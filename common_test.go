@@ -53,18 +53,39 @@ func assertFile(t *testing.T, a, b string, equal bool) {
 	}
 }
 
+func checkDataset(t *testing.T, r *dsv.Reader, exp string) {
+	var got string
+	ds := r.GetDataset().(tabula.DatasetInterface)
+	data := ds.GetData()
+
+	switch data.(type) {
+	case *tabula.Rows:
+		rows := data.(*tabula.Rows)
+		got = fmt.Sprint(*rows)
+	case *tabula.Columns:
+		cols := data.(*tabula.Columns)
+		got = fmt.Sprint(*cols)
+	case *tabula.Matrix:
+		matrix := data.(*tabula.Matrix)
+		got = fmt.Sprint(*matrix)
+	default:
+		fmt.Println("data type unknown")
+	}
+
+	assert(t, exp, got, true)
+}
+
 //
 // doReadWrite test reading and writing the DSV data.
 //
 func doReadWrite(t *testing.T, dsvReader *dsv.Reader, dsvWriter *dsv.Writer,
 	expectation []string, check bool) {
-	var got string
 	i := 0
 
 	for {
 		n, e := dsv.Read(dsvReader)
 
-		if e == io.EOF {
+		if e == io.EOF || n == 0 {
 			_, e = dsvWriter.Write(dsvReader)
 			if e != nil {
 				t.Fatal(e)
@@ -77,32 +98,14 @@ func doReadWrite(t *testing.T, dsvReader *dsv.Reader, dsvWriter *dsv.Writer,
 			continue
 		}
 
-		if n > 0 {
-			if check {
-				ds := dsvReader.GetDataset().(tabula.DatasetInterface)
-				data := ds.GetData()
+		if check {
+			checkDataset(t, dsvReader, expectation[i])
+			i++
+		}
 
-				switch data.(type) {
-				case *tabula.Rows:
-					rows := data.(*tabula.Rows)
-					got = fmt.Sprint(*rows)
-				case *tabula.Columns:
-					cols := data.(*tabula.Columns)
-					got = fmt.Sprint(*cols)
-				case *tabula.Matrix:
-					matrix := data.(*tabula.Matrix)
-					got = fmt.Sprint(*matrix)
-				default:
-					fmt.Println("data type unknown")
-				}
-				assert(t, expectation[i], got, true)
-				i++
-			}
-
-			_, e = dsvWriter.Write(dsvReader)
-			if e != nil {
-				t.Fatal(e)
-			}
+		_, e = dsvWriter.Write(dsvReader)
+		if e != nil {
+			t.Fatal(e)
 		}
 	}
 

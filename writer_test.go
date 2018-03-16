@@ -86,9 +86,11 @@ func TestWriteRawRows(t *testing.T) {
 	expfile := "testdata/writeraw.exp"
 
 	e = writer.OpenOutput(outfile)
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	_, e = writer.WriteRawDataset(dataset, nil)
-
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -97,6 +99,8 @@ func TestWriteRawRows(t *testing.T) {
 }
 
 func TestWriteRawColumns(t *testing.T) {
+	var e error
+
 	dataset := tabula.NewDataset(tabula.DatasetModeColumns, nil, nil)
 
 	populateWithColumns(t, dataset)
@@ -110,9 +114,11 @@ func TestWriteRawColumns(t *testing.T) {
 	expfile := "testdata/writeraw.exp"
 
 	e = writer.OpenOutput(outfile)
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	_, e = writer.WriteRawDataset(dataset, nil)
-
 	if e != nil {
 		t.Fatal(e)
 	}

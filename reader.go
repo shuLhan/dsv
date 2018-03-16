@@ -197,10 +197,6 @@ func (reader *Reader) Init(fcfg string, dataset interface{}) (e error) {
 	for i := range md {
 		md[i].Init()
 
-		if nil != e {
-			return e
-		}
-
 		// Count number of output columns.
 		if !md[i].GetSkip() {
 			// add type of metadata to list of type

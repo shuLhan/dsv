@@ -54,7 +54,12 @@ type ReaderInterface interface {
 // Read row from input file.
 //
 func Read(reader ReaderInterface) (n int, e error) {
-	linenum := 0
+	var (
+		row     *tabula.Row
+		line    []byte
+		linenum int
+		eRead   *ReaderError
+	)
 	maxrows := reader.GetMaxRows()
 
 	e = reader.Reset()
@@ -67,8 +72,7 @@ func Read(reader ReaderInterface) (n int, e error) {
 	// Loop until we reached MaxRows (> 0) or when all rows has been
 	// read (= -1)
 	for {
-		row, line, linenum, eRead := ReadRow(reader, linenum)
-
+		row, line, linenum, eRead = ReadRow(reader, linenum)
 		if nil == eRead {
 			dataset.PushRow(row)
 
@@ -170,7 +174,7 @@ func parsingRightQuote(reader ReaderInterface, rq, line []byte, startAt int) (
 	var e error
 	var content []byte
 	p = startAt
-	found := false
+	var found bool
 
 	// (2.2.1)
 	for {
@@ -256,7 +260,7 @@ func parsingSkipSpace(line []byte, startAt int) (p int) {
 // This is how the algorithm works
 // (1) create n slice of record, where n is number of column metadata
 // (2) for each metadata
-// (2.0) Check if next sequence if match with separator.
+// (2.0) Check if the next sequence matched with separator.
 // (2.0.1) If its match, create empty record
 // (2.1) If using left quote, skip until we found left-quote
 // (2.2) If using right quote, append byte to buffer until right-quote

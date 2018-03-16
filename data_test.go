@@ -4,12 +4,6 @@
 
 package dsv_test
 
-import (
-	"os"
-)
-
-var DEBUG = bool(os.Getenv("DEBUG") != "")
-
 var expectation = []string{
 	"&[1 A-B AB 1 0.1]",
 	"&[2 A-B-C BCD 2 0.02]",
