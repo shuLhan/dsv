@@ -13,9 +13,9 @@ import (
 	"os"
 )
 
-/*
-ReaderInterface is the interface for reading DSV file.
-*/
+//
+// ReaderInterface is the interface for reading DSV file.
+//
 type ReaderInterface interface {
 	ConfigInterface
 	AddInputMetadata(*Metadata)
@@ -50,9 +50,9 @@ type ReaderInterface interface {
 	MergeColumns(ReaderInterface)
 }
 
-/*
-Read row from input file.
-*/
+//
+// Read row from input file.
+//
 func Read(reader ReaderInterface) (n int, e error) {
 	linenum := 0
 	maxrows := reader.GetMaxRows()
@@ -103,9 +103,9 @@ func Read(reader ReaderInterface) (n int, e error) {
 	return n, e
 }
 
-/*
-parsingLeftQuote parse the left-quote string from line.
-*/
+//
+// parsingLeftQuote parse the left-quote string from line.
+//
 func parsingLeftQuote(lq, line []byte, startAt int) (
 	p int, eRead *ReaderError,
 ) {
@@ -130,12 +130,12 @@ func parsingLeftQuote(lq, line []byte, startAt int) (
 	return p, eRead
 }
 
-/*
-parsingSeparator parsing the line until we found the separator.
-
-Return the data and index of last parsed line, or error if separator is not
-found or not match with specification.
-*/
+//
+// parsingSeparator parsing the line until we found the separator.
+//
+// Return the data and index of last parsed line, or error if separator is not
+// found or not match with specification.
+//
 func parsingSeparator(sep, line []byte, startAt int) (
 	v []byte, p int, eRead *ReaderError,
 ) {
@@ -158,12 +158,12 @@ func parsingSeparator(sep, line []byte, startAt int) (
 	return v, p, eRead
 }
 
-/*
-parsingRightQuote parsing the line until we found the right quote or separator.
-
-Return the data and index of last parsed line, or error if right-quote is not
-found or not match with specification.
-*/
+//
+// parsingRightQuote parsing the line until we found the right quote or separator.
+//
+// Return the data and index of last parsed line, or error if right-quote is not
+// found or not match with specification.
+//
 func parsingRightQuote(reader ReaderInterface, rq, line []byte, startAt int) (
 	v, lines []byte, p int, eRead *ReaderError,
 ) {
@@ -207,9 +207,9 @@ func parsingRightQuote(reader ReaderInterface, rq, line []byte, startAt int) (
 	return v, line, p, eRead
 }
 
-/*
-parsingSkipSeparator parse until we found separator or EOF
-*/
+//
+// parsingSkipSeparator parse until we found separator or EOF
+//
 func parsingSkipSeparator(sep, line []byte, startAt int) (
 	p int, eRead *ReaderError,
 ) {
@@ -233,9 +233,9 @@ func parsingSkipSeparator(sep, line []byte, startAt int) (
 	return p, eRead
 }
 
-/*
-parsingSkipSpace skip all space starting from `startAt`.
-*/
+//
+// parsingSkipSpace skip all space starting from `startAt`.
+//
 func parsingSkipSpace(line []byte, startAt int) (p int) {
 	linelen := len(line)
 
@@ -249,22 +249,22 @@ func parsingSkipSpace(line []byte, startAt int) (p int) {
 	return
 }
 
-/*
-ParseLine parse a line containing records. The output is array of record
-(or single row).
-
-This is how the algorithm works
-(1) create n slice of record, where n is number of column metadata
-(2) for each metadata
-	(2.0) Check if next sequence if match with separator.
-	(2.0.1) If its match, create empty record
-	(2.1) If using left quote, skip until we found left-quote
-	(2.2) If using right quote, append byte to buffer until right-quote
-		(2.2.1) If using separator, skip until separator
-	(2.3) If using separator, append byte to buffer until separator
-	(2.4) else append all byte to buffer.
-(3) save buffer to record
-*/
+//
+// ParseLine parse a line containing records. The output is array of record
+// (or single row).
+//
+// This is how the algorithm works
+// (1) create n slice of record, where n is number of column metadata
+// (2) for each metadata
+// (2.0) Check if next sequence if match with separator.
+// (2.0.1) If its match, create empty record
+// (2.1) If using left quote, skip until we found left-quote
+// (2.2) If using right quote, append byte to buffer until right-quote
+// 	(2.2.1) If using separator, skip until separator
+// (2.3) If using separator, append byte to buffer until separator
+// (2.4) else append all byte to buffer.
+// (3) save buffer to record
+//
 func ParseLine(reader ReaderInterface, line []byte) (
 	prow *tabula.Row, eRead *ReaderError,
 ) {
@@ -376,10 +376,10 @@ func ParseLine(reader ReaderInterface, line []byte) (
 	return &row, nil
 }
 
-/*
-ReadRow read one line at a time until we get one row or error when parsing the
-data.
-*/
+//
+// ReadRow read one line at a time until we get one row or error when parsing the
+// data.
+//
 func ReadRow(reader ReaderInterface, linenum int) (
 	row *tabula.Row,
 	line []byte,

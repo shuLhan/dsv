@@ -53,9 +53,9 @@ func assertFile(t *testing.T, a, b string, equal bool) {
 	}
 }
 
-/*
-doReadWrite test reading and writing the DSV data.
-*/
+//
+// doReadWrite test reading and writing the DSV data.
+//
 func doReadWrite(t *testing.T, dsvReader *dsv.Reader, dsvWriter *dsv.Writer,
 	expectation []string, check bool) {
 	var got string

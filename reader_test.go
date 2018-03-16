@@ -110,9 +110,9 @@ var readers = []*dsv.Reader{
 	},
 }
 
-/*
-TestReaderNoInput will print error that the input is not defined.
-*/
+//
+// TestReaderNoInput will print error that the input is not defined.
+//
 func TestReaderNoInput(t *testing.T) {
 	dsvReader := &dsv.Reader{}
 
@@ -129,9 +129,9 @@ func TestReaderNoInput(t *testing.T) {
 	}
 }
 
-/*
-TestConfigParse test parsing metadata.
-*/
+//
+// TestConfigParse test parsing metadata.
+//
 func TestConfigParse(t *testing.T) {
 	cases := []struct {
 		in  string
@@ -193,9 +193,9 @@ func TestReaderIsEqual(t *testing.T) {
 	}
 }
 
-/*
-doRead test reading the DSV data.
-*/
+//
+// doRead test reading the DSV data.
+//
 func doRead(t *testing.T, dsvReader *dsv.Reader, exp []string) {
 	i := 0
 	n := 0
@@ -219,9 +219,9 @@ func doRead(t *testing.T, dsvReader *dsv.Reader, exp []string) {
 	}
 }
 
-/*
-TestReader test reading.
-*/
+//
+// TestReader test reading.
+//
 func TestReaderRead(t *testing.T) {
 	dsvReader := &dsv.Reader{}
 
@@ -244,9 +244,9 @@ func TestReaderRead(t *testing.T) {
 	}
 }
 
-/*
-TestReaderOpen real example from the start.
-*/
+//
+// TestReaderOpen real example from the start.
+//
 func TestReaderOpen(t *testing.T) {
 	dsvReader, e := dsv.NewReader("testdata/config.dsv", nil)
 	if nil != e {
@@ -341,9 +341,9 @@ func TestReaderToColumns(t *testing.T) {
 	}
 }
 
-/*
-TestReaderSkip will test the 'Skip' option in Metadata.
-*/
+//
+// TestReaderSkip will test the 'Skip' option in Metadata.
+//
 func TestReaderSkip(t *testing.T) {
 	dsvReader, e := dsv.NewReader("testdata/config_skip.dsv", nil)
 	if nil != e {

@@ -4,9 +4,9 @@
 
 package dsv
 
-/*
-WriterInterface is an interface for writing DSV data to file.
-*/
+//
+// WriterInterface is an interface for writing DSV data to file.
+//
 type WriterInterface interface {
 	ConfigInterface
 	GetOutput() string
@@ -16,9 +16,9 @@ type WriterInterface interface {
 	Close() error
 }
 
-/*
-OpenWriter configuration file and initialize the attributes.
-*/
+//
+// OpenWriter configuration file and initialize the attributes.
+//
 func OpenWriter(writer WriterInterface, fcfg string) (e error) {
 	e = ConfigOpen(writer, fcfg)
 	if e != nil {
@@ -28,9 +28,9 @@ func OpenWriter(writer WriterInterface, fcfg string) (e error) {
 	return InitWriter(writer)
 }
 
-/*
-InitWriter initialize writer by opening output file.
-*/
+//
+// InitWriter initialize writer by opening output file.
+//
 func InitWriter(writer WriterInterface) error {
 	out := writer.GetOutput()
 

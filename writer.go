@@ -23,10 +23,10 @@ const (
 	DefEscape = "\\"
 )
 
-/*
-Writer write records from reader or slice using format configuration in
-metadata.
-*/
+//
+// Writer write records from reader or slice using format configuration in
+// metadata.
+//
 type Writer struct {
 	Config `json:"-"`
 	// Output file where the records will be written.
@@ -39,10 +39,10 @@ type Writer struct {
 	BufWriter *bufio.Writer
 }
 
-/*
-NewWriter create a writer object.
-User must call Open after that to populate the output and metadata.
-*/
+//
+// NewWriter create a writer object.
+// User must call Open after that to populate the output and metadata.
+//
 func NewWriter(config string) (writer *Writer, e error) {
 	writer = &Writer{
 		Output:         "",
@@ -63,23 +63,23 @@ func NewWriter(config string) (writer *Writer, e error) {
 	return
 }
 
-/*
-GetOutput return output filename.
-*/
+//
+// GetOutput return output filename.
+//
 func (writer *Writer) GetOutput() string {
 	return writer.Output
 }
 
-/*
-SetOutput will set the output file to path.
-*/
+//
+// SetOutput will set the output file to path.
+//
 func (writer *Writer) SetOutput(path string) {
 	writer.Output = path
 }
 
-/*
-AddMetadata will add new output metadata to writer.
-*/
+//
+// AddMetadata will add new output metadata to writer.
+//
 func (writer *Writer) AddMetadata(md Metadata) {
 	writer.OutputMetadata = append(writer.OutputMetadata, md)
 }
@@ -124,16 +124,16 @@ func (writer *Writer) ReopenOutput(file string) (e error) {
 	return writer.open(file, os.O_CREATE|os.O_APPEND|os.O_WRONLY)
 }
 
-/*
-Flush output buffer to disk.
-*/
+//
+// Flush output buffer to disk.
+//
 func (writer *Writer) Flush() error {
 	return writer.BufWriter.Flush()
 }
 
-/*
-Close all open descriptor.
-*/
+//
+// Close all open descriptor.
+//
 func (writer *Writer) Close() (e error) {
 	if nil != writer.BufWriter {
 		e = writer.BufWriter.Flush()
@@ -147,9 +147,9 @@ func (writer *Writer) Close() (e error) {
 	return
 }
 
-/*
-WriteRow dump content of Row to file using format in metadata.
-*/
+//
+// WriteRow dump content of Row to file using format in metadata.
+//
 func (writer *Writer) WriteRow(row *tabula.Row, recordMd []MetadataInterface) (
 	e error,
 ) {
@@ -218,11 +218,11 @@ func (writer *Writer) WriteRow(row *tabula.Row, recordMd []MetadataInterface) (
 	return e
 }
 
-/*
-WriteRows will loop each row in the list of rows and write their content to
-output file.
-Return n for number of row written, and e if error happened.
-*/
+//
+// WriteRows will loop each row in the list of rows and write their content to
+// output file.
+// Return n for number of row written, and e if error happened.
+//
 func (writer *Writer) WriteRows(rows tabula.Rows, recordMd []MetadataInterface) (
 	n int,
 	e error,
@@ -238,10 +238,10 @@ func (writer *Writer) WriteRows(rows tabula.Rows, recordMd []MetadataInterface) 
 	return
 }
 
-/*
-WriteColumns will write content of columns to output file.
-Return n for number of row written, and e if error happened.
-*/
+//
+// WriteColumns will write content of columns to output file.
+// Return n for number of row written, and e if error happened.
+//
 func (writer *Writer) WriteColumns(columns tabula.Columns,
 	colMd []MetadataInterface,
 ) (
@@ -473,10 +473,10 @@ func (writer *Writer) WriteRawDataset(dataset tabula.DatasetInterface,
 	return writer.WriteRawRows(rows, sep)
 }
 
-/*
-Write rows from Reader to file.
-Return n for number of row written, or e if error happened.
-*/
+//
+// Write rows from Reader to file.
+// Return n for number of row written, or e if error happened.
+//
 func (writer *Writer) Write(reader ReaderInterface) (int, error) {
 	if nil == reader {
 		return 0, ErrNilReader
@@ -502,9 +502,9 @@ func (writer *Writer) Write(reader ReaderInterface) (int, error) {
 	return writer.WriteRows(*rows, reader.GetInputMetadata())
 }
 
-/*
-String yes, it will print it in JSON like format.
-*/
+//
+// String yes, it will print it in JSON like format.
+//
 func (writer *Writer) String() string {
 	r, e := json.MarshalIndent(writer, "", "\t")
 

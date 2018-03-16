@@ -8,13 +8,13 @@ import (
 	"io"
 )
 
-/*
-SimpleRead provide a shortcut to read data from file using configuration file
-from `fcfg`.
-Return the reader contained data or error if failed.
-Reader object upon returned has been closed, so if one need to read all
-data in it simply set the `MaxRows` to `-1` in config file.
-*/
+//
+// SimpleRead provide a shortcut to read data from file using configuration file
+// from `fcfg`.
+// Return the reader contained data or error if failed.
+// Reader object upon returned has been closed, so if one need to read all
+// data in it simply set the `MaxRows` to `-1` in config file.
+//
 func SimpleRead(fcfg string, dataset interface{}) (
 	reader ReaderInterface,
 	e error,
@@ -35,10 +35,10 @@ func SimpleRead(fcfg string, dataset interface{}) (
 	return
 }
 
-/*
-SimpleWrite provide a shortcut to write data from reader using output metadata
-format and output file defined in file `fcfg`.
-*/
+//
+// SimpleWrite provide a shortcut to write data from reader using output metadata
+// format and output file defined in file `fcfg`.
+//
 func SimpleWrite(reader ReaderInterface, fcfg string) (nrows int, e error) {
 	writer, e := NewWriter(fcfg)
 	if e != nil {
@@ -55,16 +55,16 @@ func SimpleWrite(reader ReaderInterface, fcfg string) (nrows int, e error) {
 	return
 }
 
-/*
-SimpleMerge provide a shortcut to merge two dsv files using configuration
-files passed in parameters.
-
-One must remember to set,
-- "MaxRows" to -1 to be able to read all rows, in both input configuration, and
-- "DatasetMode" to "columns" to speeding up process.
-
-This function return the merged reader or error if failed.
-*/
+//
+// SimpleMerge provide a shortcut to merge two dsv files using configuration
+// files passed in parameters.
+//
+// One must remember to set,
+// - "MaxRows" to -1 to be able to read all rows, in both input configuration, and
+// - "DatasetMode" to "columns" to speeding up process.
+//
+// This function return the merged reader or error if failed.
+//
 func SimpleMerge(fin1, fin2 string, dataset1, dataset2 interface{}) (
 	ReaderInterface,
 	error,

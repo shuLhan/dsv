@@ -25,9 +25,9 @@ const (
 	ETypeConversion
 )
 
-/*
-ReaderError to handle error data and message.
-*/
+//
+// ReaderError to handle error data and message.
+//
 type ReaderError struct {
 	// T define type of error.
 	T int
@@ -43,9 +43,9 @@ type ReaderError struct {
 	N int
 }
 
-/*
-Error to string.
-*/
+//
+// Error to string.
+//
 func (e *ReaderError) Error() string {
 	return fmt.Sprintf("dsv.Reader.%-20s [%d:%d]: %-30s data:|%s|", e.Func, e.N,
 		e.Pos, e.What, e.Line)

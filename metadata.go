@@ -11,9 +11,9 @@ import (
 	"strings"
 )
 
-/*
-Metadata represent on how to parse each column in record.
-*/
+//
+// Metadata represent on how to parse each column in record.
+//
 type Metadata struct {
 	// Name of the column, optional.
 	Name string `json:"Name"`
@@ -37,9 +37,9 @@ type Metadata struct {
 	ValueSpace []string `json:"ValueSpace"`
 }
 
-/*
-NewMetadata create and return new metadata.
-*/
+//
+// NewMetadata create and return new metadata.
+//
 func NewMetadata(name, tipe, sep, leftq, rightq string, vs []string) (
 	md *Metadata,
 ) {
@@ -57,11 +57,11 @@ func NewMetadata(name, tipe, sep, leftq, rightq string, vs []string) (
 	return
 }
 
-/*
-Init initialize metadata column, i.e. check and set column type.
-
-If type is unknown it will default to string.
-*/
+//
+// Init initialize metadata column, i.e. check and set column type.
+//
+// If type is unknown it will default to string.
+//
 func (md *Metadata) Init() {
 	switch strings.ToUpper(md.Type) {
 	case "INTEGER", "INT":
@@ -74,66 +74,66 @@ func (md *Metadata) Init() {
 	}
 }
 
-/*
-GetName return the name of metadata.
-*/
+//
+// GetName return the name of metadata.
+//
 func (md *Metadata) GetName() string {
 	return md.Name
 }
 
-/*
-GetType return type of metadata.
-*/
+//
+// GetType return type of metadata.
+//
 func (md *Metadata) GetType() int {
 	return md.T
 }
 
-/*
-GetTypeName return string representation of type.
-*/
+//
+// GetTypeName return string representation of type.
+//
 func (md *Metadata) GetTypeName() string {
 	return md.Type
 }
 
-/*
-GetSeparator return the field separator.
-*/
+//
+// GetSeparator return the field separator.
+//
 func (md *Metadata) GetSeparator() string {
 	return md.Separator
 }
 
-/*
-GetLeftQuote return the string used in the beginning of record value.
-*/
+//
+// GetLeftQuote return the string used in the beginning of record value.
+//
 func (md *Metadata) GetLeftQuote() string {
 	return md.LeftQuote
 }
 
-/*
-GetRightQuote return string that end in record value.
-*/
+//
+// GetRightQuote return string that end in record value.
+//
 func (md *Metadata) GetRightQuote() string {
 	return md.RightQuote
 }
 
-/*
-GetSkip return number of rows that will be skipped when reading data.
-*/
+//
+// GetSkip return number of rows that will be skipped when reading data.
+//
 func (md *Metadata) GetSkip() bool {
 	return md.Skip
 }
 
-/*
-GetValueSpace return value space.
-*/
+//
+// GetValueSpace return value space.
+//
 func (md *Metadata) GetValueSpace() []string {
 	return md.ValueSpace
 }
 
-/*
-IsEqual return true if this metadata equal with other instance, return false
-otherwise.
-*/
+//
+// IsEqual return true if this metadata equal with other instance, return false
+// otherwise.
+//
 func (md *Metadata) IsEqual(o MetadataInterface) bool {
 	if md.Name != o.GetName() {
 		return false
@@ -150,9 +150,9 @@ func (md *Metadata) IsEqual(o MetadataInterface) bool {
 	return true
 }
 
-/*
-String yes, it will print it JSON like format.
-*/
+//
+// String yes, it will print it JSON like format.
+//
 func (md *Metadata) String() string {
 	r, e := json.MarshalIndent(md, "", "\t")
 	if nil != e {

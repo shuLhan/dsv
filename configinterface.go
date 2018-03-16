@@ -6,17 +6,17 @@ import (
 	"path"
 )
 
-/*
-ConfigInterface for reader and writer for initializing the config from JSON.
-*/
+//
+// ConfigInterface for reader and writer for initializing the config from JSON.
+//
 type ConfigInterface interface {
 	GetConfigPath() string
 	SetConfigPath(dir string)
 }
 
-/*
-ConfigOpen configuration file and initialize the attributes.
-*/
+//
+// ConfigOpen configuration file and initialize the attributes.
+//
 func ConfigOpen(rw interface{}, fcfg string) error {
 	cfg, e := ioutil.ReadFile(fcfg)
 
@@ -31,17 +31,17 @@ func ConfigOpen(rw interface{}, fcfg string) error {
 	return ConfigParse(rw, cfg)
 }
 
-/*
-ConfigParse from JSON string.
-*/
+//
+// ConfigParse from JSON string.
+//
 func ConfigParse(rw interface{}, cfg []byte) error {
 	return json.Unmarshal(cfg, rw)
 }
 
-/*
-ConfigCheckPath if no path in file, return the config path plus file name,
-otherwise leave it unchanged.
-*/
+//
+// ConfigCheckPath if no path in file, return the config path plus file name,
+// otherwise leave it unchanged.
+//
 func ConfigCheckPath(comin ConfigInterface, file string) string {
 	dir := path.Dir(file)
 

@@ -9,9 +9,9 @@ import (
 	"testing"
 )
 
-/*
-doInit create read-write object.
-*/
+//
+// doInit create read-write object.
+//
 func doInit(t *testing.T, fcfg string) (rw *dsv.ReadWriter, e error) {
 	// Initialize dsv
 	rw, e = dsv.New(fcfg, nil)
@@ -23,9 +23,9 @@ func doInit(t *testing.T, fcfg string) (rw *dsv.ReadWriter, e error) {
 	return
 }
 
-/*
-TestReadWriter test reading and writing DSV.
-*/
+//
+// TestReadWriter test reading and writing DSV.
+//
 func TestReadWriter(t *testing.T) {
 	rw, _ := doInit(t, "testdata/config.dsv")
 
@@ -39,9 +39,9 @@ func TestReadWriter(t *testing.T) {
 	assertFile(t, rw.GetOutput(), "testdata/expected.dat", true)
 }
 
-/*
-TestReadWriter test reading and writing DSV.
-*/
+//
+// TestReadWriter test reading and writing DSV.
+//
 func TestReadWriterAll(t *testing.T) {
 	rw, _ := doInit(t, "testdata/config.dsv")
 

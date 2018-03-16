@@ -23,44 +23,44 @@ const (
 	DatasetModeMATRIX = "MATRIX"
 )
 
-/*
-Reader hold all configuration, metadata and input data.
-
-DSV Reader work like this,
-
-(1) Initialize new dsv reader object
-
-	dsvReader, e := dsv.NewReader(configfile)
-
-(2) Do not forget to check for error ...
-
-	if e != nil {
-		// handle error
-	}
-
-(3) Make sure to close all files after finished
-
-	defer dsvReader.Close ()
-
-(4) Create loop to read input data
-
-	for {
-		n, e := dsv.Read (dsvReader)
-
-		if e == io.EOF {
-			break
-		}
-
-(4.1) Iterate through rows
-
-		for row := range dsvReader.GetDataAsRows() {
-			// work with row ...
-		}
-	}
-
-Thats it.
-
-*/
+//
+// Reader hold all configuration, metadata and input data.
+//
+// DSV Reader work like this,
+//
+// (1) Initialize new dsv reader object
+//
+// dsvReader, e := dsv.NewReader(configfile)
+//
+// (2) Do not forget to check for error ...
+//
+// if e != nil {
+// 	// handle error
+// }
+//
+// (3) Make sure to close all files after finished
+//
+// defer dsvReader.Close ()
+//
+// (4) Create loop to read input data
+//
+// for {
+// 	n, e := dsv.Read (dsvReader)
+//
+// 	if e == io.EOF {
+// 		break
+// 	}
+//
+// (4.1) Iterate through rows
+//
+// 	for row := range dsvReader.GetDataAsRows() {
+// 		// work with row ...
+// 	}
+// }
+//
+// Thats it.
+//
+//
 type Reader struct {
 	// Config define path of configuration file.
 	//
@@ -121,9 +121,9 @@ type Reader struct {
 	bufReject *bufio.Writer
 }
 
-/*
-NewReader create and initialize new instance of DSV Reader with default values.
-*/
+//
+// NewReader create and initialize new instance of DSV Reader with default values.
+//
 func NewReader(config string, dataset interface{}) (reader *Reader, e error) {
 	reader = &Reader{
 		Input:         "",
@@ -232,9 +232,9 @@ func (reader *Reader) Init(fcfg string, dataset interface{}) (e error) {
 	return
 }
 
-/*
-SetDefault options for global config and each metadata.
-*/
+//
+// SetDefault options for global config and each metadata.
+//
 func (reader *Reader) SetDefault() {
 	if "" == strings.TrimSpace(reader.Rejected) {
 		reader.Rejected = DefaultRejected
@@ -250,10 +250,10 @@ func (reader *Reader) SetDefault() {
 	}
 }
 
-/*
-CopyConfig copy configuration from other reader object not including data
-and metadata.
-*/
+//
+// CopyConfig copy configuration from other reader object not including data
+// and metadata.
+//
 func (reader *Reader) CopyConfig(src *Reader) {
 	reader.ConfigPath = src.GetConfigPath()
 	reader.Input = src.GetInput()
@@ -264,75 +264,75 @@ func (reader *Reader) CopyConfig(src *Reader) {
 	reader.DatasetMode = src.GetDatasetMode()
 }
 
-/*
-GetInput return the input file.
-*/
+//
+// GetInput return the input file.
+//
 func (reader *Reader) GetInput() string {
 	return reader.Input
 }
 
-/*
-SetInput file.
-*/
+//
+// SetInput file.
+//
 func (reader *Reader) SetInput(path string) {
 	reader.Input = path
 }
 
-/*
-GetSkip return number of line that will be skipped.
-*/
+//
+// GetSkip return number of line that will be skipped.
+//
 func (reader *Reader) GetSkip() int {
 	return reader.Skip
 }
 
-/*
-SetSkip set number of lines that will be skipped before reading actual data.
-*/
+//
+// SetSkip set number of lines that will be skipped before reading actual data.
+//
 func (reader *Reader) SetSkip(n int) {
 	reader.Skip = n
 }
 
-/*
-IsTrimSpace return value of TrimSpace option.
-*/
+//
+// IsTrimSpace return value of TrimSpace option.
+//
 func (reader *Reader) IsTrimSpace() bool {
 	return reader.TrimSpace
 }
 
-/*
-GetRejected return name of rejected file.
-*/
+//
+// GetRejected return name of rejected file.
+//
 func (reader *Reader) GetRejected() string {
 	return reader.Rejected
 }
 
-/*
-SetRejected file.
-*/
+//
+// SetRejected file.
+//
 func (reader *Reader) SetRejected(path string) {
 	reader.Rejected = path
 }
 
-/*
-AddInputMetadata add new input metadata to reader.
-*/
+//
+// AddInputMetadata add new input metadata to reader.
+//
 func (reader *Reader) AddInputMetadata(md *Metadata) {
 	reader.InputMetadata = append(reader.InputMetadata, *md)
 	ds := reader.dataset.(tabula.DatasetInterface)
 	ds.AddColumn(md.GetType(), md.GetName(), md.GetValueSpace())
 }
 
-/*
-AppendMetadata will append new metadata `md` to list of reader input metadata.
-*/
+//
+// AppendMetadata will append new metadata `md` to list of reader input metadata.
+//
 func (reader *Reader) AppendMetadata(mdi MetadataInterface) {
 	md := mdi.(*Metadata)
 	reader.InputMetadata = append(reader.InputMetadata, *md)
 }
 
-/*
-GetInputMetadata return pointer to slice of metadata.
-*/
+//
+// GetInputMetadata return pointer to slice of metadata.
+//
 func (reader *Reader) GetInputMetadata() []MetadataInterface {
 	md := make([]MetadataInterface, len(reader.InputMetadata))
 	for i := range reader.InputMetadata {
@@ -342,37 +342,37 @@ func (reader *Reader) GetInputMetadata() []MetadataInterface {
 	return md
 }
 
-/*
-GetInputMetadataAt return pointer to metadata at index 'idx'.
-*/
+//
+// GetInputMetadataAt return pointer to metadata at index 'idx'.
+//
 func (reader *Reader) GetInputMetadataAt(idx int) MetadataInterface {
 	return &reader.InputMetadata[idx]
 }
 
-/*
-GetMaxRows return number of maximum rows for reading.
-*/
+//
+// GetMaxRows return number of maximum rows for reading.
+//
 func (reader *Reader) GetMaxRows() int {
 	return reader.MaxRows
 }
 
-/*
-SetMaxRows will set maximum rows that will be read from input file.
-*/
+//
+// SetMaxRows will set maximum rows that will be read from input file.
+//
 func (reader *Reader) SetMaxRows(max int) {
 	reader.MaxRows = max
 }
 
-/*
-GetDatasetMode return output mode of data.
-*/
+//
+// GetDatasetMode return output mode of data.
+//
 func (reader *Reader) GetDatasetMode() string {
 	return reader.DatasetMode
 }
 
-/*
-SetDatasetMode to `mode`.
-*/
+//
+// SetDatasetMode to `mode`.
+//
 func (reader *Reader) SetDatasetMode(mode string) {
 	ds := reader.dataset.(tabula.DatasetInterface)
 	switch strings.ToUpper(mode) {
@@ -389,17 +389,17 @@ func (reader *Reader) SetDatasetMode(mode string) {
 	reader.DatasetMode = mode
 }
 
-/*
-GetNColumnIn return number of input columns, or number of metadata, including
-column with Skip=true.
-*/
+//
+// GetNColumnIn return number of input columns, or number of metadata, including
+// column with Skip=true.
+//
 func (reader *Reader) GetNColumnIn() int {
 	return len(reader.InputMetadata)
 }
 
-/*
-OpenInput open the input file, metadata must have been initialize.
-*/
+//
+// OpenInput open the input file, metadata must have been initialize.
+//
 func (reader *Reader) OpenInput() (e error) {
 	reader.fRead, e = os.OpenFile(reader.Input, os.O_RDONLY, 0600)
 	if nil != e {
@@ -420,9 +420,9 @@ func (reader *Reader) OpenInput() (e error) {
 	return nil
 }
 
-/*
-OpenRejected open rejected file, for saving unparseable line.
-*/
+//
+// OpenRejected open rejected file, for saving unparseable line.
+//
 func (reader *Reader) OpenRejected() (e error) {
 	reader.fReject, e = os.OpenFile(reader.Rejected,
 		os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
@@ -435,9 +435,9 @@ func (reader *Reader) OpenRejected() (e error) {
 	return nil
 }
 
-/*
-Open input and rejected file.
-*/
+//
+// Open input and rejected file.
+//
 func (reader *Reader) Open() (e error) {
 	// do not let file descriptor leaked
 	e = reader.Close()
@@ -455,10 +455,10 @@ func (reader *Reader) Open() (e error) {
 	return
 }
 
-/*
-SkipLines skip parsing n lines from input file.
-The n is defined in the attribute "Skip"
-*/
+//
+// SkipLines skip parsing n lines from input file.
+// The n is defined in the attribute "Skip"
+//
 func (reader *Reader) SkipLines() (e error) {
 	for i := 0; i < reader.Skip; i++ {
 		_, e = reader.ReadLine()
@@ -471,10 +471,10 @@ func (reader *Reader) SkipLines() (e error) {
 	return
 }
 
-/*
-Reset all variables for next read operation. Number of rows will be 0, and
-Rows will be empty again.
-*/
+//
+// Reset all variables for next read operation. Number of rows will be 0, and
+// Rows will be empty again.
+//
 func (reader *Reader) Reset() (e error) {
 	e = reader.Flush()
 	if e != nil {
@@ -484,16 +484,16 @@ func (reader *Reader) Reset() (e error) {
 	return
 }
 
-/*
-Flush all output buffer.
-*/
+//
+// Flush all output buffer.
+//
 func (reader *Reader) Flush() error {
 	return reader.bufReject.Flush()
 }
 
-/*
-ReadLine will read one line from input file.
-*/
+//
+// ReadLine will read one line from input file.
+//
 func (reader *Reader) ReadLine() (line []byte, e error) {
 	line, e = reader.bufRead.ReadBytes(DefEOL)
 
@@ -505,9 +505,9 @@ func (reader *Reader) ReadLine() (line []byte, e error) {
 	return
 }
 
-/*
-FetchNextLine read the next line and combine it with the `lastline`.
-*/
+//
+// FetchNextLine read the next line and combine it with the `lastline`.
+//
 func (reader *Reader) FetchNextLine(lastline []byte) (line []byte, e error) {
 	line, e = reader.ReadLine()
 
@@ -517,9 +517,9 @@ func (reader *Reader) FetchNextLine(lastline []byte) (line []byte, e error) {
 	return lastline, e
 }
 
-/*
-Reject the line and save it to the reject file.
-*/
+//
+// Reject the line and save it to the reject file.
+//
 func (reader *Reader) Reject(line []byte) (int, error) {
 	return reader.bufReject.Write(line)
 }
@@ -538,9 +538,9 @@ func (reader *Reader) deleteEmptyRejected() {
 	}
 }
 
-/*
-Close all open descriptors.
-*/
+//
+// Close all open descriptors.
+//
 func (reader *Reader) Close() (e error) {
 	if nil != reader.bufReject {
 		e = reader.bufReject.Flush()
@@ -563,9 +563,9 @@ func (reader *Reader) Close() (e error) {
 	return
 }
 
-/*
-IsEqual compare only the configuration and metadata with other instance.
-*/
+//
+// IsEqual compare only the configuration and metadata with other instance.
+//
 func (reader *Reader) IsEqual(other *Reader) bool {
 	if reader == other {
 		return true
@@ -589,17 +589,17 @@ func (reader *Reader) IsEqual(other *Reader) bool {
 	return true
 }
 
-/*
-GetDataset return reader dataset.
-*/
+//
+// GetDataset return reader dataset.
+//
 func (reader *Reader) GetDataset() interface{} {
 	return reader.dataset
 }
 
-/*
-MergeColumns append metadata and columns from another reader if not exist in
-current metadata set.
-*/
+//
+// MergeColumns append metadata and columns from another reader if not exist in
+// current metadata set.
+//
 func (reader *Reader) MergeColumns(other ReaderInterface) {
 	for _, md := range other.GetInputMetadata() {
 		if md.GetSkip() {
@@ -626,9 +626,9 @@ func (reader *Reader) MergeColumns(other ReaderInterface) {
 		other.GetDataset().(tabula.DatasetInterface))
 }
 
-/*
-MergeRows append rows from another reader.
-*/
+//
+// MergeRows append rows from another reader.
+//
 func (reader *Reader) MergeRows(other *Reader) {
 	reader.dataset.(tabula.DatasetInterface).MergeRows(
 		other.GetDataset().(tabula.DatasetInterface))

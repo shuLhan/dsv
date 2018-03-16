@@ -11,9 +11,9 @@ import (
 	"github.com/shuLhan/tabula"
 )
 
-/*
-TestWriter test reading and writing DSV.
-*/
+//
+// TestWriter test reading and writing DSV.
+//
 func TestWriter(t *testing.T) {
 	rw, e := dsv.New("testdata/config.dsv", nil)
 	if e != nil {
@@ -30,10 +30,10 @@ func TestWriter(t *testing.T) {
 	assertFile(t, rw.GetOutput(), "testdata/expected.dat", true)
 }
 
-/*
-TestWriterWithSkip test reading and writing DSV with some column in input being
-skipped.
-*/
+//
+// TestWriterWithSkip test reading and writing DSV with some column in input being
+// skipped.
+//
 func TestWriterWithSkip(t *testing.T) {
 	rw, e := dsv.New("testdata/config_skip.dsv", nil)
 	if e != nil {
@@ -50,10 +50,10 @@ func TestWriterWithSkip(t *testing.T) {
 	assertFile(t, rw.GetOutput(), "testdata/expected_skip.dat", true)
 }
 
-/*
-TestWriterWithColumns test reading and writing DSV with where each row
-is saved in DatasetMode = 'columns'.
-*/
+//
+// TestWriterWithColumns test reading and writing DSV with where each row
+// is saved in DatasetMode = 'columns'.
+//
 func TestWriterWithColumns(t *testing.T) {
 	rw, e := dsv.New("testdata/config_skip.dsv", nil)
 	if e != nil {
